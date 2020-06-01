@@ -18,13 +18,6 @@ _get_ipaddress() {
 		"$netstatus"
 }
 
-# TODO: Create a symbolic link named `kali.iso` to your ISO file.
-# TODO: Booting needs some manual help.
-# TODO: Explain how to start SSH, e.g., `service ssh restart`.
-cmd_help() {
-	printf "%s\n" 'I was not implemented yet.'
-}
-
 cmd_start() {
 	virsh start "$vmname"
 }
@@ -44,6 +37,7 @@ cmd_install() {
 		--boot cdrom \
 		--os-variant debian10 \
 		--nodisks \
+		--filesystem "$PWD/shared,/shared" \
 		--virt-type kvm \
 		--network "bridge=$ifname,mac.address=$macaddress" \
 		--noautoconsole
@@ -77,9 +71,6 @@ cmd_list() {
 cmd="$1"
 
 case "$cmd" in
-	help)
-		cmd_help
-		;;
 	start)
 		cmd_start
 		;;
@@ -102,6 +93,6 @@ case "$cmd" in
 		cmd_list
 		;;
 	*)
-		printf "%s\n" "Usage: $0 {help,start,stop,install,ssh,gui,clean,list}" >&2
+		printf "%s\n" "Usage: $0 {start,stop,install,ssh,gui,clean,list}" >&2
 		exit 1
 esac

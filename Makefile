@@ -1,10 +1,3 @@
-.PHONY: all
-all: help
-
-.PHONY: help
-help:
-	./kali $@
-
 .PHONY: start
 start:
 	./kali $@

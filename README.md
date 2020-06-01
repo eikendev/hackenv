@@ -17,3 +17,11 @@ Either put the file into this directory, or create a symbolic link, and rename i
 
 A `make install` creates the virtual machine (domain), with `make gui` will open a graphical user interface.
 You can enable SSH inside the box with `service ssh restart`, and connect to it from your host using `make ssh`.
+
+A mounting hint for the `shared/` directory in this repository is created as `/shared`.
+It can be mounted from inside the guest using the following snippet with privileges.
+See the [KVM documentation](https://www.linux-kvm.org/page/9p_virtio) for further information.
+```bash
+mkdir /shared
+mount -t 9p -o trans=virtio,version=9p2000.L /shared /shared
+```
