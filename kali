@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o errtrace
+
+cd "$(dirname "${BASH_SOURCE[0]}")"
+
+vmname='kali'
+ifname='virbr0'
+cdrom='./kali.iso'
+macaddress='52:54:00:08:f9:e8'
+netstatus="/var/lib/libvirt/dnsmasq/$ifname.status"
+
+_get_ipaddress() {
+	jq \
+		--raw-output \
+		".[] | select(.\"mac-address\"==\"$macaddress\") | .\"ip-address\"" \
+		"$netstatus"
+}
+
+# TODO: Create a symbolic link named `kali.iso` to your ISO file.
+# TODO: Booting needs some manual help.
+# TODO: Explain how to start SSH, e.g., `service ssh restart`.
+cmd_help() {
+	printf "%s\n" 'I was not implemented yet.'
+}
+
+cmd_start() {
+	virsh start "$vmname"
+}
+
+cmd_stop() {
+	virsh destroy "$vmname"
+}
+
+cmd_install() {
+	virt-install \
+		--connect qemu:///session \
+		--name "$vmname" \
+		--memory 3072 \
+		--vcpus 2 \
+		--cpu host \
+		--cdrom "$cdrom" \
+		--boot cdrom \
+		--os-variant debian10 \
+		--nodisks \
+		--virt-type kvm \
+		--network "bridge=$ifname,mac.address=$macaddress" \
+		--noautoconsole
+}
+
+cmd_ssh() {
+	ipaddress="$(_get_ipaddress)"
+	printf "%s\n" "Connecting to $ipaddress."
+
+	ssh \
+		-o UserKnownHostsFile=/dev/null \
+		-o StrictHostKeyChecking=no \
+		"$ipaddress"
+}
+
+cmd_gui() {
+	virt-viewer --connect qemu:///session "$vmname"
+}
+
+cmd_clean() {
+	set +e
+	cmd_stop
+	set -e
+	virsh undefine "$vmname"
+}
+
+cmd_list() {
+	virsh list --all
+}
+
+cmd="$1"
+
+case "$cmd" in
+	help)
+		cmd_help
+		;;
+	start)
+		cmd_start
+		;;
+	stop)
+		cmd_stop
+		;;
+	install)
+		cmd_install
+		;;
+	ssh)
+		cmd_ssh
+		;;
+	gui)
+		cmd_gui
+		;;
+	clean)
+		cmd_clean
+		;;
+	list)
+		cmd_list
+		;;
+	*)
+		printf "%s\n" "Usage: $0 {help,start,stop,install,ssh,gui,clean,list}" >&2
+		exit 1
+esac
