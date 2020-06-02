@@ -15,7 +15,7 @@ First, download the Kali Linux image that you want to use.
 This script assumes that it is the live version, no hard drive will be configured.
 Either put the file into this directory, or create a symbolic link, and rename it as `kali.iso`.
 
-A `make install` creates the virtual machine (domain), with `make gui` will open a graphical user interface.
+A `make install` creates the virtual machine (domain); `make gui` will open a graphical user interface.
 You can enable SSH inside the box with `service ssh restart`, and connect to it from your host using `make ssh`.
 
 A mounting hint for the `shared/` directory in this repository is created as `/shared`.
