@@ -111,6 +111,6 @@ case "$cmd" in
 		cmd_list
 		;;
 	*)
-		printf "%s\n" "Usage: $0 {start,stop,install,ssh,gui,clean,list}" >&2
+		printf "%s\n" "Usage: $0 {start,stop,install,download,ssh,gui,clean,list}" >&2
 		exit 1
 esac
