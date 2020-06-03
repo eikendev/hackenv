@@ -5,6 +5,9 @@ set -o errtrace
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
+archive_url='https://cdimage.kali.org/current/'
+checksum_url="$archive_url/SHA256SUMS"
+
 vmname='kali'
 ifname='virbr0'
 cdrom='./kali.iso'
@@ -43,7 +46,19 @@ cmd_install() {
 		--noautoconsole
 }
 
+cmd_download() {
+	if ! [ -f "$cdrom" ]; then
+		local remotename
+		remotename="$(curl -q -s -S -L $checksum_url | grep 'live.*amd64' | awk '{ print $2 }')"
+		curl -q -s -S -L -o "$cdrom" "$archive_url/$remotename"
+	else
+		printf "%s\n" 'Image already exists!'
+	fi
+}
+
 cmd_ssh() {
+	local ipaddress
+
 	ipaddress="$(_get_ipaddress)"
 	printf "%s\n" "Connecting to $ipaddress."
 
@@ -79,6 +94,9 @@ case "$cmd" in
 		;;
 	install)
 		cmd_install
+		;;
+	download)
+		cmd_download
 		;;
 	ssh)
 		cmd_ssh

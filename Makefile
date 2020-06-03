@@ -10,6 +10,10 @@ stop:
 install:
 	./kali $@
 
+.PHONY: download
+download:
+	./kali $@
+
 .PHONY: ssh
 ssh:
 	./kali $@
