@@ -12,6 +12,7 @@ Since I could not find a Kali Linux image providing libvirt support for Vagrant,
 ## Usage
 
 First, download the Kali Linux image that you want to use.
+You can instrument `make download` to download the latest release from the official mirrors.
 This script assumes that it is the live version, no hard drive will be configured.
 Either put the file into this directory, or create a symbolic link, and rename it as `kali.iso`.
 
