@@ -82,10 +82,10 @@ cmd_ssh() {
 	ipaddress="$(_get_ipaddress)"
 	printf "%s\n" "Connecting to $ipaddress."
 
-	ssh \
+	sshpass -p 'kali' ssh \
 		-o UserKnownHostsFile=/dev/null \
 		-o StrictHostKeyChecking=no \
-		"$ipaddress"
+		kali@"$ipaddress"
 }
 
 cmd_gui() {
