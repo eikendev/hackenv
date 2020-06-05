@@ -46,14 +46,29 @@ cmd_install() {
 		--noautoconsole
 }
 
+download_cdrom() {
+	local remotename
+	remotename="$(curl -q -s -S -L $checksum_url | grep 'live.*amd64' | awk '{ print $2 }')"
+	curl -q -L -o "$cdrom" "$archive_url/$remotename"
+}
+
 cmd_download() {
 	if ! [ -f "$cdrom" ]; then
-		local remotename
-		remotename="$(curl -q -s -S -L $checksum_url | grep 'live.*amd64' | awk '{ print $2 }')"
-		curl -q -s -S -L -o "$cdrom" "$archive_url/$remotename"
-	else
-		printf "%s\n" 'Image already exists!'
+		download_cdrom
+		return 0
 	fi
+
+	read -p 'Image already exists! Do you wish to continue? [Ny]: ' -r
+
+	if [[ ! $REPLY =~ ^[Yy]$ ]]
+	then
+		exit 0
+	fi
+
+	mv -f -u "$cdrom" "$cdrom.old"
+	rm -f "$cdrom"
+
+	download_cdrom
 }
 
 cmd_ssh() {
