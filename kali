@@ -89,7 +89,7 @@ cmd_ssh() {
 }
 
 cmd_gui() {
-	virt-viewer --connect qemu:///session "$vmname"
+	nohup virt-viewer --connect qemu:///session "$vmname" >/dev/null &
 }
 
 cmd_clean() {
