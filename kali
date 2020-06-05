@@ -48,13 +48,18 @@ cmd_install() {
 
 download_cdrom() {
 	local remotename
-	remotename="$(curl -q -s -S -L $checksum_url | grep 'live.*amd64' | awk '{ print $2 }')"
+	remotename="$1"
 	curl -q -L -o "$cdrom" "$archive_url/$remotename"
 }
 
 cmd_download() {
+	local remotename
+	remotename="$(curl -q -s -S -L $checksum_url | grep 'live.*amd64' | awk '{ print $2 }')"
+
+	printf "%s\n" "Found image $remotename."
+
 	if ! [ -f "$cdrom" ]; then
-		download_cdrom
+		download_cdrom "$remotename"
 		return 0
 	fi
 
@@ -68,7 +73,7 @@ cmd_download() {
 	mv -f -u "$cdrom" "$cdrom.old"
 	rm -f "$cdrom"
 
-	download_cdrom
+	download_cdrom "$remotename"
 }
 
 cmd_ssh() {
