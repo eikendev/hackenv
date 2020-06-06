@@ -40,7 +40,7 @@ cmd_install() {
 		--boot cdrom \
 		--os-variant debian10 \
 		--nodisks \
-		--filesystem "$PWD/shared,/shared" \
+		--filesystem "mode=mapped,source=$PWD/shared,target=/shared" \
 		--virt-type kvm \
 		--network "bridge=$ifname,mac.address=$macaddress" \
 		--noautoconsole

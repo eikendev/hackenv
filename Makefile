@@ -1,3 +1,5 @@
+SHARED_DIR := shared
+
 .PHONY: start
 start:
 	./kali $@
@@ -29,3 +31,9 @@ clean:
 .PHONY: list
 list:
 	./kali $@
+
+.PHONY: permissions
+permissions:
+	chmod 777 "./${shared}"
+	sudo semanage fcontext -a -t svirt_image_t "${PWD}/${shared}(/.*)?"
+	sudo restorecon -vrF "${PWD}/${shared}"
