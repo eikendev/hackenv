@@ -15,21 +15,23 @@ First, download the Kali Linux image that you want to use.
 You can either do this manually, or by instrumenting `make download` to download the latest release from the official mirrors.
 
 If downloading the image manually, make sure to use the live version.
-You have to put the file into this directory, or create a symbolic link, and rename it to `kali.iso`.
+You have to put the file into this directory or create a symbolic link, and rename it to `kali.iso`.
 
-A `make install` creates (and boots) the virtual machine (domain); `make gui` will open a graphical user interface.
-You can enable SSH inside the box with `sudo service ssh restart`, and connect to it from your host using `make ssh`.
+To get started, use
+- `make install` to create and boot the virtual machine (domain), and
+- `make gui` to open a graphical user interface.
+
+### SSH Access
+
+Once the machine has booted, enable SSH inside the box with `sudo service ssh restart`.
+At this point, you can connect to it from your host using `make ssh`.
 
 ### File Sharing
 
-A mounting hint for the `shared/` directory in this repository is created as `/shared`.
-It can be mounted from inside the guest using the following snippet with privileges.
-See the [KVM documentation](https://www.linux-kvm.org/page/9p_virtio) for further information.
-```bash
-mkdir /shared
-mount -t 9p -o trans=virtio,version=9p2000.L /shared /shared
-```
+To make file sharing easier, you can now run `make share` to setup a shared directory between the host and the virtual machine.
+On the host side, the directory is `./shared` inside this repository.
+On the client side, it is located at `/shared`.
 
-
-If you have trouble with SELinux, you have to adjust the context of the `shared/` directory.
+If SELinux denies access to the shared directory, you have to adjust the context of the `shared/` directory.
 The make target `make permissions` will do this for you if you are running Fedora or similar.
+Be sure to re-adjust the permissions if you add files externally.

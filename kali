@@ -10,7 +10,8 @@ checksum_url="$archive_url/SHA256SUMS"
 
 vmname='kali'
 ifname='virbr0'
-cdrom='./kali.iso'
+share="$PWD/shared"
+cdrom="$PWD/kali.iso"
 macaddress='52:54:00:08:f9:e8'
 netstatus="/var/lib/libvirt/dnsmasq/$ifname.status"
 
@@ -103,6 +104,30 @@ cmd_list() {
 	virsh list --all
 }
 
+# See [0] for more information.
+# [0] https://www.linux-kvm.org/page/9p_virtio
+cmd_share() {
+	local ipaddress
+
+	ipaddress="$(_get_ipaddress)"
+	printf "%s\n" "Connecting to $ipaddress."
+
+	sshpass -p 'kali' ssh \
+		-o UserKnownHostsFile=/dev/null \
+		-o StrictHostKeyChecking=no \
+		kali@"$ipaddress" <<-EOF
+			sudo su -c 'mkdir /shared
+			mount -t 9p -o trans=virtio,version=9p2000.L /shared /shared'
+		EOF
+}
+
+cmd_permissions() {
+	chmod 777 "$share"
+	sudo semanage fcontext "$share(/.*)?" --deleteall
+	sudo semanage fcontext -a -t svirt_image_t "$share(/.*)?"
+	sudo restorecon -vrF "$share"
+}
+
 cmd="$1"
 
 case "$cmd" in
@@ -130,7 +155,13 @@ case "$cmd" in
 	list)
 		cmd_list
 		;;
+	share)
+		cmd_share
+		;;
+	permissions)
+		cmd_permissions
+		;;
 	*)
-		printf "%s\n" "Usage: $0 {start,stop,install,download,ssh,gui,clean,list}" >&2
+		printf "%s\n" "Usage: $0 {start,stop,install,download,ssh,gui,clean,list,share,permissions}" >&2
 		exit 1
 esac
