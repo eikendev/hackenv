@@ -32,6 +32,6 @@ To make file sharing easier, you can now run `make share` to setup a shared dire
 On the host side, the directory is `./shared` inside this repository.
 On the client side, it is located at `/shared`.
 
-If SELinux denies access to the shared directory, you have to adjust the context of the `shared/` directory.
-The make target `make permissions` will do this for you if you are running Fedora or similar.
+If SELinux denies access to the shared directory, you have to adjust the context of the directory.
+Running `make permissions` will do this for you if you are on Fedora or similar.
 Be sure to re-adjust the permissions if you add files externally.
