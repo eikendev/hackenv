@@ -41,13 +41,13 @@ cmd_install() {
 		--boot cdrom \
 		--os-variant debian10 \
 		--nodisks \
-		--filesystem "mode=mapped,source=$PWD/shared,target=/shared" \
+		--filesystem "mode=mapped,source=$share,target=/shared" \
 		--virt-type kvm \
 		--network "bridge=$ifname,mac.address=$macaddress" \
 		--noautoconsole
 }
 
-download_cdrom() {
+_download_cdrom() {
 	local remotename
 	remotename="$1"
 	curl -q -L -o "$cdrom" "$archive_url/$remotename"
@@ -60,7 +60,7 @@ cmd_download() {
 	printf "%s\n" "Found image $remotename."
 
 	if ! [ -f "$cdrom" ]; then
-		download_cdrom "$remotename"
+		_download_cdrom "$remotename"
 		return 0
 	fi
 
@@ -74,13 +74,19 @@ cmd_download() {
 	mv -f -u "$cdrom" "$cdrom.old"
 	rm -f "$cdrom"
 
-	download_cdrom "$remotename"
+	_download_cdrom "$remotename"
 }
 
 cmd_ssh() {
 	local ipaddress
 
 	ipaddress="$(_get_ipaddress)"
+
+	if [ -z "$ipaddress" ]; then
+		printf "%s\n" "IP address not found, is the domain up?" >&2
+		return 1
+	fi
+
 	printf "%s\n" "Connecting to $ipaddress."
 
 	sshpass -p 'kali' ssh \
@@ -110,6 +116,12 @@ cmd_share() {
 	local ipaddress
 
 	ipaddress="$(_get_ipaddress)"
+
+	if [ -z "$ipaddress" ]; then
+		printf "%s\n" "IP address not found, is the domain up?" >&2
+		return 1
+	fi
+
 	printf "%s\n" "Connecting to $ipaddress."
 
 	sshpass -p 'kali' ssh \
