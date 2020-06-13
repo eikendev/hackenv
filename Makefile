@@ -1,3 +1,9 @@
+TARGET := kali
+
+.PHONY: check
+check:
+	shellcheck ${TARGET}
+
 .PHONY: start
 start:
 	./kali $@
