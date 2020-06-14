@@ -15,6 +15,14 @@ cdrom="$(realpath $scriptpath/../kali.iso)"
 macaddress='52:54:00:08:f9:e8'
 netstatus="/var/lib/libvirt/dnsmasq/$ifname.status"
 
+_setup_directories() {
+	if ! [ -d "$share" ]; then
+		mkdir -p "$share"
+	fi
+
+	chmod 777 "$share"
+}
+
 _get_ipaddress() {
 	jq \
 		--raw-output \
@@ -134,13 +142,14 @@ cmd_share() {
 }
 
 cmd_permissions() {
-	chmod 777 "$share"
 	sudo semanage fcontext "$share(/.*)?" --deleteall
 	sudo semanage fcontext -a -t svirt_image_t "$share(/.*)?"
 	sudo restorecon -vrF "$share"
 }
 
 cmd="$1"
+
+_setup_directories
 
 case "$cmd" in
 	start)
