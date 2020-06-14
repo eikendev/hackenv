@@ -10,8 +10,8 @@ checksum_url="$archive_url/SHA256SUMS"
 
 vmname='kali'
 ifname='virbr0'
-share="$(realpath $scriptpath/../shared)"
-cdrom="$(realpath $scriptpath/../kali.iso)"
+share="$(realpath "$scriptpath/../shared")"
+cdrom="$(realpath "$scriptpath/../kali.iso")"
 macaddress='52:54:00:08:f9:e8'
 netstatus="/var/lib/libvirt/dnsmasq/$ifname.status"
 

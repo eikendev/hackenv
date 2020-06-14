@@ -1,4 +1,4 @@
-TARGET := kali
+TARGET := ./bin/kali
 
 .PHONY: check
 check:
