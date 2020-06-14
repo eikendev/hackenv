@@ -11,27 +11,30 @@ Since I could not find a Kali Linux image providing libvirt support for Vagrant,
 
 ## Usage
 
+To make the following steps more convenient, I advise you to add `./bin/kali` to your path.
+For instance, you can run `make install` to link it from your `~/bin` directory.
+
 First, download the Kali Linux image that you want to use.
-You can either do this manually, or by instrumenting `make download` to download the latest release from the official mirrors.
+You can either do this manually, or by instrumenting `kali download` to download the latest release from the official mirrors.
 
 If downloading the image manually, make sure to use the live version.
 You have to put the file into this directory or create a symbolic link, and rename it to `kali.iso`.
 
 To get started, use
-- `make install` to create and boot the virtual machine (domain), and
-- `make gui` to open a graphical user interface.
+- `kali install` to create and boot the virtual machine (domain), and
+- `kali gui` to open a graphical user interface.
 
 ### SSH Access
 
 Once the machine has booted, enable SSH inside the box with `sudo service ssh restart`.
-At this point, you can connect to it from your host using `make ssh`.
+At this point, you can connect to it from your host using `kali ssh`.
 
 ### File Sharing
 
-To make file sharing easier, you can now run `make share` to setup a shared directory between the host and the virtual machine.
+You can now run `kali share` to setup a shared directory between the host and the virtual machine.
 On the host side, the directory is `./shared` inside this repository.
 On the client side, it is located at `/shared`.
 
 If SELinux denies access to the shared directory, you have to adjust the context of the directory.
-Running `make permissions` will do this for you if you are on Fedora or similar.
+Running `kali permissions` will do this for you if you are on Fedora or similar.
 Be sure to re-adjust the permissions if you add files externally.
