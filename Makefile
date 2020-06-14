@@ -6,40 +6,40 @@ check:
 
 .PHONY: start
 start:
-	./kali $@
+	./bin/kali $@
 
 .PHONY: stop
 stop:
-	./kali $@
+	./bin/kali $@
 
 .PHONY: install
 install:
-	./kali $@
+	./bin/kali $@
 
 .PHONY: download
 download:
-	./kali $@
+	./bin/kali $@
 
 .PHONY: ssh
 ssh:
-	./kali $@
+	./bin/kali $@
 
 .PHONY: gui
 gui:
-	./kali $@
+	./bin/kali $@
 
 .PHONY: clean
 clean:
-	./kali $@
+	./bin/kali $@
 
 .PHONY: list
 list:
-	./kali $@
+	./bin/kali $@
 
 .PHONY: share
 share:
-	./kali $@
+	./bin/kali $@
 
 .PHONY: permissions
 permissions:
-	./kali $@
+	./bin/kali $@

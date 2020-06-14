@@ -3,15 +3,15 @@
 set -o errexit
 set -o errtrace
 
-cd "$(dirname "${BASH_SOURCE[0]}")"
+scriptpath="$(dirname "${BASH_SOURCE[0]}")"
 
 archive_url='https://cdimage.kali.org/current/'
 checksum_url="$archive_url/SHA256SUMS"
 
 vmname='kali'
 ifname='virbr0'
-share="$PWD/shared"
-cdrom="$PWD/kali.iso"
+share="$(realpath $scriptpath/../shared)"
+cdrom="$(realpath $scriptpath/../kali.iso)"
 macaddress='52:54:00:08:f9:e8'
 netstatus="/var/lib/libvirt/dnsmasq/$ifname.status"
 
