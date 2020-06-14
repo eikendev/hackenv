@@ -3,7 +3,7 @@
 set -o errexit
 set -o errtrace
 
-scriptpath="$(dirname "${BASH_SOURCE[0]}")"
+scriptpath="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
 archive_url='https://cdimage.kali.org/current/'
 checksum_url="$archive_url/SHA256SUMS"
