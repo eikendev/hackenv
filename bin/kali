@@ -63,7 +63,7 @@ _download_cdrom() {
 
 cmd_download() {
 	local remotename
-	remotename="$(curl -q -s -S -L $checksum_url | grep 'live.*amd64' | awk '{ print $2 }')"
+	remotename="$(curl -q -s -S -L "$checksum_url" | grep 'live.*amd64' | awk '{ print $2 }')"
 
 	printf "%s\n" "Found image $remotename."
 
