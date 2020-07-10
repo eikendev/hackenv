@@ -1,0 +1,8 @@
+os: linux
+language: shell
+addons:
+  apt:
+    packages:
+    - shellcheck
+script:
+- make check
