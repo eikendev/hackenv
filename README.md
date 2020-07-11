@@ -1,3 +1,6 @@
+[![Build status](https://img.shields.io/travis/eikendev/kali-libvirt/master)](https://travis-ci.com/github/eikendev/kali-libvirt/builds/)
+![License](https://img.shields.io/github/license/eikendev/kali-libvirt)
+
 ## About
 
 Did you ever find yourself in a situation where you needed access to a fresh [Kali Linux](https://www.kali.org/) installation and didn't want to go through the trouble of setting it up manually?
