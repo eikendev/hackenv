@@ -1,7 +1,7 @@
 [![Build status](https://img.shields.io/travis/eikendev/kali-libvirt/master)](https://travis-ci.com/github/eikendev/kali-libvirt/builds/)
 ![License](https://img.shields.io/github/license/eikendev/kali-libvirt)
 
-![Showcase](https://i.imgur.com/YxIJvCz.gifv)
+![Showcase](https://i.imgur.com/YxIJvCz.gif)
 
 ## About
 
