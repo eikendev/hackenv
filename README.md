@@ -1,8 +1,6 @@
 [![Build status](https://img.shields.io/travis/eikendev/kali-libvirt/master)](https://travis-ci.com/github/eikendev/kali-libvirt/builds/)
 ![License](https://img.shields.io/github/license/eikendev/kali-libvirt)
 
-![Showcase](https://i.imgur.com/YxIJvCz.gif)
-
 ## About
 
 Did you ever find yourself in a situation where you needed access to a fresh [Kali Linux](https://www.kali.org/) installation and didn't want to go through the trouble of setting it up manually?
@@ -15,6 +13,8 @@ However, [libvirt](https://libvirt.org/) turned out to be a lot more convenient 
 Since I could not find a Kali Linux image providing libvirt support for Vagrant, I settled to use this helper script.
 
 ## Usage
+
+![Showcase](https://i.imgur.com/YxIJvCz.gif)
 
 To make the following steps more convenient, I advise you to add `./bin/kali` to your path.
 For instance, you can run `make install` to link it from your `~/bin` directory.
@@ -43,3 +43,14 @@ On the client side, it is located at `/shared`.
 If SELinux denies access to the shared directory, you have to adjust the context of the directory.
 Running `kali permissions` will do this for you if you are on Fedora or similar.
 Be sure to re-adjust the permissions if you add files externally.
+
+## Dependencies
+
+This should be a complete list.
+Most of these are standard tools.
+
+- [curl](https://curl.haxx.se/)
+- [jq](https://github.com/stedolan/jq)
+- [sshpass](https://sourceforge.net/projects/sshpass/)
+- [virsh](https://libvirt.org/)
+- [virt-install](https://virt-manager.org/)
