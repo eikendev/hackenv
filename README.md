@@ -50,7 +50,7 @@ This should be a complete list.
 Most of these are standard tools.
 
 - [curl](https://curl.haxx.se/)
-- [jq](https://github.com/stedolan/jq)
+- [jq](https://stedolan.github.io/jq/)
 - [sshpass](https://sourceforge.net/projects/sshpass/)
 - [virsh](https://libvirt.org/)
 - [virt-install](https://virt-manager.org/)
