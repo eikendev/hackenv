@@ -134,12 +134,17 @@ cmd_share() {
 
 	printf "%s\n" "Connecting to $ipaddress."
 
+	local keymap
+	keymap="$(localectl status | grep -i 'X11 Layout' | cut -d ':' -f 2)"
+
 	sshpass -p 'kali' ssh \
 		-o UserKnownHostsFile=/dev/null \
 		-o StrictHostKeyChecking=no \
 		kali@"$ipaddress" <<-EOF
 			sudo su -c 'mkdir /shared
 			mount -t 9p -o trans=virtio,version=9p2000.L /shared /shared'
+			DISPLAY=:0 xrandr --size 1920x1080
+			DISPLAY=:0 setxkbmap $keymap
 		EOF
 }
 
