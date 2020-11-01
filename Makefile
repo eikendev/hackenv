@@ -8,7 +8,7 @@ check:
 
 .PHONY: install
 install:
-	ln -s -r ${BASEDIR}/${TARGET} ${HOME}/bin/
+	ln -i -s -r ${BASEDIR}/${TARGET} ${HOME}/bin/
 
 .PHONY: clean
 clean:
