@@ -98,8 +98,10 @@ cmd_ssh() {
 	printf "%s\n" "Connecting to $ipaddress."
 
 	sshpass -p 'kali' ssh \
-		-o UserKnownHostsFile=/dev/null \
+		-C \
 		-o StrictHostKeyChecking=no \
+		-o UserKnownHostsFile=/dev/null \
+		-X \
 		kali@"$ipaddress"
 }
 
