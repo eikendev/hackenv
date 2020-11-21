@@ -1,4 +1,4 @@
-[![Build status](https://img.shields.io/travis/eikendev/kali-libvirt/master)](https://travis-ci.com/github/eikendev/kali-libvirt/builds/)
+[![Build status](https://img.shields.io/github/workflow/status/eikendev/kali-libvirt/Main)](https://github.com/eikendev/kali-libvirt/actions)
 ![License](https://img.shields.io/github/license/eikendev/kali-libvirt)
 
 ## About
