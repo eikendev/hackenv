@@ -2,8 +2,11 @@ TARGET := ./bin/kali
 
 BASEDIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
-.PHONY: check
-check:
+.PHONY: test
+test: lint
+
+.PHONY: lint
+lint:
 	shellcheck ${TARGET}
 
 .PHONY: install

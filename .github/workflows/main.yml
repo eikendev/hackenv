@@ -1,0 +1,11 @@
+name: Main Workflow
+on: push
+jobs:
+  test:
+    name: Run code linters and tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Run 'make test'
+        run: make test
