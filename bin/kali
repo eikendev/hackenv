@@ -137,14 +137,20 @@ cmd_share() {
 	local keymap
 	keymap="$(localectl status | grep -i 'X11 Layout' | cut -d ':' -f 2)"
 
+	local hostip
+	hostip="$(ip addr show dev $ifname | awk '/inet/ {print $2}' | cut -d/ -f1)"
+
 	sshpass -p 'kali' ssh \
 		-o UserKnownHostsFile=/dev/null \
 		-o StrictHostKeyChecking=no \
 		kali@"$ipaddress" <<-EOF
 			sudo su -c 'mkdir /shared
-			mount -t 9p -o trans=virtio,version=9p2000.L /shared /shared'
+			mount -t 9p -o trans=virtio,version=9p2000.L /shared /shared
+			sudo iptables -A INPUT -s $hostip -p tcp --dport 22 -j ACCEPT
+			sudo iptables -A INPUT -p tcp --dport 22 -j DROP'
 			DISPLAY=:0 xrandr --size 1920x1080
 			DISPLAY=:0 setxkbmap $keymap
+			touch ~/.hushlogin
 		EOF
 }
 
