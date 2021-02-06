@@ -15,6 +15,9 @@ cdrom="$basedir/kali.iso"
 macaddress='52:54:00:08:f9:e8'
 netstatus="/var/lib/libvirt/dnsmasq/$ifname.status"
 
+ssh_username='kali'
+ssh_password='kali'
+
 _setup_directories() {
 	if ! [ -d "$share" ]; then
 		mkdir -p "$share"
@@ -58,12 +61,16 @@ cmd_install() {
 _download_cdrom() {
 	local remotename
 	remotename="$1"
-	curl -q -L -o "$cdrom" "$archive_url/$remotename"
+	curl --proto '=https' -q -L -o "$cdrom" "$archive_url/$remotename"
 }
 
 cmd_download() {
 	local remotename
-	remotename="$(curl -q -s -S -L "$checksum_url" | grep 'live.*amd64' | awk '{ print $2 }')"
+	remotename="$(\
+		curl --proto '=https' -q -L -s -S "$checksum_url" \
+		| grep 'live.*amd64' \
+		| awk '{ print $2 }' \
+	)"
 
 	printf "%s\n" "Found image $remotename."
 
@@ -86,23 +93,22 @@ cmd_download() {
 }
 
 cmd_ssh() {
-	local ipaddress
+	local guestip
+	guestip="$(_get_ipaddress)"
 
-	ipaddress="$(_get_ipaddress)"
-
-	if [ -z "$ipaddress" ]; then
+	if [ -z "$guestip" ]; then
 		printf "%s\n" "IP address not found, is the domain up?" >&2
 		return 1
 	fi
 
-	printf "%s\n" "Connecting to $ipaddress."
+	printf "%s\n" "Connecting to $guestip."
 
-	sshpass -p 'kali' ssh \
+	sshpass -p "$ssh_password" ssh \
 		-C \
 		-o StrictHostKeyChecking=no \
 		-o UserKnownHostsFile=/dev/null \
 		-X \
-		kali@"$ipaddress"
+		"$ssh_username@$guestip"
 }
 
 cmd_gui() {
@@ -123,27 +129,35 @@ cmd_list() {
 # See [0] for more information.
 # [0] https://www.linux-kvm.org/page/9p_virtio
 cmd_share() {
-	local ipaddress
+	local guestip
 
-	ipaddress="$(_get_ipaddress)"
+	guestip="$(_get_ipaddress)"
 
-	if [ -z "$ipaddress" ]; then
+	if [ -z "$guestip" ]; then
 		printf "%s\n" "IP address not found, is the domain up?" >&2
 		return 1
 	fi
 
-	printf "%s\n" "Connecting to $ipaddress."
+	printf "%s\n" "Connecting to $guestip."
 
 	local keymap
-	keymap="$(localectl status | grep -i 'X11 Layout' | cut -d ':' -f 2)"
+	keymap="$(\
+		localectl status \
+		| grep -i 'X11 Layout' \
+		| cut -d ':' -f 2 \
+	)"
 
 	local hostip
-	hostip="$(ip addr show dev $ifname | awk '/inet/ {print $2}' | cut -d/ -f1)"
+	hostip="$(\
+		ip addr show dev $ifname \
+		| awk '/inet/ {print $2}' \
+		| cut -d/ -f1 \
+	)"
 
-	sshpass -p 'kali' ssh \
+	sshpass -p "$ssh_password" ssh \
 		-o UserKnownHostsFile=/dev/null \
 		-o StrictHostKeyChecking=no \
-		kali@"$ipaddress" <<-EOF
+		"$ssh_username@$guestip" <<-EOF
 			sudo su -c 'mkdir /shared
 			mount -t 9p -o trans=virtio,version=9p2000.L /shared /shared
 			sudo iptables -A INPUT -s $hostip -p tcp --dport 22 -j ACCEPT
@@ -155,6 +169,10 @@ cmd_share() {
 }
 
 cmd_permissions() {
+	sudo semanage fcontext "$cdrom" --deleteall
+	sudo semanage fcontext -a -t svirt_image_t "$cdrom"
+	sudo restorecon -vrF "$cdrom"
+
 	sudo semanage fcontext "$share(/.*)?" --deleteall
 	sudo semanage fcontext -a -t svirt_image_t "$share(/.*)?"
 	sudo restorecon -vrF "$share"
@@ -173,6 +191,7 @@ case "$cmd" in
 		;;
 	install)
 		cmd_install
+		cmd_gui
 		;;
 	download)
 		cmd_download
