@@ -31,7 +31,7 @@ To get started, use
 
 ### SSH Access
 
-Once the machine has booted, enable SSH inside the box with `sudo service ssh restart`.
+Once the machine has booted, enable SSH inside the box with `sudo service ssh restart` or `sudo systemctl restart ssh`.
 At this point, you can connect to it from your host using `kali ssh`.
 
 ### File Sharing
