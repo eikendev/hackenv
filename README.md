@@ -44,6 +44,16 @@ If SELinux denies access to the shared directory, you have to adjust the context
 Running `kali permissions` will do this for you if you are on Fedora or similar.
 Be sure to re-adjust the permissions if you add files externally.
 
+## Configuration
+
+The configuration is read from `~/.config/kali-libvirt/env` if available.
+See below for available options and their default.
+
+```bash
+vm_cpus='2' # The number of virtual CPUs to configure for the VM.
+vm_memory='3072' # The amount of memory to allocate for the VM, in MiB.
+```
+
 ## Dependencies
 
 This should be a complete list.

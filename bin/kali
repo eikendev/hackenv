@@ -3,15 +3,27 @@
 set -o errexit
 set -o errtrace
 
-basedir="$(realpath "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/../")"
+confighome="${XDG_CONFIG_HOME:-$HOME/.config}"
+confighome="$confighome/kali-libvirt"
+
+vm_cpus='2'
+vm_memory='3072'
+
+if [[ -f "$confighome/env" ]]; then
+	# shellcheck source=/dev/null
+	source "$confighome/env"
+fi
+
+datahome="${XDG_DATA_HOME:-$HOME/.local/share}"
+datahome="$datahome/kali-libvirt"
 
 archive_url='https://cdimage.kali.org/current/'
 checksum_url="$archive_url/SHA256SUMS"
 
-vmname='kali'
+vm_name='kali'
 ifname='virbr0'
-share="$basedir/shared"
-cdrom="$basedir/kali.iso"
+share="$(realpath "$datahome/shared")"
+cdrom="$(realpath "$datahome/kali.iso")"
 macaddress='52:54:00:08:f9:e8'
 netstatus="/var/lib/libvirt/dnsmasq/$ifname.status"
 
@@ -19,11 +31,15 @@ ssh_username='kali'
 ssh_password='kali'
 
 _setup_directories() {
+	if ! [ -d "$datahome" ]; then
+		mkdir -p "$datahome"
+	fi
+
 	if ! [ -d "$share" ]; then
 		mkdir -p "$share"
 	fi
 
-	chmod 777 "$share"
+	chmod 770 "$share"
 }
 
 _get_ipaddress() {
@@ -34,19 +50,19 @@ _get_ipaddress() {
 }
 
 cmd_start() {
-	virsh start "$vmname"
+	virsh start "$vm_name"
 }
 
 cmd_stop() {
-	virsh destroy "$vmname"
+	virsh destroy "$vm_name"
 }
 
 cmd_install() {
 	virt-install \
 		--connect qemu:///session \
-		--name "$vmname" \
-		--memory 3072 \
-		--vcpus 2 \
+		--name "$vm_name" \
+		--memory "$vm_memory" \
+		--vcpus "$vm_cpus" \
 		--cpu host \
 		--cdrom "$cdrom" \
 		--boot cdrom \
@@ -112,14 +128,14 @@ cmd_ssh() {
 }
 
 cmd_gui() {
-	nohup virt-viewer --connect qemu:///session "$vmname" >/dev/null &
+	nohup virt-viewer --connect qemu:///session "$vm_name" >/dev/null &
 }
 
 cmd_clean() {
 	set +e
 	cmd_stop
 	set -e
-	virsh undefine "$vmname"
+	virsh undefine "$vm_name"
 }
 
 cmd_list() {
