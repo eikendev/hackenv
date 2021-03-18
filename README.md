@@ -23,11 +23,11 @@ First, download the Kali Linux image that you want to use.
 You can either do this manually, or by instrumenting `kali download` to download the latest release from the official mirrors.
 
 If downloading the image manually, make sure to use the live version.
-You have to put the file into this directory or create a symbolic link, and rename it to `kali.iso`.
+The file must be moved an renamed so it is available at `$HOME/.local/share/kali-libvirt/kali.iso` (or in your custom `$XDG_DATA_HOME`).
 
-To get started, use
-- `kali install` to create and boot the virtual machine (domain), and
-- `kali gui` to open a graphical user interface.
+To get started, use `kali install` to create and boot the virtual machine (domain).
+A GUI window should automatically pop up.
+If you accidentally close it, run `kali gui` to open it again.
 
 ### SSH Access
 
