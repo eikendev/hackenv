@@ -50,7 +50,7 @@ _get_ipaddress() {
 }
 
 _send_key() {
-	virsh send-key "$vm_name" $@
+	virsh send-key "$vm_name" "$@"
 }
 
 _restart_ssh() {
