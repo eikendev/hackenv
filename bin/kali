@@ -50,7 +50,7 @@ _get_ipaddress() {
 }
 
 _send_key() {
-	virsh send-key "$vm_name" "$@"
+	virsh send-key "$vm_name" "$@" &>/dev/null
 }
 
 _restart_ssh() {
@@ -122,7 +122,7 @@ _setup_share() {
 	sshpass -p "$ssh_password" ssh \
 		-o UserKnownHostsFile=/dev/null \
 		-o StrictHostKeyChecking=no \
-		"$ssh_username@$guestip" <<-EOF
+		"$ssh_username@$guestip" &>/dev/null <<-EOF
 			sudo su -c 'mkdir /shared
 			mount -t 9p -o trans=virtio,version=9p2000.L /shared /shared
 			sudo iptables -A INPUT -s $hostip -p tcp --dport 22 -j ACCEPT
@@ -150,8 +150,21 @@ cmd_install() {
 		--noautoconsole
 	sleep 1
 	_send_key KEY_ENTER
-	printf "%s\n" 'Waiting for the machine to boot completely...'
-	sleep 20
+	local err
+	for (( i=0; i<10; ++i )); do
+		sleep 1
+		printf "%s" 'Check if machine is up... '
+		set +e
+		ping -c 1 -W 1 "$(_get_ipaddress)" &>/dev/null
+		err="$?"
+		set -e
+		if (( err == 0 )); then
+			printf "%s\n" 'UP'
+			sleep 3 # Give the machine some more time to get the TTYs ready.
+			break
+		fi
+		printf "%s\n" 'BOOTING'
+	done
 	_restart_ssh
 	_setup_share
 }
@@ -179,8 +192,7 @@ cmd_download() {
 
 	read -p 'Image already exists! Do you wish to continue? [Ny]: ' -r
 
-	if [[ ! $REPLY =~ ^[Yy]$ ]]
-	then
+	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 		exit 0
 	fi
 
