@@ -1,5 +1,10 @@
-[![Build status](https://img.shields.io/github/workflow/status/eikendev/kali-libvirt/Main)](https://github.com/eikendev/kali-libvirt/actions)
-![License](https://img.shields.io/github/license/eikendev/kali-libvirt)
+[![Build status](https://img.shields.io/github/workflow/status/eikendev/hackenv/Main)](https://github.com/eikendev/hackenv/actions)
+![License](https://img.shields.io/github/license/eikendev/hackenv)
+
+# hackenv
+
+| :exclamation:  I have recently reimplemented this tool in Go to make it more convenient to use. The following description is therefore outdated.   |
+|-------------------------------------------------------------|
 
 ## About
 
@@ -23,7 +28,7 @@ First, download the Kali Linux image that you want to use.
 You can either do this manually, or by instrumenting `kali download` to download the latest release from the official mirrors.
 
 If downloading the image manually, make sure to use the live version.
-The file must be moved an renamed so it is available at `$HOME/.local/share/kali-libvirt/kali.iso` (or in your custom `$XDG_DATA_HOME`).
+The file must be moved an renamed so it is available at `$HOME/.local/share/hackenv/kali.iso` (or in your custom `$XDG_DATA_HOME`).
 
 To get started, use `kali install` to create and boot the virtual machine (domain).
 A GUI window should automatically pop up.
@@ -46,7 +51,7 @@ Be sure to re-adjust the permissions if you add files externally.
 
 ## Configuration
 
-The configuration is read from `~/.config/kali-libvirt/env` if available.
+The configuration is read from `~/.config/hackenv/env` if available.
 See below for available options and their default.
 
 ```bash
@@ -56,11 +61,6 @@ vm_memory='3072' # The amount of memory to allocate for the VM, in MiB.
 
 ## Dependencies
 
-This should be a complete list.
-Most of these are standard tools.
-
-- [curl](https://curl.haxx.se/)
-- [jq](https://stedolan.github.io/jq/)
 - [sshpass](https://sourceforge.net/projects/sshpass/)
 - [virsh](https://libvirt.org/)
-- [virt-install](https://virt-manager.org/)
+- [virt-viewer](https://virt-manager.org/)
