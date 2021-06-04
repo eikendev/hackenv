@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o errtrace
+
+datahome="${XDG_DATA_HOME:-$HOME/.local/share}"
+datahome="$datahome/hackenv"
+
+share="$(realpath "$datahome/shared")"
+
+printf "Setting permissions for shared directory...\n" >&2
+
+sudo semanage fcontext "$share(/.*)?" --deleteall
+sudo semanage fcontext -a -t svirt_image_t "$share(/.*)?"
+sudo restorecon -vrF "$share"
+
+for cdrom in kali.iso parrot.iso; do
+	path="$(realpath "$datahome/$cdrom")"
+
+	if ! [ -f "$path" ]; then
+		continue
+	fi
+
+	printf "Setting permissions for image %s...\n" "$cdrom" >&2
+
+	sudo semanage fcontext "$path" --deleteall
+	sudo semanage fcontext -a -t svirt_image_t "$path"
+	sudo restorecon -vrF "$path"
+done
