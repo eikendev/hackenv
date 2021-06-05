@@ -8,7 +8,7 @@
 
 <p align="center">
 	<a href="https://github.com/eikendev/hackenv/actions"><img alt="Build status" src="https://img.shields.io/github/workflow/status/eikendev/hackenv/Main"/></a>&nbsp;
-	<img alt="License" src="https://img.shields.io/github/license/eikendev/hackenv"/>&nbsp;
+	<a href="https://github.com/eikendev/hackenv/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/github/license/eikendev/hackenv"/></a>&nbsp;
 </p>
 
 ## 🚀&nbsp;Installation
