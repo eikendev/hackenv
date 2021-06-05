@@ -1,55 +1,69 @@
-[![Build status](https://img.shields.io/github/workflow/status/eikendev/hackenv/Main)](https://github.com/eikendev/hackenv/actions)
+<div align="center">
+	<h1>hackenv</h1>
+	<h4 align="center">
+		Access your [Kali Linux](https://www.kali.org/) and [Parrot Security](https://www.parrotsec.org/) instances with ease.
+	</h4>
+	<p>hackenv lets you comfortably manage your security environment from the command line.</p>
+</div>
+
+<p align="center">
+[![Build status](https://img.shields.io/github/workflow/status/eikendev/hackenv/Main)](https://github.com/eikendev/hackenv/actions)&nbsp;
 ![License](https://img.shields.io/github/license/eikendev/hackenv)
+</p>
 
-# hackenv
-
-## About
-
-This tool is for you if you frequently use [Kali Linux](https://www.kali.org/) or [Parrot Security](https://www.parrotsec.org/).
-It makes it easy to retrieve an up-to-date image and get it running via [libvirt](https://libvirt.org/).
-
-## Installation
-
-The following command will download, build, and install the tool.
+## 🚀&nbsp;Installation
 
 ```bash
 go get -u github.com/eikendev/hackenv/cmd/...
 ```
 
-## Usage
+Also check out the dependencies below.
 
-First, you need to download an image using `hackenv get`.
+## 🤘&nbsp;Features
+
+- Download the latest official live image.
+- Start an **SSH** daemon on the guest.
+- Set up a **shared directory** between host and guest.
+- Set the same **keyboard layout** in the guest as on the host.
+- Configure the **firewall** to only allow SSH traffic from the host.
+
+## 📄&nbsp;Usage
+
+First, download an image using `hackenv get`.
 This will download a live image from the official mirrors.
 The download can take a while, so sit back and enjoy some tea.
+
+By default, hackenv will operate with Kali Linux, and download its image.
+If you want to work with Parrot Security instead, specify `hackenv --type=parrot`.
 
 Next, run `hackenv up` to boot the virtual machine.
 Once this command is finished, the VM is running and fully configured.
 
-You can now decide to start an SSH session with `hackenv ssh` or spin up a GUI with `hackenv gui`.
+You can now start an SSH session with `hackenv ssh` or spin up a GUI with `hackenv gui`.
 
 ### File Sharing
 
-hackenv will automatically try to setup a shared directory between the host and the virtual machine.
-On the host side, the directory is `~/.local/share/hackenv/shared`.
-On the guest side, it is located at `/shared`.
+hackenv will automatically set up a shared directory between the host and the virtual machine.
+On the host side the directory is `~/.local/share/hackenv/shared`, while on the guest side it is located at `/shared`.
 
 If SELinux denies access to the shared directory, you have to adjust the context of the directory.
 You can run `./bin/hackenv_fixlabels` if you are on Fedora or similar.
 Be sure to re-adjust the permissions if you add files externally.
 
-## Configuration
+## ⚙&nbsp;Configuration
 
 The tool currently does not support configuration via files.
 However, some options can be set using environment variables.
-Check out the help (`--help`) to see what options support this.
+For instance, to operate with Parrot Security by default, you can set `$HACKENV_TYPE=parrot`.
+Check out the help (`--help`) of a command to see what other options support this.
 
-## Dependencies
+## 🥙&nbsp;Dependencies
 
 - [sshpass](https://sourceforge.net/projects/sshpass/)
-- [virsh](https://libvirt.org/)
+- [libvirt](https://libvirt.org/)
 - [virt-viewer](https://virt-manager.org/)
 
-## Alternatives
+## 💡&nbsp;Alternatives
 
 If you do not like this tool, the following options are worth checking out:
 - [Vagrant](https://www.vagrantup.com/) in combination with [VirtualBox](https://www.virtualbox.org/)
