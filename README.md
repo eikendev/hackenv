@@ -1,14 +1,14 @@
 <div align="center">
 	<h1>hackenv</h1>
 	<h4 align="center">
-		Access your [Kali Linux](https://www.kali.org/) and [Parrot Security](https://www.parrotsec.org/) instances with ease.
+		Access your <a href="https://www.kali.org/">Kali Linux</a> and <a href="https://www.parrotsec.org/">Parrot Security</a> instances with ease.
 	</h4>
 	<p>hackenv lets you comfortably manage your security environment from the command line.</p>
 </div>
 
 <p align="center">
-[![Build status](https://img.shields.io/github/workflow/status/eikendev/hackenv/Main)](https://github.com/eikendev/hackenv/actions)&nbsp;
-![License](https://img.shields.io/github/license/eikendev/hackenv)
+	<a href="https://github.com/eikendev/hackenv/actions"><img alt="Build status" src="https://img.shields.io/github/workflow/status/eikendev/hackenv/Main"/></a>&nbsp;
+	<img alt="License" src="https://img.shields.io/github/license/eikendev/hackenv"/>&nbsp;
 </p>
 
 ## 🚀&nbsp;Installation
