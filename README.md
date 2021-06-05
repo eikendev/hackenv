@@ -54,8 +54,14 @@ Be sure to re-adjust the permissions if you add files externally.
 
 The tool currently does not support configuration via files.
 However, some options can be set using environment variables.
+Check out the help (`--help`) of a command to see what options support this.
+
 For instance, to operate with Parrot Security by default, you can set `$HACKENV_TYPE=parrot`.
-Check out the help (`--help`) of a command to see what other options support this.
+If you work with both operating systems, then I recommend using shell aliases:
+```bash
+alias kali='hackenv --type=kali'
+alias parrot='hackenv --type=parrot'
+```
 
 ## 🥙&nbsp;Dependencies
 
