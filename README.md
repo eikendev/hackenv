@@ -3,64 +3,54 @@
 
 # hackenv
 
-| :exclamation:  I have recently reimplemented this tool in Go to make it more convenient to use. The following description is therefore outdated.   |
-|-------------------------------------------------------------|
-
 ## About
 
-Did you ever find yourself in a situation where you needed access to a fresh [Kali Linux](https://www.kali.org/) installation and didn't want to go through the trouble of setting it up manually?
-Naturally, you can either use
-- [Vagrant](https://www.vagrantup.com/) in combination with [VirtualBox](https://www.virtualbox.org/) to automate setting up a virtual machine, or
-- [Docker](https://www.docker.com/) or [Podman](https://podman.io/) to utilize Linux namespaces (containers).
+This tool is for you if you frequently use [Kali Linux](https://www.kali.org/) or [Parrot Security](https://www.parrotsec.org/).
+It makes it easy to retrieve an up-to-date image and get it running via [libvirt](https://libvirt.org/).
 
-Personally, I sometimes _want_ to use a virtual machine to enforce stricter separation.
-However, [libvirt](https://libvirt.org/) turned out to be a lot more convenient to use on my system.
-Since I could not find a Kali Linux image providing libvirt support for Vagrant, I settled to use this helper script.
+## Installation
+
+The following command will download, build, and install the tool.
+
+```bash
+go get -u github.com/eikendev/hackenv/cmd/...
+```
 
 ## Usage
 
-![Showcase](https://i.imgur.com/YxIJvCz.gif)
+First, you need to download an image using `hackenv get`.
+This will download a live image from the official mirrors.
+The download can take a while, so sit back and enjoy some tea.
 
-To make the following steps more convenient, I advise you to add `./bin/kali` to your path.
-For instance, you can run `make install` to link it from your `~/bin` directory.
+Next, run `hackenv up` to boot the virtual machine.
+Once this command is finished, the VM is running and fully configured.
 
-First, download the Kali Linux image that you want to use.
-You can either do this manually, or by instrumenting `kali download` to download the latest release from the official mirrors.
-
-If downloading the image manually, make sure to use the live version.
-The file must be moved an renamed so it is available at `$HOME/.local/share/hackenv/kali.iso` (or in your custom `$XDG_DATA_HOME`).
-
-To get started, use `kali install` to create and boot the virtual machine (domain).
-A GUI window should automatically pop up.
-If you accidentally close it, run `kali gui` to open it again.
-
-### SSH Access
-
-Once the machine has booted, enable SSH inside the box with `sudo service ssh restart` or `sudo systemctl restart ssh`.
-At this point, you can connect to it from your host using `kali ssh`.
+You can now decide to start an SSH session with `hackenv ssh` or spin up a GUI with `hackenv gui`.
 
 ### File Sharing
 
-You can now run `kali share` to setup a shared directory between the host and the virtual machine.
-On the host side, the directory is `./shared` inside this repository.
-On the client side, it is located at `/shared`.
+hackenv will automatically try to setup a shared directory between the host and the virtual machine.
+On the host side, the directory is `~/.local/share/hackenv/shared`.
+On the guest side, it is located at `/shared`.
 
 If SELinux denies access to the shared directory, you have to adjust the context of the directory.
-Running `kali permissions` will do this for you if you are on Fedora or similar.
+You can run `./bin/hackenv_fixlabels` if you are on Fedora or similar.
 Be sure to re-adjust the permissions if you add files externally.
 
 ## Configuration
 
-The configuration is read from `~/.config/hackenv/env` if available.
-See below for available options and their default.
-
-```bash
-vm_cpus='2' # The number of virtual CPUs to configure for the VM.
-vm_memory='3072' # The amount of memory to allocate for the VM, in MiB.
-```
+The tool currently does not support configuration via files.
+However, some options can be set using environment variables.
+Check out the help (`--help`) to see what options support this.
 
 ## Dependencies
 
 - [sshpass](https://sourceforge.net/projects/sshpass/)
 - [virsh](https://libvirt.org/)
 - [virt-viewer](https://virt-manager.org/)
+
+## Alternatives
+
+If you do not like this tool, the following options are worth checking out:
+- [Vagrant](https://www.vagrantup.com/) in combination with [VirtualBox](https://www.virtualbox.org/)
+- [Docker](https://www.docker.com/) or [Podman](https://podman.io/)
