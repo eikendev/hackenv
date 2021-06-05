@@ -11,5 +11,7 @@ jobs:
         run: sudo apt-get install libvirt-dev
       - name: Install dependencies
         run: make setup
-      - name: Run 'make test'
-        run: make test
+      - name: Run tests
+        run: |
+            export PATH="$PATH:$(go env GOPATH)/bin" # Currently the path needs to be set manually.
+            make test
