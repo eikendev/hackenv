@@ -13,11 +13,11 @@
 
 ## 🚀&nbsp;Installation
 
+It it easiest to download the binary from the [latest release](https://github.com/eikendev/hackenv/releases).
+Alternatively, install the [required dependencies](#dependencies) and build it yourself:
 ```bash
 go get -u github.com/eikendev/hackenv/cmd/...
 ```
-
-Also check out the dependencies below.
 
 ## 🤘&nbsp;Features
 
@@ -29,7 +29,11 @@ Also check out the dependencies below.
 
 ## 📄&nbsp;Usage
 
-First, download an image using `hackenv get`.
+First, make sure you have the [required dependencies](#dependencies) installed.
+Also, you will need to [setup a bridge interface](https://jamielinux.com/docs/libvirt-networking-handbook/bridged-network.html).
+hackenv will expect this interface to named `virbr0`, but you can adjust this using the command options.
+
+Then, download an image using `hackenv get`.
 This will download a live image from the official mirrors.
 The download can take a while, so sit back and enjoy some tea.
 
@@ -65,9 +69,11 @@ alias parrot='hackenv --type=parrot'
 
 ## 🥙&nbsp;Dependencies
 
-- [sshpass](https://sourceforge.net/projects/sshpass/)
 - [libvirt](https://libvirt.org/)
+- [sshpass](https://sourceforge.net/projects/sshpass/)
 - [virt-viewer](https://virt-manager.org/)
+
+To build the binary yourself, you also need the development files of libvirt, usually called `libvirt-dev` or `libvirt-devel`.
 
 ## 💡&nbsp;Alternatives
 
