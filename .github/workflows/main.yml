@@ -2,7 +2,7 @@ name: Main
 on: push
 jobs:
   test:
-    name: Run code linters and tests
+    name: Test and publish
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -11,7 +11,16 @@ jobs:
         run: sudo apt-get install libvirt-dev
       - name: Install dependencies
         run: make setup
+      - name: Export GOPATH
+        run: export PATH="$PATH:$(go env GOPATH)/bin" # Currently the path needs to be set manually.
       - name: Run tests
-        run: |
-            export PATH="$PATH:$(go env GOPATH)/bin" # Currently the path needs to be set manually.
-            make test
+        run: make test
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v2
+        if: startsWith(github.ref, 'refs/tags/') # Only release for tagged commits.
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --rm-dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

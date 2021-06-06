@@ -1,0 +1,25 @@
+builds:
+  - id: hackenv
+    main: ./cmd/hackenv
+    flags:
+      - -trimpath
+    asmflags:
+      - all=-trimpath={{.Env.GOPATH}}
+    gcflags:
+      - all=-trimpath={{.Env.GOPATH}}
+    goos:
+      - linux
+    goarch:
+      - amd64
+
+checksum:
+  algorithm: sha256
+
+archives:
+  - id: hackenv
+    builds:
+      - hackenv
+    format: tar.gz
+
+release:
+  draft: true
