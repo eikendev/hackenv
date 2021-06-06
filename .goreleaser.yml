@@ -1,12 +1,6 @@
 builds:
   - id: hackenv
     main: ./cmd/hackenv
-    flags:
-      - -trimpath
-    asmflags:
-      - all=-trimpath={{.Env.GOPATH}}
-    gcflags:
-      - all=-trimpath={{.Env.GOPATH}}
     goos:
       - linux
     goarch:
