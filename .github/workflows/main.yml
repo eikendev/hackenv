@@ -25,7 +25,7 @@ jobs:
         run: make build
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v2
-        if: startsWith(github.ref, 'refs/tags/') # Only release for tagged commits.
+        if: startsWith(github.ref, 'refs/tags/v') # Only release for tagged commits.
         with:
           distribution: goreleaser
           version: latest
