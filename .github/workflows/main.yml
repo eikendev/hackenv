@@ -12,7 +12,9 @@ jobs:
         with:
           fetch-depth: 0
       - name: Install libvirt
-        run: sudo apt-get install libvirt-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libvirt-dev
       - name: Install dependencies
         run: make setup
       - name: Export GOBIN
