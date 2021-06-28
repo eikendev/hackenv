@@ -56,10 +56,6 @@ const (
           <model type='qxl'/>
         </video>
         <sound model='ich6'/>
-        <audio type='pulseaudio'>
-          <input/>
-          <output/>
-        </audio>
         <input type='mouse' bus='ps2'/>
         <input type='keyboard' bus='ps2'/>
         <rng model='virtio'>
