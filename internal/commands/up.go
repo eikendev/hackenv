@@ -23,7 +23,7 @@ const (
       <memory unit='KiB'>%d</memory>
       <vcpu placement='static'>%d</vcpu>
       <os>
-        <type machine='pc-q35-4.2'>hvm</type>
+        <type>hvm</type>
         <boot dev='cdrom'/>
       </os>
       <features>
