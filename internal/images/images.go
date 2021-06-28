@@ -63,7 +63,7 @@ var images = map[string]Image{
 }
 
 func (i *Image) GetDownloadInfo() (string, string) {
-	return i.infoRetriever(i.ArchiveURL + "/" + i.checksumPath)
+	return i.infoRetriever(i.ArchiveURL + i.checksumPath)
 }
 
 func (i *Image) Boot(dom *rawLibvirt.Domain) {
