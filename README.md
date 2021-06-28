@@ -103,8 +103,8 @@ alias parrot='hackenv --type=parrot'
 
 ## 🥙&nbsp;Dependencies
 
-- [libvirt](https://libvirt.org/)
-- [OpenSSH](https://www.openssh.com/)
+- [libvirt](https://libvirt.org/) (virsh)
+- [OpenSSH](https://www.openssh.com/) (ssh and ssh-keygen)
 - [virt-viewer](https://virt-manager.org/)
 
 To build the binary yourself, you also need the development files of libvirt, usually called `libvirt-dev` or `libvirt-devel`.
