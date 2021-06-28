@@ -1,6 +1,7 @@
 package constants
 
 const (
-	XdgAppname = "hackenv"
-	ConnectURI = "qemu:///session"
+	XdgAppname     = "hackenv"
+	ConnectURI     = "qemu:///session"
+	SSHKeypairName = "sshkey"
 )

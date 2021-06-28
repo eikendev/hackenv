@@ -6,8 +6,10 @@ import (
 	"os"
 	"syscall"
 
+	"github.com/eikendev/hackenv/internal/constants"
 	"github.com/eikendev/hackenv/internal/images"
 	"github.com/eikendev/hackenv/internal/libvirt"
+	"github.com/eikendev/hackenv/internal/paths"
 	"github.com/eikendev/hackenv/internal/settings"
 )
 
@@ -34,11 +36,8 @@ func (c *SSHCommand) Run(s *settings.Settings) {
 	}
 
 	args := []string{
-		"/bin/sshpass",
-		"-p",
-		image.SSHPassword,
-		"ssh",
-		"-C",
+		"/bin/ssh",
+		"-i", paths.GetDataFilePath(constants.SSHKeypairName),
 		"-o", "StrictHostKeyChecking=no",
 		"-o", "UserKnownHostsFile=/dev/null",
 		"-X",

@@ -2,9 +2,13 @@ package commands
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
+	"os/exec"
 	"time"
 
+	"github.com/eikendev/hackenv/internal/constants"
 	"github.com/eikendev/hackenv/internal/host"
 	"github.com/eikendev/hackenv/internal/images"
 	"github.com/eikendev/hackenv/internal/libvirt"
@@ -116,15 +120,32 @@ func configureClient(c *UpCommand, dom *rawLibvirt.Domain, image *images.Image, 
 		log.Fatal(err)
 	}
 
-	hostIPAddr := host.GetHostIPAddress(c.Interface)
-	log.Printf("Using host's IP address %s\n", hostIPAddr)
+	publicKeyPath := paths.GetDataFilePath(constants.SSHKeypairName + ".pub")
+	publicKey, err := ioutil.ReadFile(publicKeyPath)
+	if err != nil {
+		log.Fatalf("Unable to read private SSH key: %s\n", err)
+	}
+	publicKeyStr := string(publicKey[:])
 
 	cmds := append(image.ConfigurationCmds, []string{
+		// Add the SSH key to authorized_keys.
+		"mkdir ~/.ssh",
+		"chmod 700 ~/.ssh",
+		"printf '" + publicKeyStr + "' >> ~/.ssh/authorized_keys",
+		"chmod 660 ~/.ssh/authorized_keys",
+
+		// Disable password authentication on SSH.
+		"sudo sed -i '/PasswordAuthentication/s/yes/no/' /etc/ssh/sshd_config",
+		"sudo systemctl reload ssh",
+
+		// Setup a shared directory.
 		"sudo mkdir /shared",
 		"sudo mount -t 9p -o trans=virtio,version=9p2000.L /shared /shared",
-		fmt.Sprintf("sudo iptables -A INPUT -s %s -p tcp --dport 22 -j ACCEPT", hostIPAddr),
-		"sudo iptables -A INPUT -p tcp --dport 22 -j DROP",
+
+		// Set screen size to Full HD.
 		"DISPLAY=:0 xrandr --size 1920x1080",
+
+		// Set keyboard layout.
 		fmt.Sprintf("DISPLAY=:0 setxkbmap %s", host.GetHostKeyboardLayout()),
 	}...)
 
@@ -136,8 +157,40 @@ func configureClient(c *UpCommand, dom *rawLibvirt.Domain, image *images.Image, 
 	}
 }
 
+func ensureSSHKeypairExists() error {
+	sshKeypairPath := paths.GetDataFilePath(constants.SSHKeypairName)
+
+	if _, err := os.Stat(sshKeypairPath); err == nil {
+		// SSH keypair already exists.
+		return nil
+	}
+
+	cmd := exec.Command(
+		"ssh-keygen",
+		"-f",
+		sshKeypairPath,
+		"-t",
+		"ed25519",
+		"-C",
+		constants.SSHKeypairName,
+		"-q",
+		"-N",
+		"", // Password is empty so no typing is required.
+	)
+
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	return cmd.Wait()
+}
+
 func (c *UpCommand) Run(s *settings.Settings) {
 	image := images.GetImageDetails(s.Type)
+
+	if err := ensureSSHKeypairExists(); err != nil {
+		log.Fatalf("Cannot create SSH keypair: %s\n", err)
+	}
 
 	xml := buildXML(c, image)
 
