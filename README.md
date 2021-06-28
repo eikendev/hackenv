@@ -77,7 +77,7 @@ Paste the the following content into a file named `default.xml`:
 In this example, the bridge will operate in the network range `192.168.122.0/24`; please adapt this to your needs.
 hackenv will expect the interface to have the name `virbr0` by default, but this can be changed using flags.
 
-Now, run the following commands to create the bridge:
+Now, run [the following commands](https://stackoverflow.com/a/52814732) to create the bridge:
 
 ```bash
 sudo virsh net-define default.xml # Define the network.
