@@ -23,9 +23,9 @@ go get -u github.com/eikendev/hackenv/cmd/...
 
 - Download the latest official live image.
 - Start an **SSH** daemon on the guest.
+- Configure instant SSH access based on **public-key authentication**.
 - Set up a **shared directory** between host and guest.
 - Set the same **keyboard layout** in the guest as on the host.
-- Configure the **firewall** to only allow SSH traffic from the host.
 
 ## 📄&nbsp;Usage
 
