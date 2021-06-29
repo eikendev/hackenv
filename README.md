@@ -22,7 +22,8 @@ go get -u github.com/eikendev/hackenv/cmd/...
 ## 🤘&nbsp;Features
 
 - Download the latest official live image.
-- Start an **SSH** daemon on the guest.
+- Works with Kali Linux and Parrot Security.
+- **Simple and intuitive** command line interface.
 - Configure instant SSH access based on **public-key authentication**.
 - Set up a **shared directory** between host and guest.
 - Set the same **keyboard layout** in the guest as on the host.
