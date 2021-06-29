@@ -10,6 +10,7 @@ import (
 
 	"github.com/eikendev/hackenv/internal/images"
 	"github.com/eikendev/hackenv/internal/settings"
+	progressbar "github.com/schollz/progressbar/v3"
 )
 
 type GetCommand struct {
@@ -60,7 +61,12 @@ func downloadImage(path string, url string) {
 		log.Fatalf("Cannot download image file: bad status %s\n", resp.Status)
 	}
 
-	_, err = io.Copy(out, resp.Body)
+	bar := progressbar.DefaultBytes(
+		resp.ContentLength,
+		"downloading",
+	)
+
+	_, err = io.Copy(io.MultiWriter(out, bar), resp.Body)
 	if err != nil {
 		log.Fatalf("Cannot write image file: %s\n", err)
 	}
