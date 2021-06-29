@@ -167,7 +167,7 @@ func ensureSSHKeypairExists() error {
 	}
 
 	cmd := exec.Command(
-		paths.GetCmdPath("ssh-keygen"),
+		paths.GetCmdPathOrExit("ssh-keygen"),
 		"-f",
 		sshKeypairPath,
 		"-t",

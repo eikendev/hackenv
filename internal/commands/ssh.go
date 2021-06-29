@@ -36,7 +36,7 @@ func (c *SSHCommand) Run(s *settings.Settings) {
 	}
 
 	args := []string{
-		paths.GetCmdPath("ssh"),
+		paths.GetCmdPathOrExit("ssh"),
 		"-i", paths.GetDataFilePath(constants.SSHKeypairName),
 		"-o", "StrictHostKeyChecking=no",
 		"-o", "UserKnownHostsFile=/dev/null",

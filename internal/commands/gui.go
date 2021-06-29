@@ -13,10 +13,13 @@ import (
 )
 
 const (
-	binPath = "virt-viewer"
+	virtViewerBin = "virt-viewer"
+	remminaBin    = "remmina"
 )
 
 type GuiCommand struct {
+	//lint:ignore SA5008 go-flags makes use of duplicate struct tags
+	Viewer string `long:"viewer" env:"HACKENV_VIEWER" default:"virt-viewer" choice:"virt-viewer" choice:"remmina" description:"The viewer to use to connect to the VM"`
 }
 
 func (c *GuiCommand) Execute(args []string) error {
@@ -34,11 +37,23 @@ func (c *GuiCommand) Run(s *settings.Settings) {
 	dom := libvirt.GetDomain(conn, &image, true)
 	defer dom.Free()
 
-	args := []string{
-		paths.GetCmdPath(binPath),
-		"--connect",
-		constants.ConnectURI,
-		image.Name,
+	var args []string
+
+	if virtViewerPath, err := paths.GetCmdPath(virtViewerBin); c.Viewer == virtViewerBin && err == nil {
+		args = []string{
+			virtViewerPath,
+			"--connect",
+			constants.ConnectURI,
+			image.Name,
+		}
+	} else if remminaPath, err := paths.GetCmdPath(remminaBin); c.Viewer == remminaBin && err == nil {
+		args = []string{
+			remminaPath,
+			"-c",
+			"SPICE://localhost",
+		}
+	} else {
+		log.Fatalf("Unable to locate %s to connect to the VM.\n", c.Viewer)
 	}
 
 	cwd, err := os.Getwd()

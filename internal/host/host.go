@@ -52,7 +52,7 @@ func GetHostIPAddress(ifaceName string) string {
 
 func GetHostKeyboardLayout() string {
 	out, err := exec.Command(
-		paths.GetCmdPath("setxkbmap"),
+		paths.GetCmdPathOrExit("setxkbmap"),
 		"-query",
 	).Output()
 	if err != nil {

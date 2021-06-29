@@ -26,11 +26,15 @@ func EnsureDirExists(path string) {
 	}
 }
 
-func GetCmdPath(cmd string) string {
+func GetCmdPathOrExit(cmd string) string {
 	path, err := exec.LookPath(cmd)
 	if err != nil {
 		log.Fatalf("Command not found: %s\n", cmd)
 	}
 
 	return path
+}
+
+func GetCmdPath(cmd string) (string, error) {
+	return exec.LookPath(cmd)
 }
