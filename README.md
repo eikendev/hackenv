@@ -30,20 +30,20 @@ go get -u github.com/eikendev/hackenv/cmd/...
 ## 📄&nbsp;Usage
 
 First, make sure you have the [required dependencies](#dependencies) installed.
-Also, you will need to [setup a bridge interface](https://jamielinux.com/docs/libvirt-networking-handbook/bridged-network.html); see below for how to do that with [virsh](https://www.libvirt.org/manpages/virsh.html).
-hackenv will expect this interface to named `virbr0`, but you can adjust this using the command options.
+Also, you will need a bridge interface [as described below](#creating-a-bridge-interface).
+This can be as simple as running `./bin/hackenv_createbridge`.
 
 Then, download an image using `hackenv get`.
 This will download a live image from the official mirrors.
 The download can take a while, so sit back and enjoy some tea.
 
-By default, hackenv will operate with Kali Linux, and download its image.
-If you want to work with Parrot Security instead, specify `hackenv --type=parrot`.
-
 Next, run `hackenv up` to boot the virtual machine.
 Once this command is finished, the VM is running and fully configured.
 
 You can now start an SSH session with `hackenv ssh` or spin up a GUI with `hackenv gui`.
+
+Note that by default, hackenv will operate with Kali Linux, and respectively download its image.
+If you want to operate with Parrot Security instead, specify `hackenv --type=parrot`, or check out [the configuration](#configuration).
 
 ### File Sharing
 
@@ -56,37 +56,12 @@ Be sure to re-adjust the permissions if you add files externally.
 
 ### Creating a Bridge Interface
 
-hackenv uses a bridge so that you can reach the guest from the host, while the guest can access the Internet.
-We can create this bridge with virsh.
-To do so, we first create an XML file that defines a virsh network.
-Paste the the following content into a file named `default.xml`:
+hackenv uses a bridge so that you can reach the guest from the host for SSH, while the guest can access the Internet.
+You can create this bridge by running `./bin/hackenv_createbridge`.
+Note that this script **will request privileges** so it can create an interface.
 
-```xml
-<network>
-	<name>default</name>
-	<bridge name="virbr0"/>
-	<forward/>
-	<ip address="192.168.122.1" netmask="255.255.255.0">
-		<dhcp>
-			<range start="192.168.122.2" end="192.168.122.254"/>
-		</dhcp>
-	</ip>
-</network>
-```
-
-In this example, the bridge will operate in the network range `192.168.122.0/24`; please adapt this to your needs.
-hackenv will expect the interface to have the name `virbr0` by default, but this can be changed using flags.
-
-Now, run [the following commands](https://stackoverflow.com/a/52814732) to create the bridge:
-
-```bash
-sudo virsh net-define default.xml # Define the network.
-sudo virsh net-start default # Start the network.
-sudo virsh net-autostart default # Automatically start the network on boot.
-sudo virsh net-list --all # Verify that the network was created.
-```
-
-Note that virsh needs to run **with privileges** so it can create an interface.
+Of course, please adapt the script to your specific needs.
+The interface is expected to have the name `virbr0` by default, but this can be changed using command line flags.
 
 ## ⚙&nbsp;Configuration
 
