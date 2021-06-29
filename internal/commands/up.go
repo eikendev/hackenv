@@ -71,9 +71,10 @@ const (
 )
 
 type UpCommand struct {
-	Cores     int    `long:"cores" env:"HACKENV_CORES" default:"2" description:"How many virtual CPU cores to assign to the VM"`
-	Memory    int    `long:"memory" env:"HACKENV_MEMORY" default:"2097152" description:"How much RAM to assign to the VM"`
-	Interface string `long:"iface" env:"HACKENV_IFACE" default:"virbr0" description:"The network interface to use as a bridge"`
+	Cores       int    `long:"cores" env:"HACKENV_CORES" default:"2" description:"How many virtual CPU cores to assign to the VM"`
+	Memory      int    `long:"memory" env:"HACKENV_MEMORY" default:"2097152" description:"How much RAM to assign to the VM"`
+	Interface   string `long:"iface" env:"HACKENV_IFACE" default:"virbr0" description:"The network interface to use as a bridge"`
+	DisplaySize string `long:"display_size" env:"HACKENV_DISPLAY_SIZE" default:"1920x1080" description:"The resolution of the VM's display, e.g., 1920x1080"`
 }
 
 func (c *UpCommand) Execute(args []string) error {
@@ -143,7 +144,7 @@ func configureClient(c *UpCommand, dom *rawLibvirt.Domain, image *images.Image, 
 		"sudo mount -t 9p -o trans=virtio,version=9p2000.L /shared /shared",
 
 		// Set screen size to Full HD.
-		"DISPLAY=:0 xrandr --size 1920x1080",
+		fmt.Sprintf("DISPLAY=:0 xrandr --size %s", c.DisplaySize),
 
 		// Set keyboard layout.
 		fmt.Sprintf("DISPLAY=:0 setxkbmap %s", host.GetHostKeyboardLayout()),
