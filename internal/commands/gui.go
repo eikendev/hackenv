@@ -8,6 +8,7 @@ import (
 	"github.com/eikendev/hackenv/internal/constants"
 	"github.com/eikendev/hackenv/internal/images"
 	"github.com/eikendev/hackenv/internal/libvirt"
+	"github.com/eikendev/hackenv/internal/paths"
 	"github.com/eikendev/hackenv/internal/settings"
 )
 
@@ -34,7 +35,7 @@ func (c *GuiCommand) Run(s *settings.Settings) {
 	defer dom.Free()
 
 	args := []string{
-		binPath,
+		paths.GetCmdPath(binPath),
 		"--connect",
 		constants.ConnectURI,
 		image.Name,

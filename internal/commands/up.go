@@ -74,7 +74,7 @@ type UpCommand struct {
 	Cores       int    `long:"cores" env:"HACKENV_CORES" default:"2" description:"How many virtual CPU cores to assign to the VM"`
 	Memory      int    `long:"memory" env:"HACKENV_MEMORY" default:"2097152" description:"How much RAM to assign to the VM"`
 	Interface   string `long:"iface" env:"HACKENV_IFACE" default:"virbr0" description:"The network interface to use as a bridge"`
-	DisplaySize string `long:"display_size" env:"HACKENV_DISPLAY_SIZE" default:"1920x1080" description:"The resolution of the VM's display, e.g., 1920x1080"`
+	DisplaySize string `long:"display_size" env:"HACKENV_DISPLAY_SIZE" default:"1920x1080" description:"The resolution of the VM's display"`
 }
 
 func (c *UpCommand) Execute(args []string) error {
@@ -167,7 +167,7 @@ func ensureSSHKeypairExists() error {
 	}
 
 	cmd := exec.Command(
-		"ssh-keygen",
+		paths.GetCmdPath("ssh-keygen"),
 		"-f",
 		sshKeypairPath,
 		"-t",

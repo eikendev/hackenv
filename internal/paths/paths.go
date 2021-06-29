@@ -3,6 +3,7 @@ package paths
 import (
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/adrg/xdg"
@@ -23,4 +24,13 @@ func EnsureDirExists(path string) {
 	if err != nil {
 		log.Fatalf("Cannot create directory: %s\n", err)
 	}
+}
+
+func GetCmdPath(cmd string) string {
+	path, err := exec.LookPath(cmd)
+	if err != nil {
+		log.Fatalf("Command not found: %s\n", cmd)
+	}
+
+	return path
 }

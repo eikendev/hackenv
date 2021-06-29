@@ -6,6 +6,8 @@ import (
 	"net"
 	"os/exec"
 	"strings"
+
+	"github.com/eikendev/hackenv/internal/paths"
 )
 
 func GetHostIPAddress(ifaceName string) string {
@@ -49,7 +51,10 @@ func GetHostIPAddress(ifaceName string) string {
 }
 
 func GetHostKeyboardLayout() string {
-	out, err := exec.Command("setxkbmap", "-query").Output()
+	out, err := exec.Command(
+		paths.GetCmdPath("setxkbmap"),
+		"-query",
+	).Output()
 	if err != nil {
 		log.Fatal(err)
 	}
