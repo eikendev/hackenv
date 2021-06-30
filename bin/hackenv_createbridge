@@ -6,8 +6,8 @@ set -o errtrace
 datahome="${XDG_DATA_HOME:-$HOME/.local/share}"
 readonly datahome="$datahome/hackenv"
 
-readonly networkname="default"
-readonly interfacename="virbr0"
+readonly networkname='default'
+readonly interfacename='virbr0'
 
 if_network_exists () {
 	sudo virsh net-list --all --name | grep "^$networkname\$" >/dev/null
@@ -17,9 +17,7 @@ if_network_exists () {
 create_network () {
 	printf "Creating XML network description...\n" >&2
 
-	readonly tempdir="$(mktemp -d)"
-
-	cat <<-EOF > "$tempdir/default.xml"
+	cat <<-EOF > "$datahome/network.xml"
 <network>
     <name>$networkname</name>
     <bridge name="$interfacename"/>
@@ -33,26 +31,20 @@ create_network () {
 	EOF
 
 	printf "Define the network...\n" >&2
-	sudo virsh net-define "$tempdir/default.xml"
+	sudo virsh net-define "$datahome/network.xml"
 
 	printf "Start the network...\n" >&2
-	sudo virsh net-start default
+	sudo virsh net-start "$networkname"
 
 	printf "Flag the network to automatically start on boot...\n" >&2
-	sudo virsh net-autostart default
-}
-
-remove_network () {
-	printf "Removing existing network...\n" >&2
-	sudo virsh net-destroy "$networkname"
-	sudo virsh net-undefine "$networkname"
+	sudo virsh net-autostart "$networkname"
 }
 
 printf "Requesting elevated permissions...\n" >&2
 sudo true
 
 if_network_exists \
-	&& printf "Network already exists; exiting..." >&2 \
+	&& printf "Network already exists; exiting...\n" >&2 \
 	&& exit 0
 
 create_network
