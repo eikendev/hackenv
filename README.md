@@ -38,7 +38,7 @@ Then, download an image using `hackenv get`.
 This will download a live image from the official mirrors.
 The download can take a while, so sit back and enjoy some tea.
 
-| :exclamation:  **If you run SELinux, you must label the new image yourself. Check [the section on file sharing](#file-sharing) for more information.**   |
+| :warning:  **If you run SELinux, you must label the new image yourself. Check [the section on file sharing](#file-sharing) for more information.**   |
 |-----------------------------------------------------------------|
 
 Next, run `hackenv up` to boot the virtual machine.
