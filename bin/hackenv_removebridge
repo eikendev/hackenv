@@ -4,7 +4,6 @@ set -o errexit
 set -o errtrace
 
 readonly networkname='default'
-readonly interfacename='virbr0'
 
 if_network_exists () {
 	sudo virsh net-list --all --name | grep "^$networkname\$" >/dev/null

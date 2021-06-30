@@ -1,4 +1,4 @@
-FIXLABELS := ./bin/hackenv_fixlabels
+SCRIPTS := $(wildcard ./bin/*)
 
 BASEDIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
@@ -25,8 +25,8 @@ setup:
 
 .PHONY: lint_scripts
 lint_scripts:
-	shellcheck ${FIXLABELS}
+	shellcheck ${SCRIPTS}
 
 .PHONY: install_scripts
 install_scripts:
-	ln -i -s -r ${BASEDIR}/${FIXLABELS} ${HOME}/bin/
+	ln -i -s -r ${BASEDIR}/${SCRIPTS} ${HOME}/bin/
