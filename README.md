@@ -38,6 +38,9 @@ Then, download an image using `hackenv get`.
 This will download a live image from the official mirrors.
 The download can take a while, so sit back and enjoy some tea.
 
+| :exclamation:  **If you run SELinux, you must label the new image yourself. Check [the section on file sharing](#file-sharing) for more information.**   |
+|-----------------------------------------------------------------|
+
 Next, run `hackenv up` to boot the virtual machine.
 Once this command is finished, the VM is running and fully configured.
 
@@ -53,7 +56,8 @@ On the host side the directory is `~/.local/share/hackenv/shared`, while on the 
 
 If SELinux denies access to the shared directory, you have to adjust the context of the directory.
 You can run `./bin/hackenv_fixlabels` if you are on Fedora or similar.
-Be sure to re-adjust the permissions if you add files externally.
+The script will also relabel the downloaded images.
+If you add new files to the shared directory from outside, do not forget to label them as well.
 
 ### Creating a Bridge Interface
 
