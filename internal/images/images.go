@@ -1,8 +1,10 @@
 package images
 
 import (
+	"fmt"
 	"log"
 	"path/filepath"
+	"regexp"
 	"time"
 
 	"github.com/adrg/xdg"
@@ -10,11 +12,17 @@ import (
 	rawLibvirt "libvirt.org/libvirt-go"
 )
 
-type infoRetriever func(string) (string, string)
+type infoRetriever func(string, *regexp.Regexp) (*DownloadInfo, error)
 
 type bootInitializer func(*rawLibvirt.Domain)
 
 type sshStarter func(*rawLibvirt.Domain)
+
+type versionComparer interface {
+	Lt(string, string) bool
+	Gt(string, string) bool
+	Eq(string, string) bool
+}
 
 type Image struct {
 	Name              string
@@ -22,6 +30,7 @@ type Image struct {
 	ArchiveURL        string
 	checksumPath      string
 	LocalImageName    string
+	VersionRegex      *regexp.Regexp
 	SSHUser           string
 	SSHPassword       string
 	MacAddress        string
@@ -29,6 +38,13 @@ type Image struct {
 	bootInitializer   bootInitializer
 	sshStarter        sshStarter
 	ConfigurationCmds []string
+	VersionComparer   versionComparer
+}
+
+type DownloadInfo struct {
+	Checksum string
+	Version  string
+	Filename string
 }
 
 var images = map[string]Image{
@@ -37,7 +53,8 @@ var images = map[string]Image{
 		DisplayName:       "Kali Linux",
 		ArchiveURL:        "https://cdimage.kali.org/current",
 		checksumPath:      "/SHA256SUMS",
-		LocalImageName:    "kali.iso",
+		LocalImageName:    "kali-%s.iso",
+		VersionRegex:      regexp.MustCompile(`\d\d\d\d\.\d+`),
 		SSHUser:           "kali",
 		SSHPassword:       "kali",
 		MacAddress:        "52:54:00:08:f9:e8",
@@ -45,13 +62,15 @@ var images = map[string]Image{
 		bootInitializer:   kaliBootInitializer,
 		sshStarter:        kaliSSHStarter,
 		ConfigurationCmds: kaliConfigurationCmds,
+		VersionComparer:   getGenericVersionComparer(),
 	},
 	"parrot": {
 		Name:              "parrot",
 		DisplayName:       "Parrot Security",
 		ArchiveURL:        "https://download.parrot.sh/parrot/iso/current",
 		checksumPath:      "/signed-hashes.txt",
-		LocalImageName:    "parrot.iso",
+		LocalImageName:    "parrot-%s.iso",
+		VersionRegex:      regexp.MustCompile(`\d+\.\d+\.\d+`),
 		SSHUser:           "user",
 		SSHPassword:       "toor",
 		MacAddress:        "52:54:00:08:f9:e9",
@@ -59,15 +78,21 @@ var images = map[string]Image{
 		bootInitializer:   parrotBootInitializer,
 		sshStarter:        parrotSSHStarter,
 		ConfigurationCmds: []string{},
+		VersionComparer:   getGenericVersionComparer(),
 	},
 }
 
-func (i *Image) GetDownloadInfo() (string, string) {
-	return i.infoRetriever(i.ArchiveURL + i.checksumPath)
+func (i *Image) GetDownloadInfo(strict bool) *DownloadInfo {
+	info, err := i.infoRetriever(i.ArchiveURL+i.checksumPath, i.VersionRegex)
+	if err != nil && strict {
+		log.Fatalf("Cannot retrieve latest image details: %s\n", err)
+	}
+
+	return info
 }
 
-func (i *Image) Boot(dom *rawLibvirt.Domain) {
-	log.Printf("Booting %s\n", i.DisplayName)
+func (i *Image) Boot(dom *rawLibvirt.Domain, version string) {
+	log.Printf("Booting %s %s\n", i.DisplayName, version)
 	i.bootInitializer(dom)
 }
 
@@ -76,12 +101,46 @@ func (i *Image) StartSSH(dom *rawLibvirt.Domain) {
 	i.sshStarter(dom)
 }
 
-func (i *Image) GetLocalPath() string {
-	path, err := xdg.DataFile(filepath.Join(constants.XdgAppname, i.LocalImageName))
+func (i *Image) GetLocalPath(version string) string {
+	filename := fmt.Sprintf(i.LocalImageName, version)
+
+	path, err := xdg.DataFile(filepath.Join(constants.XdgAppname, filename))
 	if err != nil {
 		log.Fatalf("Cannot access data directory: %s\n", err)
 	}
+
 	return path
+}
+
+func (i *Image) GetLatestPath() string {
+	imageGlob := fmt.Sprintf(i.LocalImageName, "*")
+
+	path, err := xdg.DataFile(filepath.Join(constants.XdgAppname, imageGlob))
+	if err != nil {
+		log.Fatalf("Cannot access data directory: %s\n", err)
+	}
+
+	matches, err := filepath.Glob(path)
+	if err != nil {
+		log.Fatalf("Malformed glob pattern: %s\n", err)
+	}
+
+	if matches == nil {
+		log.Fatalf("Image for %s not found; download with get command\n", i.DisplayName)
+	}
+
+	latestPath := matches[0]
+	latestVersion := i.FileVersion(latestPath)
+
+	for _, path := range matches {
+		log.Printf("Found image path %s\n", path)
+		if newVersion := i.FileVersion(path); i.VersionComparer.Gt(newVersion, latestVersion) {
+			latestPath = path
+			latestVersion = newVersion
+		}
+	}
+
+	return latestPath
 }
 
 func GetImageDetails(name string) Image {
@@ -94,6 +153,10 @@ func GetImageDetails(name string) Image {
 
 func GetAllImages() map[string]Image {
 	return images
+}
+
+func (i *Image) FileVersion(path string) string {
+	return i.VersionRegex.FindString(path)
 }
 
 func sendKeys(dom *rawLibvirt.Domain, keys []uint) {

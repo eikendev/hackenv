@@ -20,7 +20,7 @@ import (
 
 const (
 	sharedDir    = "shared"
-	connectTries = 20
+	connectTries = 30
 	xmlTemplate  = `
     <domain type='kvm'>
       <name>%s</name>
@@ -82,7 +82,7 @@ func (c *UpCommand) Execute(args []string) error {
 	return nil
 }
 
-func buildXML(c *UpCommand, image images.Image) string {
+func buildXML(c *UpCommand, image images.Image, path string) string {
 	sharedPath := paths.GetDataFilePath(sharedDir)
 	paths.EnsureDirExists(sharedPath)
 
@@ -91,7 +91,7 @@ func buildXML(c *UpCommand, image images.Image) string {
 		image.Name,
 		c.Memory,
 		c.Cores,
-		image.GetLocalPath(),
+		path,
 		sharedPath,
 		image.MacAddress,
 		c.Interface,
@@ -189,11 +189,20 @@ func ensureSSHKeypairExists() error {
 func (c *UpCommand) Run(s *settings.Settings) {
 	image := images.GetImageDetails(s.Type)
 
+	localPath := image.GetLatestPath()
+	localVersion := image.FileVersion(localPath)
+
+	if info := image.GetDownloadInfo(false); info != nil {
+		if !image.VersionComparer.Eq(info.Version, localVersion) {
+			log.Printf("Version %s for %s is available! Download with the get command.\n", info.Version, image.DisplayName)
+		}
+	}
+
 	if err := ensureSSHKeypairExists(); err != nil {
 		log.Fatalf("Cannot create SSH keypair: %s\n", err)
 	}
 
-	xml := buildXML(c, image)
+	xml := buildXML(c, image, localPath)
 
 	conn := libvirt.Connect()
 	defer conn.Close()
@@ -204,7 +213,7 @@ func (c *UpCommand) Run(s *settings.Settings) {
 	}
 	defer dom.Free()
 
-	image.Boot(dom)
+	image.Boot(dom, localVersion)
 	guestIPAddr := waitBootComplete(dom, &image)
 	image.StartSSH(dom)
 

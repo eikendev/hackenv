@@ -2,8 +2,10 @@ package images
 
 import (
 	"bufio"
-	"log"
+	"errors"
+	"fmt"
 	"net/http"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -11,14 +13,14 @@ import (
 	rawLibvirt "libvirt.org/libvirt-go"
 )
 
-func parrotInfoRetriever(url string) (string, string) {
+func parrotInfoRetriever(url string, versionRegex *regexp.Regexp) (*DownloadInfo, error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		log.Fatalf("Cannot retrieve latest image: %s\n", err)
+		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Fatalf("Cannot retrieve latest image: bad status %s\n", resp.Status)
+		return nil, fmt.Errorf("bad HTTP status code (%s)", resp.Status)
 	}
 
 	var line string
@@ -40,15 +42,18 @@ func parrotInfoRetriever(url string) (string, string) {
 	}
 
 	if line == "" {
-		log.Fatalf("Cannot retrieve latest image: bad checksum file\n")
+		return nil, errors.New("bad checksum file")
 	}
 
 	line = strings.TrimSpace(line)
 	parts := strings.Split(line, " ")
-	checksum := parts[0]
 	filename := parts[len(parts)-1]
 
-	return checksum, filename
+	return &DownloadInfo{
+		parts[0],
+		versionRegex.FindString(filename),
+		filename,
+	}, nil
 }
 
 func parrotBootInitializer(dom *rawLibvirt.Domain) {

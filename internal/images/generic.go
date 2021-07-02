@@ -1,10 +1,58 @@
 package images
 
 import (
+	"log"
+	"strconv"
+	"strings"
 	"time"
 
 	rawLibvirt "libvirt.org/libvirt-go"
 )
+
+type GenericVersionComparer struct {
+}
+
+func getGenericVersionComparer() *GenericVersionComparer {
+	return &GenericVersionComparer{}
+}
+
+func (vc GenericVersionComparer) Lt(a, b string) bool {
+	aParts := strings.Split(a, ".")
+	bParts := strings.Split(b, ".")
+
+	if len(aParts) != len(bParts) {
+		log.Fatalf("Cannot compare versions %s and %s\n", a, b)
+	}
+
+	for i := range aParts {
+		aPart, err := strconv.Atoi(aParts[i])
+		if err != nil {
+			log.Fatalf("Cannot convert version part %s to number: %s\n", aParts[i], err)
+		}
+
+		bPart, err := strconv.Atoi(bParts[i])
+		if err != nil {
+			log.Fatalf("Cannot convert version part %s to number: %s\n", bParts[i], err)
+		}
+
+		if aPart < bPart {
+			return true
+		}
+		if aPart > bPart {
+			return false
+		}
+	}
+
+	return false
+}
+
+func (vc GenericVersionComparer) Eq(a, b string) bool {
+	return a == b
+}
+
+func (vc GenericVersionComparer) Gt(a, b string) bool {
+	return !vc.Lt(a, b) && !vc.Eq(a, b)
+}
 
 func genericBootInitializer(dom *rawLibvirt.Domain) {
 	time.Sleep(1 * time.Second)
