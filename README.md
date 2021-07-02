@@ -44,6 +44,8 @@ The download can take a while, so sit back and enjoy some tea.
 
 Next, run `hackenv up` to boot the virtual machine.
 Once this command is finished, the VM is running and fully configured.
+The VM will be short-lived (volatile), meaning any data and configuration stored outside the shared directory will be removed once the machine shuts down.
+This is by design and admittedly opinionated.
 
 You can now start an SSH session with `hackenv ssh` or spin up a GUI with `hackenv gui`.
 
