@@ -3,7 +3,7 @@
 	<h4 align="center">
 		Access your <a href="https://www.kali.org/">Kali Linux</a> and <a href="https://www.parrotsec.org/">Parrot Security</a> instances with ease.
 	</h4>
-	<p>hackenv lets you comfortably manage your VMs from the terminal so you can start hacking.</p>
+	<p>hackenv lets you comfortably manage your hacking environment from the terminal, e.g., to create short-lived (volatile) virtual machines based on [libvirt](https://libvirt.org/).</p>
 </div>
 
 <p align="center">
@@ -21,8 +21,8 @@ go get -u github.com/eikendev/hackenv/cmd/...
 
 ## 🤘&nbsp;Features
 
-- Download the latest official live image.
-- Works with Kali Linux and Parrot Security.
+- Supports Kali Linux and Parrot Security.
+- Download the latest official live image conveniently.
 - **Simple and intuitive** command line interface.
 - Configure instant SSH access based on **public-key authentication**.
 - Set up a **shared directory** between host and guest.
