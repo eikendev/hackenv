@@ -3,7 +3,7 @@
 	<h4 align="center">
 		Access your <a href="https://www.kali.org/">Kali Linux</a> and <a href="https://www.parrotsec.org/">Parrot Security</a> instances with ease.
 	</h4>
-	<p>hackenv lets you comfortably manage your security environment from the command line.</p>
+	<p>hackenv lets you comfortably manage your VMs from the terminal so you can start hacking.</p>
 </div>
 
 <p align="center">
