@@ -9,7 +9,7 @@ require (
 	github.com/melbahja/goph v1.2.1
 	github.com/schollz/progressbar/v3 v3.8.2
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
-	golang.org/x/sys v0.0.0-20210629170331-7dc0b73dc9fb // indirect
+	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
 	golang.org/x/tools v0.1.4 // indirect
 	honnef.co/go/tools v0.2.0 // indirect
 	libvirt.org/libvirt-go v7.4.0+incompatible
