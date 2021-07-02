@@ -3,7 +3,7 @@
 	<h4 align="center">
 		Access your <a href="https://www.kali.org/">Kali Linux</a> and <a href="https://www.parrotsec.org/">Parrot Security</a> instances with ease.
 	</h4>
-	<p>hackenv lets you comfortably manage your hacking environment from the terminal, e.g., to create short-lived (volatile) virtual machines based on [libvirt](https://libvirt.org/).</p>
+	<p>hackenv lets you comfortably manage your hacking environment from the terminal, e.g., to create short-lived (volatile) virtual machines based on <a href="https://libvirt.org/">libvirt</a>.</p>
 </div>
 
 <p align="center">
