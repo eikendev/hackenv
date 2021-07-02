@@ -13,7 +13,8 @@
 
 ## 🚀&nbsp;Installation
 
-It it easiest to download the binary from the [latest release](https://github.com/eikendev/hackenv/releases).
+The **preferred way** is to download the binary from the [latest release](https://github.com/eikendev/hackenv/releases).
+
 Alternatively, install the [required dependencies](#dependencies) and build it yourself:
 ```bash
 go get -u github.com/eikendev/hackenv/cmd/...
