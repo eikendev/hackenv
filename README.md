@@ -1,7 +1,7 @@
 <div align="center">
 	<h1>hackenv</h1>
 	<h4 align="center">
-		Access your <a href="https://www.kali.org/">Kali Linux</a> and <a href="https://www.parrotsec.org/">Parrot Security</a> instances with ease.
+		Access your <a href="https://www.kali.org/">Kali Linux</a> and <a href="https://parrotsec.org/">Parrot Security</a> instances with ease.
 	</h4>
 	<p>hackenv lets you comfortably manage your hacking environment from the terminal.</p>
 </div>
