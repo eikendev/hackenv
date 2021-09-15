@@ -1,7 +1,5 @@
 SCRIPTS := $(wildcard ./bin/*)
 
-BASEDIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-
 .PHONY: build
 build:
 	mkdir -p ./out
@@ -29,4 +27,4 @@ lint_scripts:
 
 .PHONY: install_scripts
 install_scripts:
-	ln -i -s -r ${BASEDIR}/${SCRIPTS} ${HOME}/bin/
+	ln -i -s -r ${SCRIPTS} ${HOME}/bin/
