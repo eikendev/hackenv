@@ -54,8 +54,11 @@ const (
         </console>
         <graphics type='spice' port='-1' autoport='yes'>
           <listen type='address' address='127.0.0.1'/>
-		  <image compression='off'/>
+          <image compression='off'/>
         </graphics>
+        <channel type="spicevmc">
+            <target type="virtio" name="com.redhat.spice.0"/>
+        </channel>
         <video>
           <model type='qxl'/>
         </video>
