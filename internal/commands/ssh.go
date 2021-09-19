@@ -2,9 +2,10 @@ package commands
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"syscall"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/eikendev/hackenv/internal/constants"
 	"github.com/eikendev/hackenv/internal/images"

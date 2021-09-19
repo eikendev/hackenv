@@ -2,10 +2,11 @@ package images
 
 import (
 	"fmt"
-	"log"
 	"path/filepath"
 	"regexp"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/adrg/xdg"
 	"github.com/eikendev/hackenv/internal/constants"

@@ -2,10 +2,11 @@ package host
 
 import (
 	"bufio"
-	"log"
 	"net"
 	"os/exec"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/eikendev/hackenv/internal/paths"
 )

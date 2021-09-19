@@ -1,10 +1,11 @@
 package paths
 
 import (
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/adrg/xdg"
 	"github.com/eikendev/hackenv/internal/constants"

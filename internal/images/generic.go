@@ -1,10 +1,11 @@
 package images
 
 import (
-	"log"
 	"strconv"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	rawLibvirt "libvirt.org/libvirt-go"
 )

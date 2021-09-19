@@ -4,9 +4,10 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/eikendev/hackenv/internal/images"
 	"github.com/eikendev/hackenv/internal/settings"

@@ -3,6 +3,8 @@ package main
 import (
 	"os"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/eikendev/hackenv/internal/commands"
 	"github.com/eikendev/hackenv/internal/settings"
 	"github.com/jessevdk/go-flags"
@@ -22,6 +24,16 @@ var (
 	cmds   command
 	parser = flags.NewParser(&cmds, flags.Default)
 )
+
+func init() {
+	log.SetFormatter(&log.TextFormatter{
+		DisableTimestamp: true,
+	})
+
+	log.SetOutput(os.Stdout)
+
+	log.SetLevel(log.InfoLevel)
+}
 
 func main() {
 	_, err := parser.Parse()

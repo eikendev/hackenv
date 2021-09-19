@@ -3,11 +3,13 @@ package commands
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"time"
 
+	log "github.com/sirupsen/logrus"
+
+	"github.com/eikendev/hackenv/internal/banner"
 	"github.com/eikendev/hackenv/internal/constants"
 	"github.com/eikendev/hackenv/internal/host"
 	"github.com/eikendev/hackenv/internal/images"
@@ -190,6 +192,8 @@ func ensureSSHKeypairExists() error {
 }
 
 func (c *UpCommand) Run(s *settings.Settings) {
+	banner.PrintBanner()
+
 	image := images.GetImageDetails(s.Type)
 
 	localPath := image.GetLatestPath()
