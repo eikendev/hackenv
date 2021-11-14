@@ -17,7 +17,7 @@ The **preferred way** is to download the binary from the [latest release](https:
 
 Alternatively, install the [required dependencies](#dependencies) and build it yourself:
 ```bash
-go get -u github.com/eikendev/hackenv/cmd/...
+go install github.com/eikendev/hackenv/cmd/...@latest
 ```
 
 ## 🤘&nbsp;Features
