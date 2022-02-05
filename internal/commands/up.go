@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"syscall"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -22,7 +23,7 @@ import (
 
 const (
 	sharedDir    = "shared"
-	connectTries = 30
+	connectTries = 60
 	xmlTemplate  = `
     <domain type='kvm'>
       <name>%s</name>
@@ -120,7 +121,31 @@ func waitBootComplete(dom *rawLibvirt.Domain, image *images.Image) string {
 	return "" // Does not actually return.
 }
 
-func configureClient(c *UpCommand, dom *rawLibvirt.Domain, image *images.Image, guestIPAddr string) {
+func provisionClient(c *UpCommand, image *images.Image, guestIPAddr string) {
+
+	sharedPath := paths.GetDataFilePath(sharedDir)
+	paths.EnsurePostbootExists(sharedPath)
+
+	args := []string{
+		paths.GetCmdPathOrExit("ssh"),
+		"-i", paths.GetDataFilePath(constants.SSHKeypairName),
+		"-S", "none",
+		"-o", "LogLevel=ERROR",
+		"-o", "StrictHostKeyChecking=no",
+		"-o", "UserKnownHostsFile=/dev/null",
+		"-X",
+		fmt.Sprintf("%s@%s", image.SSHUser, guestIPAddr),
+		"/shared/postboot.sh",
+	}
+
+	log.Info("Provisioning...")
+
+	if err := syscall.Exec(args[0], args, os.Environ()); err != nil {
+		log.Printf("Cannot spawn process: %s\n", err)
+	}
+}
+
+func configureClient(c *UpCommand, dom *rawLibvirt.Domain, image *images.Image, guestIPAddr string, keymap string) {
 	client, err := goph.NewUnknown(image.SSHUser, guestIPAddr, goph.Password(image.SSHPassword))
 	if err != nil {
 		log.Fatal(err)
@@ -133,6 +158,10 @@ func configureClient(c *UpCommand, dom *rawLibvirt.Domain, image *images.Image, 
 	}
 	publicKeyStr := string(publicKey[:])
 
+	if keymap == "" {
+		keymap = host.GetHostKeyboardLayout()
+	}
+
 	cmds := append(image.ConfigurationCmds, []string{
 		// Add the SSH key to authorized_keys.
 		"mkdir ~/.ssh",
@@ -142,7 +171,7 @@ func configureClient(c *UpCommand, dom *rawLibvirt.Domain, image *images.Image, 
 
 		// Disable password authentication on SSH.
 		"sudo sed -i '/PasswordAuthentication/s/yes/no/' /etc/ssh/sshd_config",
-		"sudo systemctl reload ssh",
+		"sudo systemctl restart ssh",
 
 		// Setup a shared directory.
 		"sudo mkdir /shared",
@@ -152,7 +181,7 @@ func configureClient(c *UpCommand, dom *rawLibvirt.Domain, image *images.Image, 
 		fmt.Sprintf("DISPLAY=:0 xrandr --size %s", c.DisplaySize),
 
 		// Set keyboard layout.
-		fmt.Sprintf("DISPLAY=:0 setxkbmap %s", host.GetHostKeyboardLayout()),
+		fmt.Sprintf("DISPLAY=:0 setxkbmap %s", keymap),
 	}...)
 
 	for _, cmd := range cmds {
@@ -192,6 +221,7 @@ func ensureSSHKeypairExists() error {
 }
 
 func (c *UpCommand) Run(s *settings.Settings) {
+
 	banner.PrintBanner()
 
 	image := images.GetImageDetails(s.Type)
@@ -215,16 +245,25 @@ func (c *UpCommand) Run(s *settings.Settings) {
 	defer conn.Close()
 
 	dom, err := conn.DomainCreateXML(xml, 0)
-	if err != nil {
+	if err != nil && !s.NoProvision {
+		log.Infof("Domain %s already running, provisioning instead\n", image.DisplayName)
+		dom = libvirt.GetDomain(conn, &image, true)
+		guestIPAddr := waitBootComplete(dom, &image)
+		provisionClient(c, &image, guestIPAddr)
+	} else if err != nil {
 		log.Fatalf("Cannot create domain: %s\n", err)
+	} else {
+		image.Boot(dom, localVersion)
+		guestIPAddr := waitBootComplete(dom, &image)
+		image.StartSSH(dom)
+
+		configureClient(c, dom, &image, guestIPAddr, s.Keymap)
+		log.Printf("%s is now ready to use\n", image.DisplayName)
+
+		if !s.NoProvision {
+			provisionClient(c, &image, guestIPAddr)
+		}
+
 	}
 	defer dom.Free()
-
-	image.Boot(dom, localVersion)
-	guestIPAddr := waitBootComplete(dom, &image)
-	image.StartSSH(dom)
-
-	configureClient(c, dom, &image, guestIPAddr)
-
-	log.Printf("%s is now ready to use\n", image.DisplayName)
 }

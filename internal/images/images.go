@@ -98,7 +98,7 @@ func (i *Image) Boot(dom *rawLibvirt.Domain, version string) {
 }
 
 func (i *Image) StartSSH(dom *rawLibvirt.Domain) {
-	log.Printf("Starting SSH daemon\n")
+	log.Printf("Bootstraping...\n")
 	i.sshStarter(dom)
 }
 

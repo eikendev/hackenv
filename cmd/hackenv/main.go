@@ -17,7 +17,7 @@ type command struct {
 	GUI    commands.GuiCommand    `command:"gui" alias:"g" description:"Open a GUI for the VM"`
 	SSH    commands.SSHCommand    `command:"ssh" alias:"s" description:"Open an SSH session for the VM"`
 	Status commands.StatusCommand `command:"status" description:"Print the status of the VM"`
-	Up     commands.UpCommand     `command:"up" alias:"u" description:"Initialize and start the VM"`
+	Up     commands.UpCommand     `command:"up" alias:"u" description:"Initialize and start the VM or provision if already running"`
 }
 
 var (
