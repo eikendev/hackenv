@@ -20,7 +20,8 @@ const (
 
 type GuiCommand struct {
 	//lint:ignore SA5008 go-flags makes use of duplicate struct tags
-	Viewer string `long:"viewer" env:"HACKENV_VIEWER" default:"virt-viewer" choice:"virt-viewer" choice:"remmina" description:"The viewer to use to connect to the VM"`
+	Viewer     string `long:"viewer" env:"HACKENV_VIEWER" default:"virt-viewer" choice:"virt-viewer" choice:"remmina" description:"The viewer to use to connect to the VM"`
+	Fullscreen bool   `long:"fullscreen" alias:"f" env:"HACKENV_FULLSCREEN" description:"Start GUI in fullscreen (virt-viewer only)"`
 }
 
 func (c *GuiCommand) Execute(args []string) error {
@@ -47,6 +48,11 @@ func (c *GuiCommand) Run(s *settings.Settings) {
 			constants.ConnectURI,
 			image.Name,
 		}
+
+		if c.Fullscreen {
+			args = append(args, []string{"--full-screen"}...)
+		}
+
 	} else if remminaPath, err := paths.GetCmdPath(remminaBin); c.Viewer == remminaBin && err == nil {
 		args = []string{
 			remminaPath,

@@ -122,7 +122,6 @@ func waitBootComplete(dom *rawLibvirt.Domain, image *images.Image) string {
 }
 
 func provisionClient(c *UpCommand, image *images.Image, guestIPAddr string) {
-
 	sharedPath := paths.GetDataFilePath(sharedDir)
 	paths.EnsurePostbootExists(sharedPath)
 
@@ -221,7 +220,6 @@ func ensureSSHKeypairExists() error {
 }
 
 func (c *UpCommand) Run(s *settings.Settings) {
-
 	banner.PrintBanner()
 
 	image := images.GetImageDetails(s.Type)
