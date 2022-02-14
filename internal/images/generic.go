@@ -10,8 +10,7 @@ import (
 	rawLibvirt "libvirt.org/libvirt-go"
 )
 
-type GenericVersionComparer struct {
-}
+type GenericVersionComparer struct{}
 
 func getGenericVersionComparer() *GenericVersionComparer {
 	return &GenericVersionComparer{}

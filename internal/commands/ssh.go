@@ -14,8 +14,7 @@ import (
 	"github.com/eikendev/hackenv/internal/settings"
 )
 
-type SSHCommand struct {
-}
+type SSHCommand struct{}
 
 func (c *SSHCommand) Execute(args []string) error {
 	settings.Runner = c

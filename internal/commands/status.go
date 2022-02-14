@@ -10,8 +10,7 @@ import (
 	"github.com/eikendev/hackenv/internal/settings"
 )
 
-type StatusCommand struct {
-}
+type StatusCommand struct{}
 
 func (c *StatusCommand) Execute(args []string) error {
 	settings.Runner = c

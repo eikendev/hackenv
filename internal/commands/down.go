@@ -8,8 +8,7 @@ import (
 	"github.com/eikendev/hackenv/internal/settings"
 )
 
-type DownCommand struct {
-}
+type DownCommand struct{}
 
 func (c *DownCommand) Execute(args []string) error {
 	settings.Runner = c
