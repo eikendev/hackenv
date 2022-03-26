@@ -68,10 +68,10 @@ var images = map[string]Image{
 	"parrot": {
 		Name:              "parrot",
 		DisplayName:       "Parrot Security",
-		ArchiveURL:        "https://download.parrot.sh/parrot/iso/current",
+		ArchiveURL:        "https://download.parrot.sh/parrot/iso/5.0",
 		checksumPath:      "/signed-hashes.txt",
 		LocalImageName:    "parrot-%s.iso",
-		VersionRegex:      regexp.MustCompile(`\d+\.\d+\.\d+`),
+		VersionRegex:      regexp.MustCompile(`\d+\.\d+`),
 		SSHUser:           "user",
 		SSHPassword:       "toor",
 		MacAddress:        "52:54:00:08:f9:e9",
