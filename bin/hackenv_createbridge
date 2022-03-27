@@ -39,10 +39,12 @@ create_network() {
 	printf "Flag the network to automatically start on boot...\n" >&2
 	sudo virsh net-autostart "$networkname"
 
-	sudo mkdir /etc/qemu
-	echo "allow $interfacename" | sudo tee -a /etc/qemu/bridge.conf
-	sudo chown -R :kvm /etc/qemu
-	sudo chmod 640 /etc/qemu/bridge.conf
+	if ! grep -q "allow $interfacename"; then
+		sudo mkdir /etc/qemu
+		echo "allow $interfacename" | sudo tee -a /etc/qemu/bridge.conf
+		sudo chown -R :kvm /etc/qemu
+		sudo chmod 640 /etc/qemu/bridge.conf
+	fi
 }
 
 printf "Requesting elevated permissions...\n" >&2
