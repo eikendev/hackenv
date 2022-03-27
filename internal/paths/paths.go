@@ -1,6 +1,7 @@
 package paths
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -25,6 +26,15 @@ func EnsureDirExists(path string) {
 	if err != nil {
 		log.Fatalf("Cannot create directory: %s\n", err)
 	}
+}
+
+func EnsurePostbootExists(path string) bool {
+	path = fmt.Sprintf("%s/postboot.sh", path)
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		log.Infof("%s doesn't exists", path)
+		return false
+	}
+	return true
 }
 
 func GetCmdPathOrExit(cmd string) string {

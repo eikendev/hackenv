@@ -61,9 +61,9 @@ func parrotBootInitializer(dom *rawLibvirt.Domain) {
 }
 
 func parrotSSHStarter(dom *rawLibvirt.Domain) {
-	time.Sleep(2 * time.Second)
-
+	time.Sleep(5 * time.Second)
 	switchToTTY(dom)
+	time.Sleep(1 * time.Second)
 	enablePasswordSSH(dom)
 	systemdRestartSSH(dom)
 	switchFromTTY(dom)
