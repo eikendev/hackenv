@@ -28,8 +28,8 @@ func EnsureDirExists(path string) {
 	}
 }
 
-func EnsurePostbootExists(path string) bool {
-	path = fmt.Sprintf("%s/postboot.sh", path)
+func DoesPostbootExist(path string) bool {
+	path = fmt.Sprintf("%s/%s", path, constants.PostbootFile)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		log.Infof("%s doesn't exists", path)
 		return false

@@ -78,7 +78,7 @@ const (
 
 type UpCommand struct {
 	Cores       int    `long:"cores" env:"HACKENV_CORES" default:"2" description:"How many virtual CPU cores to assign to the VM"`
-	Memory      int    `long:"memory" env:"HACKENV_MEMORY" default:"2097152" description:"How much RAM to assign to the VM"`
+	Memory      int    `long:"memory" env:"HACKENV_MEMORY" default:"2097152" description:"How much RAM to assign to the VM (KiB)"`
 	Interface   string `long:"iface" env:"HACKENV_IFACE" default:"virbr0" description:"The network interface to use as a bridge"`
 	DisplaySize string `long:"display_size" env:"HACKENV_DISPLAY_SIZE" default:"1920x1080" description:"The resolution of the VM's display"`
 }
@@ -123,20 +123,13 @@ func waitBootComplete(dom *rawLibvirt.Domain, image *images.Image) string {
 
 func provisionClient(c *UpCommand, image *images.Image, guestIPAddr string) {
 	sharedPath := paths.GetDataFilePath(sharedDir)
-	postbootPresent := paths.EnsurePostbootExists(sharedPath)
+	postbootExists := paths.DoesPostbootExist(sharedPath)
 
-	if postbootPresent {
-		args := []string{
-			paths.GetCmdPathOrExit("ssh"),
-			"-i", paths.GetDataFilePath(constants.SSHKeypairName),
-			"-S", "none",
-			"-o", "LogLevel=ERROR",
-			"-o", "StrictHostKeyChecking=no",
-			"-o", "UserKnownHostsFile=/dev/null",
-			"-X",
+	if postbootExists {
+		args := buildSSHArgs([]string{
 			fmt.Sprintf("%s@%s", image.SSHUser, guestIPAddr),
-			"/shared/postboot.sh",
-		}
+			fmt.Sprintf("/shared/%s", constants.PostbootFile),
+		})
 
 		log.Info("Provisioning...")
 
@@ -247,7 +240,7 @@ func (c *UpCommand) Run(s *settings.Settings) {
 	dom, err := conn.DomainCreateXML(xml, 0)
 	defer dom.Free()
 	if err != nil && s.Provision {
-		log.Infof("Domain %s already running, provisioning instead\n", image.DisplayName)
+		log.Infof("%s is already running, provisioning instead\n", image.DisplayName)
 		dom = libvirt.GetDomain(conn, &image, true)
 		guestIPAddr := waitBootComplete(dom, &image)
 		provisionClient(c, &image, guestIPAddr)

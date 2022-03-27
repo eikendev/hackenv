@@ -35,6 +35,17 @@ func (c *SSHCommand) Run(s *settings.Settings) {
 		log.Fatalf("Cannot retrieve guest's IP address\n")
 	}
 
+	args := buildSSHArgs([]string{
+		"-X",
+		fmt.Sprintf("%s@%s", image.SSHUser, ipAddr),
+	})
+
+	if err := syscall.Exec(args[0], args, os.Environ()); err != nil {
+		log.Printf("Cannot spawn process: %s\n", err)
+	}
+}
+
+func buildSSHArgs(customArgs []string) []string {
 	args := []string{
 		paths.GetCmdPathOrExit("ssh"),
 		"-i", paths.GetDataFilePath(constants.SSHKeypairName),
@@ -42,11 +53,8 @@ func (c *SSHCommand) Run(s *settings.Settings) {
 		"-o", "LogLevel=ERROR",
 		"-o", "StrictHostKeyChecking=no",
 		"-o", "UserKnownHostsFile=/dev/null",
-		"-X",
-		fmt.Sprintf("%s@%s", image.SSHUser, ipAddr),
 	}
+	args = append(args, customArgs[:]...)
 
-	if err := syscall.Exec(args[0], args, os.Environ()); err != nil {
-		log.Printf("Cannot spawn process: %s\n", err)
-	}
+	return args
 }
