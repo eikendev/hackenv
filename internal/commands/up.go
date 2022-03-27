@@ -123,24 +123,26 @@ func waitBootComplete(dom *rawLibvirt.Domain, image *images.Image) string {
 
 func provisionClient(c *UpCommand, image *images.Image, guestIPAddr string) {
 	sharedPath := paths.GetDataFilePath(sharedDir)
-	paths.EnsurePostbootExists(sharedPath)
+	postbootPresent := paths.EnsurePostbootExists(sharedPath)
 
-	args := []string{
-		paths.GetCmdPathOrExit("ssh"),
-		"-i", paths.GetDataFilePath(constants.SSHKeypairName),
-		"-S", "none",
-		"-o", "LogLevel=ERROR",
-		"-o", "StrictHostKeyChecking=no",
-		"-o", "UserKnownHostsFile=/dev/null",
-		"-X",
-		fmt.Sprintf("%s@%s", image.SSHUser, guestIPAddr),
-		"/shared/postboot.sh",
-	}
+	if postbootPresent {
+		args := []string{
+			paths.GetCmdPathOrExit("ssh"),
+			"-i", paths.GetDataFilePath(constants.SSHKeypairName),
+			"-S", "none",
+			"-o", "LogLevel=ERROR",
+			"-o", "StrictHostKeyChecking=no",
+			"-o", "UserKnownHostsFile=/dev/null",
+			"-X",
+			fmt.Sprintf("%s@%s", image.SSHUser, guestIPAddr),
+			"/shared/postboot.sh",
+		}
 
-	log.Info("Provisioning...")
+		log.Info("Provisioning...")
 
-	if err := syscall.Exec(args[0], args, os.Environ()); err != nil {
-		log.Printf("Cannot spawn process: %s\n", err)
+		if err := syscall.Exec(args[0], args, os.Environ()); err != nil {
+			log.Fatalf("Cannot spawn process: %s\n", err)
+		}
 	}
 }
 
@@ -170,7 +172,7 @@ func configureClient(c *UpCommand, dom *rawLibvirt.Domain, image *images.Image, 
 
 		// Disable password authentication on SSH.
 		"sudo sed -i '/PasswordAuthentication/s/yes/no/' /etc/ssh/sshd_config",
-		"sudo systemctl restart ssh",
+		"sudo systemctl reload ssh",
 
 		// Setup a shared directory.
 		"sudo mkdir /shared",
@@ -243,7 +245,8 @@ func (c *UpCommand) Run(s *settings.Settings) {
 	defer conn.Close()
 
 	dom, err := conn.DomainCreateXML(xml, 0)
-	if err != nil && !s.NoProvision {
+	defer dom.Free()
+	if err != nil && s.Provision {
 		log.Infof("Domain %s already running, provisioning instead\n", image.DisplayName)
 		dom = libvirt.GetDomain(conn, &image, true)
 		guestIPAddr := waitBootComplete(dom, &image)
@@ -258,10 +261,9 @@ func (c *UpCommand) Run(s *settings.Settings) {
 		configureClient(c, dom, &image, guestIPAddr, s.Keymap)
 		log.Printf("%s is now ready to use\n", image.DisplayName)
 
-		if !s.NoProvision {
+		if s.Provision {
 			provisionClient(c, &image, guestIPAddr)
 		}
 
 	}
-	defer dom.Free()
 }
