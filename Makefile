@@ -2,10 +2,17 @@ OUT_DIR := ./out
 
 SCRIPTS := $(wildcard ./bin/*)
 
+HE_BUILD_VERSION ?= $(shell git describe --tags)
+ifeq ($(HE_BUILD_VERSION),)
+	_ := $(error Cannot determine build version)
+endif
+
+BUILD_VERSION_FLAG := github.com/eikendev/hackenv/internal/buildconfig.Version=$(HE_BUILD_VERSION)
+
 .PHONY: build
 build:
 	mkdir -p $(OUT_DIR)
-	go build -ldflags="-w -s" -o $(OUT_DIR)/hackenv ./cmd/hackenv
+	go build -ldflags "-w -s -X $(BUILD_VERSION_FLAG)" -o $(OUT_DIR)/hackenv ./cmd/hackenv
 
 .PHONY: clean
 clean:

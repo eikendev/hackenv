@@ -12,12 +12,13 @@ import (
 
 type command struct {
 	settings.Settings
-	Down   commands.DownCommand   `command:"down" alias:"d" description:"Shut down the VM"`
-	Get    commands.GetCommand    `command:"get" description:"Download the VM image"`
-	GUI    commands.GuiCommand    `command:"gui" alias:"g" description:"Open a GUI for the VM"`
-	SSH    commands.SSHCommand    `command:"ssh" alias:"s" description:"Open an SSH session for the VM"`
-	Status commands.StatusCommand `command:"status" description:"Print the status of the VM"`
-	Up     commands.UpCommand     `command:"up" alias:"u" description:"Initialize and start the VM or provision if already running"`
+	Down    commands.DownCommand    `command:"down" alias:"d" description:"Shut down the VM"`
+	Get     commands.GetCommand     `command:"get" description:"Download the VM image"`
+	GUI     commands.GuiCommand     `command:"gui" alias:"g" description:"Open a GUI for the VM"`
+	SSH     commands.SSHCommand     `command:"ssh" alias:"s" description:"Open an SSH session for the VM"`
+	Status  commands.StatusCommand  `command:"status" description:"Print the status of the VM"`
+	Up      commands.UpCommand      `command:"up" alias:"u" description:"Initialize and start the VM or provision if already running"`
+	Version commands.VersionCommand `command:"version" description:"Print the version of hackenv"`
 }
 
 var (
@@ -26,13 +27,11 @@ var (
 )
 
 func init() {
+	log.SetOutput(os.Stdout)
+	log.SetLevel(log.InfoLevel)
 	log.SetFormatter(&log.TextFormatter{
 		DisableTimestamp: true,
 	})
-
-	log.SetOutput(os.Stdout)
-
-	log.SetLevel(log.InfoLevel)
 }
 
 func main() {
