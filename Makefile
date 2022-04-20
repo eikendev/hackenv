@@ -31,7 +31,7 @@ test: lint_scripts
 setup:
 	go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
 	go install honnef.co/go/tools/cmd/staticcheck@latest
-	go install mvdan.cc/gofumpt@master # Using master as workaround: https://github.com/mvdan/gofumpt/issues/215
+	go install mvdan.cc/gofumpt@latest
 
 .PHONY: fmt
 fmt:

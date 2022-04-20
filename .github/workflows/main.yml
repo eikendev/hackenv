@@ -13,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # Needed to describe git ref during build.
 
       - name: Install libvirt
         run: |
@@ -23,7 +23,7 @@ jobs:
       - name: Export GOBIN
         uses: actions/setup-go@v2
         with:
-          go-version: 1.16
+          go-version: 1.17
 
       - name: Install dependencies
         run: make setup
