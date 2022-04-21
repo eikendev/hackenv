@@ -7,17 +7,12 @@ import (
 
 	"github.com/eikendev/hackenv/internal/images"
 	"github.com/eikendev/hackenv/internal/libvirt"
-	"github.com/eikendev/hackenv/internal/settings"
+	"github.com/eikendev/hackenv/internal/options"
 )
 
 type StatusCommand struct{}
 
-func (c *StatusCommand) Execute(args []string) error {
-	settings.Runner = c
-	return nil
-}
-
-func (c *StatusCommand) Run(s *settings.Settings) {
+func (c *StatusCommand) Run(s *options.Options) error {
 	conn := libvirt.Connect()
 	defer conn.Close()
 
@@ -40,4 +35,6 @@ func (c *StatusCommand) Run(s *settings.Settings) {
 
 		fmt.Printf("%s\t%s\n", image.Name, state)
 	}
+
+	return nil
 }

@@ -8,17 +8,17 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/melbahja/goph"
 	log "github.com/sirupsen/logrus"
+	rawLibvirt "libvirt.org/libvirt-go"
 
 	"github.com/eikendev/hackenv/internal/banner"
 	"github.com/eikendev/hackenv/internal/constants"
 	"github.com/eikendev/hackenv/internal/host"
 	"github.com/eikendev/hackenv/internal/images"
 	"github.com/eikendev/hackenv/internal/libvirt"
+	"github.com/eikendev/hackenv/internal/options"
 	"github.com/eikendev/hackenv/internal/paths"
-	"github.com/eikendev/hackenv/internal/settings"
-	"github.com/melbahja/goph"
-	rawLibvirt "libvirt.org/libvirt-go"
 )
 
 const (
@@ -77,15 +77,10 @@ const (
 )
 
 type UpCommand struct {
-	Cores       int    `long:"cores" env:"HACKENV_CORES" default:"2" description:"How many virtual CPU cores to assign to the VM"`
-	Memory      int    `long:"memory" env:"HACKENV_MEMORY" default:"2097152" description:"How much RAM to assign to the VM (KiB)"`
-	Interface   string `long:"iface" env:"HACKENV_IFACE" default:"virbr0" description:"The network interface to use as a bridge"`
-	DisplaySize string `long:"display_size" env:"HACKENV_DISPLAY_SIZE" default:"1920x1080" description:"The resolution of the VM's display"`
-}
-
-func (c *UpCommand) Execute(args []string) error {
-	settings.Runner = c
-	return nil
+	Cores       int    `name:"cores" env:"HACKENV_CORES" default:"2" help:"How many virtual CPU cores to assign to the VM"`
+	Memory      int    `name:"memory" env:"HACKENV_MEMORY" default:"2097152" help:"How much RAM to assign to the VM (KiB)"`
+	Interface   string `name:"iface" env:"HACKENV_IFACE" default:"virbr0" help:"The network interface to use as a bridge"`
+	DisplaySize string `name:"display_size" env:"HACKENV_DISPLAY_SIZE" default:"1920x1080" help:"The resolution of the VM's display"`
 }
 
 func buildXML(c *UpCommand, image images.Image, path string) string {
@@ -214,7 +209,7 @@ func ensureSSHKeypairExists() error {
 	return cmd.Wait()
 }
 
-func (c *UpCommand) Run(s *settings.Settings) {
+func (c *UpCommand) Run(s *options.Options) error {
 	banner.PrintBanner()
 
 	image := images.GetImageDetails(s.Type)
@@ -259,4 +254,6 @@ func (c *UpCommand) Run(s *settings.Settings) {
 		}
 
 	}
+
+	return nil
 }

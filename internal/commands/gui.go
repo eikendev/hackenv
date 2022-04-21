@@ -9,8 +9,8 @@ import (
 	"github.com/eikendev/hackenv/internal/constants"
 	"github.com/eikendev/hackenv/internal/images"
 	"github.com/eikendev/hackenv/internal/libvirt"
+	"github.com/eikendev/hackenv/internal/options"
 	"github.com/eikendev/hackenv/internal/paths"
-	"github.com/eikendev/hackenv/internal/settings"
 )
 
 const (
@@ -19,17 +19,11 @@ const (
 )
 
 type GuiCommand struct {
-	//lint:ignore SA5008 go-flags makes use of duplicate struct tags
-	Viewer     string `long:"viewer" env:"HACKENV_VIEWER" default:"virt-viewer" choice:"virt-viewer" choice:"remmina" description:"The viewer to use to connect to the VM"`
-	Fullscreen bool   `long:"fullscreen" alias:"f" env:"HACKENV_FULLSCREEN" description:"Start GUI in fullscreen (virt-viewer only)"`
+	Viewer     string `name:"viewer" env:"HACKENV_VIEWER" default:"virt-viewer" enum:"virt-viewer,remmina" help:"The viewer to use to connect to the VM"`
+	Fullscreen bool   `short:"f" name:"fullscreen" env:"HACKENV_FULLSCREEN" help:"Start GUI in fullscreen (virt-viewer only)"`
 }
 
-func (c *GuiCommand) Execute(args []string) error {
-	settings.Runner = c
-	return nil
-}
-
-func (c *GuiCommand) Run(s *settings.Settings) {
+func (c *GuiCommand) Run(s *options.Options) error {
 	image := images.GetImageDetails(s.Type)
 
 	conn := libvirt.Connect()
@@ -77,4 +71,6 @@ func (c *GuiCommand) Run(s *settings.Settings) {
 		log.Printf("Cannot spawn process: %s\n", err)
 	}
 	defer cmd.Process.Release()
+
+	return nil
 }

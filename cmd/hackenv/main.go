@@ -3,28 +3,23 @@ package main
 import (
 	"os"
 
+	"github.com/alecthomas/kong"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/eikendev/hackenv/internal/commands"
-	"github.com/eikendev/hackenv/internal/settings"
-	"github.com/jessevdk/go-flags"
+	"github.com/eikendev/hackenv/internal/options"
 )
 
-type command struct {
-	settings.Settings
-	Down    commands.DownCommand    `command:"down" alias:"d" description:"Shut down the VM"`
-	Get     commands.GetCommand     `command:"get" description:"Download the VM image"`
-	GUI     commands.GuiCommand     `command:"gui" alias:"g" description:"Open a GUI for the VM"`
-	SSH     commands.SSHCommand     `command:"ssh" alias:"s" description:"Open an SSH session for the VM"`
-	Status  commands.StatusCommand  `command:"status" description:"Print the status of the VM"`
-	Up      commands.UpCommand      `command:"up" alias:"u" description:"Initialize and start the VM or provision if already running"`
-	Version commands.VersionCommand `command:"version" description:"Print the version of hackenv"`
+var cmd struct {
+	options.Options
+	Down    commands.DownCommand    `cmd:"down" aliases:"d" help:"Shut down the VM"`
+	Get     commands.GetCommand     `cmd:"get" help:"Download the VM image"`
+	GUI     commands.GuiCommand     `cmd:"gui" aliases:"g" help:"Open a GUI for the VM"`
+	SSH     commands.SSHCommand     `cmd:"ssh" aliases:"s" help:"Open an SSH session for the VM"`
+	Status  commands.StatusCommand  `cmd:"status" help:"Print the status of the VM"`
+	Up      commands.UpCommand      `cmd:"up" aliases:"u" help:"Initialize and start the VM or provision if already running"`
+	Version commands.VersionCommand `cmd:"version" help:"Print the version of hackenv"`
 }
-
-var (
-	cmds   command
-	parser = flags.NewParser(&cmds, flags.Default)
-)
 
 func init() {
 	log.SetOutput(os.Stdout)
@@ -35,10 +30,7 @@ func init() {
 }
 
 func main() {
-	_, err := parser.Parse()
-	if err != nil {
-		os.Exit(1)
-	}
-
-	settings.Runner.Run(&cmds.Settings)
+	ctx := kong.Parse(&cmd)
+	err := ctx.Run(&cmd.Options)
+	ctx.FatalIfErrorf(err)
 }

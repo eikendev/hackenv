@@ -5,17 +5,12 @@ import (
 
 	"github.com/eikendev/hackenv/internal/images"
 	"github.com/eikendev/hackenv/internal/libvirt"
-	"github.com/eikendev/hackenv/internal/settings"
+	"github.com/eikendev/hackenv/internal/options"
 )
 
 type DownCommand struct{}
 
-func (c *DownCommand) Execute(args []string) error {
-	settings.Runner = c
-	return nil
-}
-
-func (c *DownCommand) Run(s *settings.Settings) {
+func (c *DownCommand) Run(s *options.Options) error {
 	image := images.GetImageDetails(s.Type)
 
 	conn := libvirt.Connect()
@@ -28,4 +23,6 @@ func (c *DownCommand) Run(s *settings.Settings) {
 	if err != nil {
 		log.Fatalf("Cannot destroy domain: %s\n", err)
 	}
+
+	return nil
 }

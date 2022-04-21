@@ -7,21 +7,16 @@ import (
 	"net/http"
 	"os"
 
+	progressbar "github.com/schollz/progressbar/v3"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/eikendev/hackenv/internal/images"
-	"github.com/eikendev/hackenv/internal/settings"
-	progressbar "github.com/schollz/progressbar/v3"
+	"github.com/eikendev/hackenv/internal/options"
 )
 
 type GetCommand struct {
-	Force  bool `short:"f" long:"force" description:"Force to download the new image"`
-	Update bool `short:"u" long:"update" description:"Allow update to the latest image"`
-}
-
-func (c *GetCommand) Execute(args []string) error {
-	settings.Runner = c
-	return nil
+	Force  bool `short:"f" name:"force" help:"Force to download the new image"`
+	Update bool `short:"u" name:"update" help:"Allow update to the latest image"`
 }
 
 // https://golang.org/pkg/crypto/sha256/#example_New_file
@@ -90,7 +85,7 @@ func validateChecksum(localPath, checksum string) {
 	log.Println("Checksum validated successfully")
 }
 
-func (c *GetCommand) Run(s *settings.Settings) {
+func (c *GetCommand) Run(s *options.Options) error {
 	image := images.GetImageDetails(s.Type)
 	info := image.GetDownloadInfo(true)
 
@@ -104,14 +99,14 @@ func (c *GetCommand) Run(s *settings.Settings) {
 
 		if !c.Update && !c.Force {
 			log.Println("An image is already installed; update with --update")
-			return
+			return nil
 		}
 
 		localVersion := image.FileVersion(localPath)
 
 		if !c.Force && image.VersionComparer.Eq(info.Version, localVersion) {
 			log.Println("Latest image is already installed; force with --force")
-			return
+			return nil
 		}
 	} else if !os.IsNotExist(err) {
 		log.Fatalf("Unable to get file information for path %s\n", localPath)
@@ -120,4 +115,6 @@ func (c *GetCommand) Run(s *settings.Settings) {
 	downloadImage(localPath, image.ArchiveURL+"/"+info.Filename)
 
 	validateChecksum(localPath, info.Checksum)
+
+	return nil
 }

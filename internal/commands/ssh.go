@@ -10,18 +10,13 @@ import (
 	"github.com/eikendev/hackenv/internal/constants"
 	"github.com/eikendev/hackenv/internal/images"
 	"github.com/eikendev/hackenv/internal/libvirt"
+	"github.com/eikendev/hackenv/internal/options"
 	"github.com/eikendev/hackenv/internal/paths"
-	"github.com/eikendev/hackenv/internal/settings"
 )
 
 type SSHCommand struct{}
 
-func (c *SSHCommand) Execute(args []string) error {
-	settings.Runner = c
-	return nil
-}
-
-func (c *SSHCommand) Run(s *settings.Settings) {
+func (c *SSHCommand) Run(s *options.Options) error {
 	image := images.GetImageDetails(s.Type)
 
 	conn := libvirt.Connect()
@@ -43,6 +38,8 @@ func (c *SSHCommand) Run(s *settings.Settings) {
 	if err := syscall.Exec(args[0], args, os.Environ()); err != nil {
 		log.Printf("Cannot spawn process: %s\n", err)
 	}
+
+	return nil
 }
 
 func buildSSHArgs(customArgs []string) []string {

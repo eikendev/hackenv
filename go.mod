@@ -4,8 +4,8 @@ go 1.17
 
 require (
 	github.com/adrg/xdg v0.3.3
+	github.com/alecthomas/kong v0.5.0
 	github.com/fatih/color v1.12.0
-	github.com/jessevdk/go-flags v1.5.0
 	github.com/melbahja/goph v1.2.1
 	github.com/schollz/progressbar/v3 v3.8.2
 	github.com/sirupsen/logrus v1.8.1
@@ -22,6 +22,6 @@ require (
 	github.com/pkg/sftp v1.12.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e // indirect
-	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
+	golang.org/x/sys v0.0.0-20210831042530-f4d43177bf5e // indirect
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
 )

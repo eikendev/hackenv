@@ -4,16 +4,13 @@ import (
 	"fmt"
 
 	"github.com/eikendev/hackenv/internal/buildconfig"
-	"github.com/eikendev/hackenv/internal/settings"
+	"github.com/eikendev/hackenv/internal/options"
 )
 
 type VersionCommand struct{}
 
-func (c *VersionCommand) Execute(args []string) error {
-	settings.Runner = c
-	return nil
-}
-
-func (c *VersionCommand) Run(s *settings.Settings) {
+func (c *VersionCommand) Run(s *options.Options) error {
 	fmt.Printf("hackenv %s\n", buildconfig.Version)
+
+	return nil
 }
