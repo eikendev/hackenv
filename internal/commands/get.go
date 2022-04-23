@@ -116,5 +116,7 @@ func (c *GetCommand) Run(s *options.Options) error {
 
 	validateChecksum(localPath, info.Checksum)
 
+	log.Info("When using SELinux, don't forget to label the image with ./hackenv_fixlabels before proceeding")
+
 	return nil
 }
