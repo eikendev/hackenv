@@ -1,6 +1,5 @@
 dist/
 out/
-internal/commands/hackenv_*
 
 ### Go
 # Binaries for programs and plugins

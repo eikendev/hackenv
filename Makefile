@@ -12,7 +12,6 @@ BUILD_VERSION_FLAG := github.com/eikendev/hackenv/internal/buildconfig.Version=$
 .PHONY: build
 build:
 	mkdir -p $(OUT_DIR)
-	cp ./bin/hackenv_createbridge ./bin/hackenv_fixlabels ./bin/hackenv_removebridge ./internal/commands
 	go build -ldflags "-w -s -X $(BUILD_VERSION_FLAG)" -o $(OUT_DIR)/hackenv ./cmd/hackenv
 
 .PHONY: clean

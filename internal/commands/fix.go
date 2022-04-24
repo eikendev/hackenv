@@ -1,12 +1,12 @@
 package commands
 
 import (
-	_ "embed"
 	"fmt"
 	"os/exec"
 	"strings"
 
 	"github.com/eikendev/hackenv/internal/options"
+	"github.com/eikendev/hackenv/internal/scripts"
 )
 
 // FixCommand struct
@@ -16,21 +16,12 @@ type FixCommand struct {
 	Labels       bool `short:"l" name:"labels" help:"Fix selinux labels"`
 }
 
-//go:embed hackenv_createbridge
-var createBridgeScript string
-
-//go:embed hackenv_removebridge
-var removeBridgeScript string
-
-//go:embed hackenv_fixlabels
-var fixLabelsScript string
-
 // Run start the fix command
 func (c *FixCommand) Run(s *options.Options) error {
 	command := exec.Command("bash")
 
 	if c.CreateBridge || (!c.CreateBridge && !c.Labels) {
-		command.Stdin = strings.NewReader(createBridgeScript)
+		command.Stdin = strings.NewReader(scripts.CreateBridgeScript)
 		b, err := command.Output()
 		if err != nil {
 			fmt.Println(err)
@@ -39,7 +30,7 @@ func (c *FixCommand) Run(s *options.Options) error {
 	}
 
 	if c.Labels || (!c.CreateBridge && !c.Labels) {
-		command.Stdin = strings.NewReader(fixLabelsScript)
+		command.Stdin = strings.NewReader(scripts.FixLabelsScript)
 		b, err := command.Output()
 		if err != nil {
 			fmt.Println(err)
@@ -48,7 +39,7 @@ func (c *FixCommand) Run(s *options.Options) error {
 	}
 
 	if c.RemoveBridge {
-		command.Stdin = strings.NewReader(removeBridgeScript)
+		command.Stdin = strings.NewReader(scripts.RemoveBridgeScript)
 		b, err := command.Output()
 		if err != nil {
 			fmt.Println(err)

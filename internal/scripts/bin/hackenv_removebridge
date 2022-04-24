@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o errtrace
+
+readonly networkname='default'
+
+if_network_exists() {
+	sudo virsh net-list --all --name | grep "^$networkname\$" > /dev/null
+}
+
+remove_network() {
+	printf "Removing existing network...\n" >&2
+	sudo virsh net-destroy "$networkname"
+	sudo virsh net-undefine "$networkname"
+}
+
+printf "Requesting elevated permissions...\n" >&2
+sudo true
+
+if_network_exists &&
+	remove_network ||
+	printf "Network does not exist\n" >&2
