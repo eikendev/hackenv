@@ -22,7 +22,7 @@ var cmd struct {
 }
 
 func init() {
-	log.SetOutput(os.Stdout)
+	log.SetOutput(os.Stderr)
 	log.SetLevel(log.InfoLevel)
 	log.SetFormatter(&log.TextFormatter{
 		DisableTimestamp: true,
