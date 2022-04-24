@@ -1,3 +1,3 @@
 package buildconfig
 
-var Version string
+var Version = "unknown"
