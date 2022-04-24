@@ -1,5 +1,6 @@
 dist/
 out/
+internal/commands/hackenv_*
 
 ### Go
 # Binaries for programs and plugins
@@ -17,4 +18,3 @@ out/
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
-
