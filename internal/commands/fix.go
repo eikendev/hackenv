@@ -11,42 +11,51 @@ import (
 
 // FixCommand struct
 type FixCommand struct {
-	CreateBridge bool `short:"c" name:"create-bridge" help:"Create bridge"`
-	RemoveBridge bool `short:"r" name:"remove-bridge" help:"Remove bridge"`
-	Labels       bool `short:"l" name:"labels"        help:"Fix SElinux labels"`
+	CreateBridge createBridge `cmd:"create-bridge" aliases:"c" help:"Create bridge"`
+	RemoveBridge removeBridge `cmd:"remove-bridge" aliases:"r" help:"Remove bridge"`
+	FixLabels    fixLabels    `cmd:"fix-labels" aliases:"l" help:"Fix SElinux labels"`
+	All          all          `cmd:"all" aliases:"a" help:"Create bridge and fix selinux labels"`
 }
 
-// Run start the fix command
-func (c *FixCommand) Run(s *options.Options) error {
-	command := exec.Command("bash")
+type createBridge struct{}
 
-	if c.RemoveBridge {
-		command.Stdin = strings.NewReader(scripts.RemoveBridgeScript)
-		b, err := command.Output()
-		if err != nil {
-			fmt.Println(err)
-		}
-		fmt.Println(string(b))
-		return nil
+func (c *createBridge) Run(s *options.Options) error {
+	return command(scripts.CreateBridgeScript, s.Verbose)
+}
+
+type removeBridge struct{}
+
+func (c *removeBridge) Run(s *options.Options) error {
+	return command(scripts.RemoveBridgeScript, s.Verbose)
+}
+
+type fixLabels struct{}
+
+func (c *fixLabels) Run(s *options.Options) error {
+	return command(scripts.FixLabelsScript, s.Verbose)
+}
+
+type all struct{}
+
+func (c *all) Run(s *options.Options) error {
+	err := command(scripts.CreateBridgeScript, s.Verbose)
+	if err != nil {
+		return err
 	}
+	return command(scripts.FixLabelsScript, s.Verbose)
+}
 
-	if c.CreateBridge || (!c.CreateBridge && !c.Labels) {
-		command.Stdin = strings.NewReader(scripts.CreateBridgeScript)
-		b, err := command.Output()
-		if err != nil {
-			fmt.Println(err)
-		}
+func command(script string, verbose bool) error {
+	cmd := exec.Command("bash")
+	cmd.Stdin = strings.NewReader(script)
+	b, err := cmd.Output()
+	if verbose {
 		fmt.Println(string(b))
 	}
-
-	if c.RemoveBridge {
-		command.Stdin = strings.NewReader(scripts.RemoveBridgeScript)
-		b, err := command.Output()
-		if err != nil {
-			fmt.Println(err)
-		}
-		fmt.Println(string(b))
+	if err != nil {
+		return err
 	}
 
 	return nil
+
 }
