@@ -34,7 +34,7 @@ go install github.com/eikendev/hackenv/cmd/...@latest
 
 First, make sure you have the [required dependencies](#dependencies) installed.
 Also, you will need a bridge interface [as described below](#creating-a-bridge-interface).
-This can be as simple as running `./bin/hackenv_createbridge`.
+This can be as simple as running `hackenv fix create-bridge` (or `./bin/hackenv_createbridge`).
 
 Then, download an image using `hackenv get`.
 This will download a live image from the official mirrors.
@@ -59,14 +59,14 @@ hackenv will automatically set up a shared directory between the host and the vi
 On the host side the directory is `~/.local/share/hackenv/shared`, while on the guest side it is located at `/shared`.
 
 If SELinux denies access to the shared directory, you have to adjust the context of the directory.
-You can run `./bin/hackenv_fixlabels` if you are on Fedora or similar.
+You can run `hackenv fix apply-labels` (or `./bin/hackenv_applylabels`) if you are on Fedora or similar.
 The script will also relabel the downloaded images.
 If you add new files to the shared directory from outside, do not forget to label them as well.
 
 ### Creating a Bridge Interface
 
 hackenv uses a bridge so that you can reach the guest from the host for SSH, while the guest can access the Internet.
-You can create this bridge by running `./bin/hackenv_createbridge`.
+You can create this bridge by running `hackenv fix create-bridge` (or `./bin/hackenv_createbridge`).
 Note that this script **will request privileges** so it can create an interface.
 
 Of course, please adapt the script to your specific needs.
