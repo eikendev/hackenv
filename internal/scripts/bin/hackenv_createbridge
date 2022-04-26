@@ -47,9 +47,6 @@ create_network() {
 	fi
 }
 
-printf "Requesting elevated permissions...\n" >&2
-sudo true
-
 if_network_exists &&
 	printf "Network already exists; exiting...\n" >&2 &&
 	exit 0
