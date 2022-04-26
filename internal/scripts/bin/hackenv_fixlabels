@@ -13,7 +13,7 @@ printf "Trying to fix SElinux labels...\n" >&2
 if ! command -v semanage &> /dev/null; then
 	printf "SElinux coreutils binaries could not be found.\n" >&2
 	if command -v yum &> /dev/null; then
-		sudo yum -y install policycoreutils-python-utils
+		printf "Try 'sudo yum -y install policycoreutils-python-utils'\nthen try again." >&2
 	else
 		printf "Exiting.\n" >&2 && exit 0
 	fi

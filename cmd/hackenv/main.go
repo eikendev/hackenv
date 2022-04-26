@@ -31,10 +31,10 @@ func init() {
 }
 
 func main() {
+	ctx := kong.Parse(&cmd)
 	if cmd.Verbose {
 		log.SetLevel(log.DebugLevel)
 	}
-	ctx := kong.Parse(&cmd)
 	err := ctx.Run(&cmd.Options)
 	ctx.FatalIfErrorf(err)
 }

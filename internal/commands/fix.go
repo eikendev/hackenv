@@ -39,11 +39,7 @@ func (c *fixLabels) Run(s *options.Options) error {
 type all struct{}
 
 func (c *all) Run(s *options.Options) error {
-	if err := execCommand([]string{scripts.CreateBridgeScript, scripts.FixLabelsScript}, s.Verbose); err != nil {
-		return err
-	}
-
-	return nil
+	return execCommand([]string{scripts.CreateBridgeScript, scripts.FixLabelsScript}, s.Verbose)
 }
 
 func execCommand(scripts []string, verbose bool) error {
