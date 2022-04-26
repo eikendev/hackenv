@@ -31,6 +31,9 @@ func init() {
 }
 
 func main() {
+	if cmd.Verbose {
+		log.SetLevel(log.DebugLevel)
+	}
 	ctx := kong.Parse(&cmd)
 	err := ctx.Run(&cmd.Options)
 	ctx.FatalIfErrorf(err)

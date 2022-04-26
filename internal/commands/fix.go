@@ -47,7 +47,6 @@ func (c *all) Run(s *options.Options) error {
 }
 
 func execCommand(scripts []string, verbose bool) error {
-
 	for i, script := range scripts {
 		cmd := exec.Command("bash")
 		log.Infof("Running script %v/%v...\n\n", i, len(scripts)-1)
