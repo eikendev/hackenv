@@ -40,7 +40,7 @@ create_network() {
 	sudo virsh net-autostart "$networkname"
 
 	if ! grep -q "allow $interfacename"; then
-		sudo mkdir /etc/qemu
+		sudo mkdir -p /etc/qemu
 		echo "allow $interfacename" | sudo tee -a /etc/qemu/bridge.conf
 		sudo chown -R :kvm /etc/qemu
 		sudo chmod 640 /etc/qemu/bridge.conf
