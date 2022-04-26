@@ -10,5 +10,5 @@ var CreateBridgeScript string
 //go:embed bin/hackenv_removebridge
 var RemoveBridgeScript string
 
-//go:embed bin/hackenv_fixlabels
-var FixLabelsScript string
+//go:embed bin/hackenv_applylabels
+var ApplyLabelsScript string

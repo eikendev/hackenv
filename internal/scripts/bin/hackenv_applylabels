@@ -8,10 +8,10 @@ datahome="$datahome/hackenv"
 
 shared="$(realpath "$datahome/shared")"
 
-printf "Trying to fix SElinux labels...\n" >&2
+printf "Applying SELinux labels...\n" >&2
 
 if ! command -v semanage &> /dev/null; then
-	printf "SElinux coreutils binaries could not be found.\n" >&2
+	printf "SELinux coreutils binaries could not be found.\n" >&2
 	if command -v yum &> /dev/null; then
 		printf "Try 'sudo yum -y install policycoreutils-python-utils'\nthen try again." >&2
 	else
@@ -27,16 +27,14 @@ sudo semanage fcontext "$shared(/.*)?" --deleteall
 sudo semanage fcontext -a -t svirt_image_t "$shared(/.*)?"
 sudo restorecon -vrF "$shared"
 
-for cdrom in kali.iso parrot.iso; do
-	path="$(realpath "$datahome/$cdrom")"
-
-	if ! [ -f "$path" ]; then
+find "$datahome" -maxdepth 1 -type f -name '*.iso' | while read -r image; do
+	if ! [ -f "$image" ]; then
 		continue
 	fi
 
-	printf "Setting permissions for image %s...\n" "$cdrom" >&2
+	printf "Setting permissions for image %s...\n" "$(basename "$image")" >&2
 
-	sudo semanage fcontext "$path" --deleteall
-	sudo semanage fcontext -a -t svirt_image_t "$path"
-	sudo restorecon -vrF "$path"
+	sudo semanage fcontext "$image" --deleteall
+	sudo semanage fcontext -a -t svirt_image_t "$image"
+	sudo restorecon -vF "$image"
 done

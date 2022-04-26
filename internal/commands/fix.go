@@ -14,8 +14,8 @@ import (
 type FixCommand struct {
 	CreateBridge createBridge `cmd:"create-bridge" aliases:"c" help:"Create bridge"`
 	RemoveBridge removeBridge `cmd:"remove-bridge" aliases:"r" help:"Remove bridge"`
-	FixLabels    fixLabels    `cmd:"fix-labels" aliases:"l" help:"Fix SElinux labels"`
-	All          all          `cmd:"all" aliases:"a" help:"Create bridge and fix selinux labels"`
+	ApplyLabels  applyLabels  `cmd:"apply-labels" aliases:"l" help:"Apply SELinux labels"`
+	All          all          `cmd:"all" aliases:"a" help:"Create bridge and apply SELinux labels"`
 }
 
 type createBridge struct{}
@@ -30,16 +30,16 @@ func (c *removeBridge) Run(s *options.Options) error {
 	return execCommand([]string{scripts.RemoveBridgeScript}, s.Verbose)
 }
 
-type fixLabels struct{}
+type applyLabels struct{}
 
-func (c *fixLabels) Run(s *options.Options) error {
-	return execCommand([]string{scripts.FixLabelsScript}, s.Verbose)
+func (c *applyLabels) Run(s *options.Options) error {
+	return execCommand([]string{scripts.ApplyLabelsScript}, s.Verbose)
 }
 
 type all struct{}
 
 func (c *all) Run(s *options.Options) error {
-	return execCommand([]string{scripts.CreateBridgeScript, scripts.FixLabelsScript}, s.Verbose)
+	return execCommand([]string{scripts.CreateBridgeScript, scripts.ApplyLabelsScript}, s.Verbose)
 }
 
 func execCommand(scripts []string, verbose bool) error {
