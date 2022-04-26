@@ -240,7 +240,7 @@ func (c *UpCommand) Run(s *options.Options) error {
 		guestIPAddr := waitBootComplete(dom, &image)
 		provisionClient(c, &image, guestIPAddr)
 	} else if err != nil {
-		log.Fatalf("Cannot create domain: %s\n", err)
+		log.Fatalf("Cannot create domain: %s\nTry running 'hackenv fix all'.\n", err)
 	} else {
 		image.Boot(dom, localVersion)
 		guestIPAddr := waitBootComplete(dom, &image)

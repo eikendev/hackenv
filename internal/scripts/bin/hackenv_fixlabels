@@ -8,6 +8,17 @@ datahome="$datahome/hackenv"
 
 shared="$(realpath "$datahome/shared")"
 
+printf "Trying to fix SElinux labels...\n" >&2
+
+if ! command -v semanage &> /dev/null; then
+	printf "SElinux coreutils binaries could not be found.\n" >&2
+	if command -v yum &> /dev/null; then
+		printf "Try 'sudo yum -y install policycoreutils-python-utils'\nthen try again." >&2
+	else
+		printf "Exiting.\n" >&2 && exit 0
+	fi
+fi
+
 printf "Setting permissions for shared directory...\n" >&2
 
 mkdir -p "$shared"

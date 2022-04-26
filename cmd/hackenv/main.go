@@ -18,6 +18,7 @@ var cmd struct {
 	SSH     commands.SSHCommand     `cmd:"ssh" aliases:"s" help:"Open an SSH session for the VM"`
 	Status  commands.StatusCommand  `cmd:"status" help:"Print the status of the VM"`
 	Up      commands.UpCommand      `cmd:"up" aliases:"u" help:"Initialize and start the VM or provision if already running"`
+	Fix     commands.FixCommand     `cmd:"fix" aliases:"f" help:"Fix helpers, manage bridge and SElinux labels"`
 	Version commands.VersionCommand `cmd:"version" help:"Print the version of hackenv"`
 }
 
@@ -31,6 +32,9 @@ func init() {
 
 func main() {
 	ctx := kong.Parse(&cmd)
+	if cmd.Verbose {
+		log.SetLevel(log.DebugLevel)
+	}
 	err := ctx.Run(&cmd.Options)
 	ctx.FatalIfErrorf(err)
 }
