@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"syscall"
@@ -141,7 +140,7 @@ func configureClient(c *UpCommand, dom *rawLibvirt.Domain, image *images.Image, 
 	}
 
 	publicKeyPath := paths.GetDataFilePath(constants.SSHKeypairName + ".pub")
-	publicKey, err := ioutil.ReadFile(publicKeyPath)
+	publicKey, err := os.ReadFile(publicKeyPath)
 	if err != nil {
 		log.Fatalf("Unable to read private SSH key: %s\n", err)
 	}

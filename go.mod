@@ -1,6 +1,6 @@
 module github.com/eikendev/hackenv
 
-go 1.17
+go 1.20
 
 require (
 	github.com/adrg/xdg v0.3.3
