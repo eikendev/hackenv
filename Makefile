@@ -1,6 +1,8 @@
 OUT_DIR := ./out
 
-SCRIPTS := $(wildcard ./bin/*)
+SCRIPT_FILES := $(wildcard ./bin/*)
+
+GO_FILES := $(shell find . -type f \( -iname '*.go' \))
 
 HE_BUILD_VERSION ?= $(shell git describe --tags)
 ifeq ($(HE_BUILD_VERSION),)
@@ -22,7 +24,7 @@ clean:
 test: lint_scripts
 	stdout=$$(gofumpt -l . 2>&1); if [ "$$stdout" ]; then exit 1; fi
 	go vet ./...
-	gocyclo -over 10 $(shell find . -type f -iname '*.go')
+	gocyclo -over 10 $(GO_FILES)
 	staticcheck ./...
 	go test -v -cover ./...
 	@printf '\n%s\n' "> Test successful"
@@ -39,8 +41,8 @@ fmt:
 
 .PHONY: lint_scripts
 lint_scripts:
-	shellcheck ${SCRIPTS}
+	shellcheck ${SCRIPT_FILES}
 
 .PHONY: install_scripts
 install_scripts:
-	ln -i -s -r ${SCRIPTS} ${HOME}/bin/
+	ln -i -s -r ${SCRIPT_FILES} ${HOME}/bin/
