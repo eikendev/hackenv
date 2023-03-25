@@ -9,6 +9,7 @@ jobs:
   test_publish:
     name: Test and publish
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -21,9 +22,9 @@ jobs:
           sudo apt-get install -y libvirt-dev
 
       - name: Export GOBIN
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
-          go-version: '1.20'
+          go-version: '1.20.2'
 
       - name: Install dependencies
         run: make setup
@@ -35,7 +36,7 @@ jobs:
         run: make build
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v2
+        uses: goreleaser/goreleaser-action@v4
         if: startsWith(github.ref, 'refs/tags/v') # Only release for tagged commits.
         with:
           distribution: goreleaser

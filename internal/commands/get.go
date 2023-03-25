@@ -10,6 +10,7 @@ import (
 	progressbar "github.com/schollz/progressbar/v3"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/eikendev/hackenv/internal/handling"
 	"github.com/eikendev/hackenv/internal/images"
 	"github.com/eikendev/hackenv/internal/options"
 )
@@ -23,11 +24,11 @@ type GetCommand struct {
 func calculateFileChecksum(path string) string {
 	log.Printf("Calculating checksum of %s\n", path)
 
-	f, err := os.Open(path)
+	f, err := os.Open(path) //#nosec G304
 	if err != nil {
 		log.Fatalf("Failed to open file: %s\n", err)
 	}
-	defer f.Close()
+	defer handling.Close(f)
 
 	h := sha256.New()
 	if _, err := io.Copy(h, f); err != nil {
@@ -41,17 +42,17 @@ func calculateFileChecksum(path string) string {
 func downloadImage(path, url string) {
 	log.Printf("Downloading image to %s\n", path)
 
-	out, err := os.Create(path)
+	out, err := os.Create(path) //#nosec G304
 	if err != nil {
 		log.Fatalf("Cannot write image file: %s\n", err)
 	}
-	defer out.Close()
+	defer handling.Close(out)
 
-	resp, err := http.Get(url)
+	resp, err := http.Get(url) //#nosec G107
 	if err != nil {
 		log.Fatalf("Cannot download image file: %s\n", err)
 	}
-	defer resp.Body.Close()
+	defer handling.Close(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		log.Fatalf("Cannot download image file: bad status %s\n", resp.Status)

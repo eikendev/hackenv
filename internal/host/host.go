@@ -55,7 +55,7 @@ func GetHostKeyboardLayout() string {
 	out, err := exec.Command(
 		paths.GetCmdPathOrExit("setxkbmap"),
 		"-query",
-	).Output()
+	).Output() //#nosec G204
 	if err != nil {
 		log.Fatal(err)
 	}

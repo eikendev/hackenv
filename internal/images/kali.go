@@ -18,7 +18,7 @@ var kaliConfigurationCmds = []string{
 }
 
 func kaliInfoRetriever(url string, versionRegex *regexp.Regexp) (*DownloadInfo, error) {
-	resp, err := http.Get(url)
+	resp, err := http.Get(url) //#nosec G107
 	if err != nil {
 		return nil, err
 	}

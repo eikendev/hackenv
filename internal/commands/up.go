@@ -13,6 +13,7 @@ import (
 
 	"github.com/eikendev/hackenv/internal/banner"
 	"github.com/eikendev/hackenv/internal/constants"
+	"github.com/eikendev/hackenv/internal/handling"
 	"github.com/eikendev/hackenv/internal/host"
 	"github.com/eikendev/hackenv/internal/images"
 	"github.com/eikendev/hackenv/internal/libvirt"
@@ -127,6 +128,7 @@ func provisionClient(c *UpCommand, image *images.Image, guestIPAddr string) {
 
 		log.Info("Provisioning...")
 
+		//#nosec G204
 		if err := syscall.Exec(args[0], args, os.Environ()); err != nil {
 			log.Fatalf("Cannot spawn process: %s\n", err)
 		}
@@ -140,7 +142,7 @@ func configureClient(c *UpCommand, dom *rawLibvirt.Domain, image *images.Image, 
 	}
 
 	publicKeyPath := paths.GetDataFilePath(constants.SSHKeypairName + ".pub")
-	publicKey, err := os.ReadFile(publicKeyPath)
+	publicKey, err := os.ReadFile(publicKeyPath) //#nosec G304
 	if err != nil {
 		log.Fatalf("Unable to read private SSH key: %s\n", err)
 	}
@@ -199,7 +201,7 @@ func ensureSSHKeypairExists() error {
 		"-q",
 		"-N",
 		"", // Password is empty so no typing is required.
-	)
+	) //#nosec G204
 
 	if err := cmd.Start(); err != nil {
 		return err
@@ -229,10 +231,10 @@ func (c *UpCommand) Run(s *options.Options) error {
 	xml := buildXML(c, image, localPath)
 
 	conn := libvirt.Connect()
-	defer conn.Close()
+	defer handling.CloseConnect(conn)
 
 	dom, err := conn.DomainCreateXML(xml, 0)
-	defer dom.Free()
+	defer handling.FreeDomain(dom)
 	if err != nil && s.Provision {
 		log.Infof("%s is already running, provisioning instead\n", image.DisplayName)
 		dom = libvirt.GetDomain(conn, &image, true)

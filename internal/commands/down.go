@@ -3,6 +3,7 @@ package commands
 import (
 	log "github.com/sirupsen/logrus"
 
+	"github.com/eikendev/hackenv/internal/handling"
 	"github.com/eikendev/hackenv/internal/images"
 	"github.com/eikendev/hackenv/internal/libvirt"
 	"github.com/eikendev/hackenv/internal/options"
@@ -14,10 +15,10 @@ func (c *DownCommand) Run(s *options.Options) error {
 	image := images.GetImageDetails(s.Type)
 
 	conn := libvirt.Connect()
-	defer conn.Close()
+	defer handling.CloseConnect(conn)
 
 	dom := libvirt.GetDomain(conn, &image, true)
-	defer dom.Free()
+	defer handling.FreeDomain(dom)
 
 	err := dom.Destroy()
 	if err != nil {

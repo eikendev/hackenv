@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/fatih/color"
+	log "github.com/sirupsen/logrus"
 )
 
 const banner = `
@@ -18,7 +19,11 @@ const banner = `
 func PrintBanner() {
 	fmt.Fprint(os.Stderr, banner)
 	fmt.Fprintln(os.Stderr, "")
-	fmt.Fprint(os.Stderr, "                ")
-	color.New(color.FgBlue).Fprintln(os.Stderr, "@eikendev")
+
+	_, err := color.New(color.FgBlue).Fprintln(os.Stderr, "                @eikendev")
+	if err != nil {
+		log.Warnf("Cannot print banner: %s", err)
+	}
+
 	fmt.Fprintln(os.Stderr, "")
 }

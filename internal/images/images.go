@@ -161,6 +161,10 @@ func (i *Image) FileVersion(path string) string {
 }
 
 func sendKeys(dom *rawLibvirt.Domain, keys []uint) {
-	dom.SendKey(uint(rawLibvirt.KEYCODE_SET_LINUX), 10, keys, 0)
+	err := dom.SendKey(uint(rawLibvirt.KEYCODE_SET_LINUX), 10, keys, 0)
+	if err != nil {
+		log.Fatalf("Cannot send keys: %s", err)
+	}
+
 	time.Sleep(20 * time.Millisecond)
 }

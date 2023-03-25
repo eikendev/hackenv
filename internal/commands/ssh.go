@@ -8,6 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/eikendev/hackenv/internal/constants"
+	"github.com/eikendev/hackenv/internal/handling"
 	"github.com/eikendev/hackenv/internal/images"
 	"github.com/eikendev/hackenv/internal/libvirt"
 	"github.com/eikendev/hackenv/internal/options"
@@ -20,10 +21,10 @@ func (c *SSHCommand) Run(s *options.Options) error {
 	image := images.GetImageDetails(s.Type)
 
 	conn := libvirt.Connect()
-	defer conn.Close()
+	defer handling.CloseConnect(conn)
 
 	dom := libvirt.GetDomain(conn, &image, true)
-	defer dom.Free()
+	defer handling.FreeDomain(dom)
 
 	ipAddr, err := libvirt.GetDomainIPAddress(dom, &image)
 	if err != nil {
@@ -35,6 +36,7 @@ func (c *SSHCommand) Run(s *options.Options) error {
 		fmt.Sprintf("%s@%s", image.SSHUser, ipAddr),
 	})
 
+	//#nosec G204
 	if err := syscall.Exec(args[0], args, os.Environ()); err != nil {
 		log.Printf("Cannot spawn process: %s\n", err)
 	}

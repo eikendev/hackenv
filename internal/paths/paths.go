@@ -22,7 +22,7 @@ func GetDataFilePath(file string) string {
 }
 
 func EnsureDirExists(path string) {
-	err := os.MkdirAll(path, 0o660)
+	err := os.MkdirAll(path, 0o750)
 	if err != nil {
 		log.Fatalf("Cannot create directory: %s\n", err)
 	}

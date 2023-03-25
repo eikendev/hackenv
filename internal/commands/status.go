@@ -5,6 +5,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/eikendev/hackenv/internal/handling"
 	"github.com/eikendev/hackenv/internal/images"
 	"github.com/eikendev/hackenv/internal/libvirt"
 	"github.com/eikendev/hackenv/internal/options"
@@ -14,16 +15,17 @@ type StatusCommand struct{}
 
 func (c *StatusCommand) Run(s *options.Options) error {
 	conn := libvirt.Connect()
-	defer conn.Close()
+	defer handling.CloseConnect(conn)
 
 	for _, image := range images.GetAllImages() {
 		var state string
 
+		image := image
 		dom := libvirt.GetDomain(conn, &image, false)
 		if dom == nil {
 			state = "DOWN"
 		} else {
-			defer dom.Free()
+			defer handling.FreeDomain(dom)
 
 			if info, err := dom.GetInfo(); err != nil {
 				log.Printf("Cannot get domain info: %s\n", err)

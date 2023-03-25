@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/eikendev/hackenv/internal/constants"
+	"github.com/eikendev/hackenv/internal/handling"
 	"github.com/eikendev/hackenv/internal/images"
 	"github.com/eikendev/hackenv/internal/libvirt"
 	"github.com/eikendev/hackenv/internal/options"
@@ -27,11 +28,11 @@ func (c *GuiCommand) Run(s *options.Options) error {
 	image := images.GetImageDetails(s.Type)
 
 	conn := libvirt.Connect()
-	defer conn.Close()
+	defer handling.CloseConnect(conn)
 
 	// Check if the domain is up.
 	dom := libvirt.GetDomain(conn, &image, true)
-	defer dom.Free()
+	defer handling.FreeDomain(dom)
 
 	var args []string
 
@@ -62,7 +63,7 @@ func (c *GuiCommand) Run(s *options.Options) error {
 		log.Printf("Cannot get current working directory: %s\n", err)
 	}
 
-	cmd := exec.Command(args[0], args[1:]...)
+	cmd := exec.Command(args[0], args[1:]...) //#nosec G204
 	cmd.Dir = cwd
 	cmd.Env = os.Environ()
 
@@ -70,7 +71,7 @@ func (c *GuiCommand) Run(s *options.Options) error {
 	if err != nil {
 		log.Printf("Cannot spawn process: %s\n", err)
 	}
-	defer cmd.Process.Release()
+	defer handling.ReleaseProcess(cmd.Process)
 
 	return nil
 }
