@@ -9,8 +9,10 @@ import (
 	"github.com/eikendev/hackenv/internal/options"
 )
 
+// DownCommand represents the options specific to the down command.
 type DownCommand struct{}
 
+// Run is the function for the down command.
 func (c *DownCommand) Run(s *options.Options) error {
 	image := images.GetImageDetails(s.Type)
 
@@ -22,7 +24,8 @@ func (c *DownCommand) Run(s *options.Options) error {
 
 	err := dom.Destroy()
 	if err != nil {
-		log.Fatalf("Cannot destroy domain: %s\n", err)
+		log.Errorf("Cannot destroy domain: %s\n", err)
+		return err
 	}
 
 	return nil

@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 
@@ -19,11 +20,13 @@ const (
 	remminaBin    = "remmina"
 )
 
+// GuiCommand represents the options specific to the gui command.
 type GuiCommand struct {
 	Viewer     string `name:"viewer" env:"HACKENV_VIEWER" default:"virt-viewer" enum:"virt-viewer,remmina" help:"The viewer to use to connect to the VM"`
 	Fullscreen bool   `short:"f" name:"fullscreen" env:"HACKENV_FULLSCREEN" help:"Start GUI in fullscreen (virt-viewer only)"`
 }
 
+// Run is the function for the gui command.
 func (c *GuiCommand) Run(s *options.Options) error {
 	image := images.GetImageDetails(s.Type)
 
@@ -55,7 +58,8 @@ func (c *GuiCommand) Run(s *options.Options) error {
 			"SPICE://localhost",
 		}
 	} else {
-		log.Fatalf("Unable to locate %s to connect to the VM.\n", c.Viewer)
+		log.Errorf("Unable to locate %s to connect to the VM.\n", c.Viewer)
+		return fmt.Errorf("unable to locate %s to connect to the VM", c.Viewer)
 	}
 
 	cwd, err := os.Getwd()

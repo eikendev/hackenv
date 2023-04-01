@@ -15,8 +15,10 @@ import (
 	"github.com/eikendev/hackenv/internal/paths"
 )
 
+// SSHCommand represents the options specific to the ssh command.
 type SSHCommand struct{}
 
+// Run is the function for the ssh command.
 func (c *SSHCommand) Run(s *options.Options) error {
 	image := images.GetImageDetails(s.Type)
 
@@ -28,7 +30,8 @@ func (c *SSHCommand) Run(s *options.Options) error {
 
 	ipAddr, err := libvirt.GetDomainIPAddress(dom, &image)
 	if err != nil {
-		log.Fatalf("Cannot retrieve guest's IP address\n")
+		log.Errorf("Cannot retrieve guest's IP address\n")
+		return err
 	}
 
 	args := buildSSHArgs([]string{
@@ -53,7 +56,7 @@ func buildSSHArgs(customArgs []string) []string {
 		"-o", "StrictHostKeyChecking=no",
 		"-o", "UserKnownHostsFile=/dev/null",
 	}
-	args = append(args, customArgs[:]...)
+	args = append(args, customArgs...)
 
 	return args
 }

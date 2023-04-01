@@ -1,3 +1,4 @@
+// Package host provides various utilities related to the host.
 package host
 
 import (
@@ -11,6 +12,7 @@ import (
 	"github.com/eikendev/hackenv/internal/paths"
 )
 
+// GetHostIPAddress retrieves the IP address of the host on the given interface.
 func GetHostIPAddress(ifaceName string) string {
 	ifaces, err := net.Interfaces()
 	if err != nil {
@@ -51,6 +53,7 @@ func GetHostIPAddress(ifaceName string) string {
 	return "" // Does not actually return.
 }
 
+// GetHostKeyboardLayout retrieves the configured keyboard layout on the host.
 func GetHostKeyboardLayout() string {
 	out, err := exec.Command(
 		paths.GetCmdPathOrExit("setxkbmap"),

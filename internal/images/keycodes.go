@@ -1,5 +1,7 @@
 package images
 
+//revive:disable
+
 const (
 	KEY_RESERVED         uint = 0x0
 	KEY_ESC              uint = 0x1
@@ -379,3 +381,5 @@ const (
 	KEY_NUMERIC_POUND    uint = 0x20b
 	KEY_RFKILL           uint = 0x20c
 )
+
+//revive:enable

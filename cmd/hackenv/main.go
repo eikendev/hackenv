@@ -1,3 +1,4 @@
+// Package main provides the main function as a starting point of this tool.
 package main
 
 import (
@@ -32,9 +33,13 @@ func init() {
 
 func main() {
 	ctx := kong.Parse(&cmd)
+
 	if cmd.Verbose {
 		log.SetLevel(log.DebugLevel)
 	}
+
 	err := ctx.Run(&cmd.Options)
-	ctx.FatalIfErrorf(err)
+	if err != nil {
+		os.Exit(1)
+	}
 }

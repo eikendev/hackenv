@@ -1,3 +1,4 @@
+// Package banner provides functionality related to the banner printed on start.
 package banner
 
 import (
@@ -16,6 +17,7 @@ const banner = `
 /_/ /_/\__,_/\___/_/|_|\___/_/ /_/|___/
 `
 
+// PrintBanner prints the tool's banner.
 func PrintBanner() {
 	fmt.Fprint(os.Stderr, banner)
 	fmt.Fprintln(os.Stderr, "")

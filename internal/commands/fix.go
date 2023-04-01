@@ -10,7 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// FixCommand struct
+// FixCommand represents the options specific to the fix command.
 type FixCommand struct {
 	CreateBridge createBridge `cmd:"create-bridge" aliases:"c" help:"Create bridge"`
 	RemoveBridge removeBridge `cmd:"remove-bridge" aliases:"r" help:"Remove bridge"`
@@ -20,6 +20,7 @@ type FixCommand struct {
 
 type createBridge struct{}
 
+// Run is the function for the run command.
 func (c *createBridge) Run(s *options.Options) error {
 	return execCommand([]string{scripts.CreateBridgeScript}, s.Verbose)
 }

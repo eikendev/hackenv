@@ -1,3 +1,4 @@
+// Package images provides utilities to access image information and manage images.
 package images
 
 import (
@@ -25,6 +26,7 @@ type versionComparer interface {
 	Eq(string, string) bool
 }
 
+// Image contains information about a stored image.
 type Image struct {
 	Name              string
 	DisplayName       string
@@ -42,6 +44,7 @@ type Image struct {
 	VersionComparer   versionComparer
 }
 
+// DownloadInfo contains information about an image that can be downloaded.
 type DownloadInfo struct {
 	Checksum string
 	Version  string
@@ -83,6 +86,7 @@ var images = map[string]Image{
 	},
 }
 
+// GetDownloadInfo retreives the necessary information to download an image.
 func (i *Image) GetDownloadInfo(strict bool) *DownloadInfo {
 	info, err := i.infoRetriever(i.ArchiveURL+i.checksumPath, i.VersionRegex)
 	if err != nil && strict {
@@ -92,16 +96,19 @@ func (i *Image) GetDownloadInfo(strict bool) *DownloadInfo {
 	return info
 }
 
+// Boot executes the necessary steps to boot a downloaded image.
 func (i *Image) Boot(dom *rawLibvirt.Domain, version string) {
 	log.Printf("Booting %s %s\n", i.DisplayName, version)
 	i.bootInitializer(dom)
 }
 
+// StartSSH executes the necessary steps to start SSH on a booted image.
 func (i *Image) StartSSH(dom *rawLibvirt.Domain) {
 	log.Printf("Bootstraping...\n")
 	i.sshStarter(dom)
 }
 
+// GetLocalPath builds the full path of a downloaded image based on a given version.
 func (i *Image) GetLocalPath(version string) string {
 	filename := fmt.Sprintf(i.LocalImageName, version)
 
@@ -113,6 +120,7 @@ func (i *Image) GetLocalPath(version string) string {
 	return path
 }
 
+// GetLatestPath returns the full path of the image with the greatest version.
 func (i *Image) GetLatestPath() string {
 	imageGlob := fmt.Sprintf(i.LocalImageName, "*")
 
@@ -144,6 +152,7 @@ func (i *Image) GetLatestPath() string {
 	return latestPath
 }
 
+// GetImageDetails returns detailed information about a given image.
 func GetImageDetails(name string) Image {
 	image, ok := images[name]
 	if !ok {
@@ -152,10 +161,12 @@ func GetImageDetails(name string) Image {
 	return image
 }
 
+// GetAllImages returns a map of all available images.
 func GetAllImages() map[string]Image {
 	return images
 }
 
+// FileVersion returns the version of the image given its full path.
 func (i *Image) FileVersion(path string) string {
 	return i.VersionRegex.FindString(path)
 }

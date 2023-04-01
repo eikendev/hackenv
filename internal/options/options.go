@@ -1,5 +1,7 @@
+// Package options defines the global options of this tool.
 package options
 
+// Options represents the global options of this tool.
 type Options struct {
 	Type      string `name:"type" env:"HACKENV_TYPE" default:"kali" enum:"kali,parrot" help:"The VM to control with this command"`
 	Keymap    string `name:"keymap" env:"HACKENV_KEYMAP" default:"" help:"The keyboard keymap to force"`

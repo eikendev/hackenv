@@ -1,3 +1,4 @@
+// Package paths provides convenience functions related to the file system.
 package paths
 
 import (
@@ -12,6 +13,7 @@ import (
 	"github.com/eikendev/hackenv/internal/constants"
 )
 
+// GetDataFilePath returns a file from the XDG data directory.
 func GetDataFilePath(file string) string {
 	path, err := xdg.DataFile(filepath.Join(constants.XdgAppname, file))
 	if err != nil {
@@ -21,6 +23,7 @@ func GetDataFilePath(file string) string {
 	return path
 }
 
+// EnsureDirExists creates the given directory if it does not exists.
 func EnsureDirExists(path string) {
 	err := os.MkdirAll(path, 0o750)
 	if err != nil {
@@ -28,15 +31,17 @@ func EnsureDirExists(path string) {
 	}
 }
 
+// DoesPostbootExist returns true if the postboot file exists, otherwise false.
 func DoesPostbootExist(path string) bool {
 	path = fmt.Sprintf("%s/%s", path, constants.PostbootFile)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		log.Infof("%s doesn't exists", path)
+		log.Warnf("%s doesn't exists", path)
 		return false
 	}
 	return true
 }
 
+// GetCmdPathOrExit returns the given executable from the PATH.
 func GetCmdPathOrExit(cmd string) string {
 	path, err := exec.LookPath(cmd)
 	if err != nil {
@@ -46,6 +51,7 @@ func GetCmdPathOrExit(cmd string) string {
 	return path
 }
 
+// GetCmdPath returns the given executable from the PATH, otherwise an error.
 func GetCmdPath(cmd string) (string, error) {
 	return exec.LookPath(cmd)
 }

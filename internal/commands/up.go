@@ -76,6 +76,7 @@ const (
 `
 )
 
+// UpCommand represents the options specific to the up command.
 type UpCommand struct {
 	Cores       int    `name:"cores" env:"HACKENV_CORES" default:"2" help:"How many virtual CPU cores to assign to the VM"`
 	Memory      int    `name:"memory" env:"HACKENV_MEMORY" default:"2097152" help:"How much RAM to assign to the VM (KiB)"`
@@ -116,7 +117,7 @@ func waitBootComplete(dom *rawLibvirt.Domain, image *images.Image) string {
 	return "" // Does not actually return.
 }
 
-func provisionClient(c *UpCommand, image *images.Image, guestIPAddr string) {
+func provisionClient(_ *UpCommand, image *images.Image, guestIPAddr string) {
 	sharedPath := paths.GetDataFilePath(sharedDir)
 	postbootExists := paths.DoesPostbootExist(sharedPath)
 
@@ -135,7 +136,7 @@ func provisionClient(c *UpCommand, image *images.Image, guestIPAddr string) {
 	}
 }
 
-func configureClient(c *UpCommand, dom *rawLibvirt.Domain, image *images.Image, guestIPAddr string, keymap string) {
+func configureClient(c *UpCommand, _ *rawLibvirt.Domain, image *images.Image, guestIPAddr string, keymap string) {
 	client, err := goph.NewUnknown(image.SSHUser, guestIPAddr, goph.Password(image.SSHPassword))
 	if err != nil {
 		log.Fatal(err)
@@ -146,13 +147,14 @@ func configureClient(c *UpCommand, dom *rawLibvirt.Domain, image *images.Image, 
 	if err != nil {
 		log.Fatalf("Unable to read private SSH key: %s\n", err)
 	}
-	publicKeyStr := string(publicKey[:])
+	publicKeyStr := string(publicKey)
 
 	if keymap == "" {
 		keymap = host.GetHostKeyboardLayout()
 	}
 
-	cmds := append(image.ConfigurationCmds, []string{
+	cmds := image.ConfigurationCmds
+	cmds = append(cmds, []string{
 		// Add the SSH key to authorized_keys.
 		"mkdir ~/.ssh",
 		"chmod 700 ~/.ssh",
@@ -210,6 +212,7 @@ func ensureSSHKeypairExists() error {
 	return cmd.Wait()
 }
 
+// Run is the function for the up command.
 func (c *UpCommand) Run(s *options.Options) error {
 	banner.PrintBanner()
 
@@ -235,13 +238,15 @@ func (c *UpCommand) Run(s *options.Options) error {
 
 	dom, err := conn.DomainCreateXML(xml, 0)
 	defer handling.FreeDomain(dom)
+
 	if err != nil && s.Provision {
 		log.Infof("%s is already running, provisioning instead\n", image.DisplayName)
 		dom = libvirt.GetDomain(conn, &image, true)
 		guestIPAddr := waitBootComplete(dom, &image)
 		provisionClient(c, &image, guestIPAddr)
 	} else if err != nil {
-		log.Fatalf("Cannot create domain: %s\nTry running 'hackenv fix all'.\n", err)
+		log.Errorf("Cannot create domain: %s\nTry running 'hackenv fix all'.\n", err)
+		return err
 	} else {
 		image.Boot(dom, localVersion)
 		guestIPAddr := waitBootComplete(dom, &image)

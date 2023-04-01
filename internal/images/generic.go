@@ -10,13 +10,13 @@ import (
 	rawLibvirt "libvirt.org/libvirt-go"
 )
 
-type GenericVersionComparer struct{}
+type genericVersionComparer struct{}
 
-func getGenericVersionComparer() *GenericVersionComparer {
-	return &GenericVersionComparer{}
+func getGenericVersionComparer() *genericVersionComparer {
+	return &genericVersionComparer{}
 }
 
-func (vc GenericVersionComparer) Lt(a, b string) bool {
+func (vc genericVersionComparer) Lt(a, b string) bool {
 	aParts := strings.Split(a, ".")
 	bParts := strings.Split(b, ".")
 
@@ -46,11 +46,11 @@ func (vc GenericVersionComparer) Lt(a, b string) bool {
 	return false
 }
 
-func (vc GenericVersionComparer) Eq(a, b string) bool {
+func (vc genericVersionComparer) Eq(a, b string) bool {
 	return a == b
 }
 
-func (vc GenericVersionComparer) Gt(a, b string) bool {
+func (vc genericVersionComparer) Gt(a, b string) bool {
 	return !vc.Lt(a, b) && !vc.Eq(a, b)
 }
 

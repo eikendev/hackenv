@@ -11,9 +11,11 @@ import (
 	"github.com/eikendev/hackenv/internal/options"
 )
 
+// StatusCommand represents the options specific to the status command.
 type StatusCommand struct{}
 
-func (c *StatusCommand) Run(s *options.Options) error {
+// Run is the function for the status command.
+func (*StatusCommand) Run(_ *options.Options) error {
 	conn := libvirt.Connect()
 	defer handling.CloseConnect(conn)
 
@@ -27,12 +29,13 @@ func (c *StatusCommand) Run(s *options.Options) error {
 		} else {
 			defer handling.FreeDomain(dom)
 
-			if info, err := dom.GetInfo(); err != nil {
+			info, err := dom.GetInfo()
+			if err != nil {
 				log.Printf("Cannot get domain info: %s\n", err)
 				continue
-			} else {
-				state = libvirt.ResolveDomainState(info.State)
 			}
+
+			state = libvirt.ResolveDomainState(info.State)
 		}
 
 		fmt.Printf("%s\t%s\n", image.Name, state)
