@@ -1,4 +1,4 @@
-// Package buildconfig cpntains variables that are set during compliation.
+// Package buildconfig contains variables that are set during compilation.
 package buildconfig
 
 // Version of the build.
