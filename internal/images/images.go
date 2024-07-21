@@ -75,7 +75,7 @@ var images = map[string]Image{
 		checksumPath:      "/signed-hashes.txt",
 		LocalImageName:    "parrot-%s.iso",
 		VersionRegex:      regexp.MustCompile(`\d+\.\d+`),
-		SSHUser:           "parrot",
+		SSHUser:           "user",
 		SSHPassword:       "parrot",
 		MacAddress:        "52:54:00:08:f9:e9",
 		infoRetriever:     parrotInfoRetriever,
