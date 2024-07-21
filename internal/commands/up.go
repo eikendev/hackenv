@@ -130,7 +130,8 @@ func provisionClient(_ *UpCommand, image *images.Image, guestIPAddr string) {
 		log.Info("Provisioning...")
 
 		//#nosec G204
-		if err := syscall.Exec(args[0], args, os.Environ()); err != nil {
+		err := syscall.Exec(args[0], args, os.Environ())
+		if err != nil {
 			log.Fatalf("Cannot spawn process: %s\n", err)
 		}
 	}

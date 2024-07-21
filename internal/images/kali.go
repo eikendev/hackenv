@@ -33,7 +33,7 @@ func kaliInfoRetriever(url string, versionRegex *regexp.Regexp) (*DownloadInfo, 
 	for scanner.Scan() {
 		line = scanner.Text()
 
-		if strings.Contains(line, "live") && strings.Contains(line, runtime.GOARCH) {
+		if strings.Contains(line, "live-"+runtime.GOARCH+".iso") {
 			break
 		}
 	}

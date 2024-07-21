@@ -40,7 +40,8 @@ func (c *SSHCommand) Run(s *options.Options) error {
 	})
 
 	//#nosec G204
-	if err := syscall.Exec(args[0], args, os.Environ()); err != nil {
+	err = syscall.Exec(args[0], args, os.Environ())
+	if err != nil {
 		log.Printf("Cannot spawn process: %s\n", err)
 	}
 

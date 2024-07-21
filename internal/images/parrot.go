@@ -31,12 +31,15 @@ func parrotInfoRetriever(url string, versionRegex *regexp.Regexp) (*DownloadInfo
 		line = scanner.Text()
 
 		if skipped {
-			if strings.Contains(line, "t-security") && strings.Contains(line, runtime.GOARCH) {
+			if strings.Contains(line, "Parrot-security") && strings.Contains(line, "_"+runtime.GOARCH+".iso") {
 				break
 			}
 		} else {
 			if strings.Contains(line, "sha256") {
 				skipped = true
+			}
+			if strings.Contains(line, "sha384") {
+				skipped = false
 			}
 		}
 	}
