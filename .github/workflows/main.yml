@@ -14,7 +14,7 @@ permissions:
   contents: write
 
 env:
-  GO_VERSION: '1.22.5'
+  GO_VERSION: '1.23.6'
 
 jobs:
   test_publish:
