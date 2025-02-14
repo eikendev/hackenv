@@ -20,6 +20,12 @@ Alternatively, install the [required dependencies](#dependencies) and build it y
 go install github.com/eikendev/hackenv/cmd/...@latest
 ```
 
+Ensure that the libvirt daemon is running, and a socket created. On Fedora, this can be done as follows:
+```
+sudo systemctl start libvirtd
+sudo systemctl start virtqemud.socket
+```
+
 ## 🤘&nbsp;Features
 
 - Support for Kali Linux and Parrot Security.
