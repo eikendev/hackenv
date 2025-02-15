@@ -57,6 +57,9 @@ func downloadImage(path, url string) error {
 		log.Errorf("Cannot download image file: %s\n", err)
 		return err
 	}
+	if resp == nil {
+		return fmt.Errorf("received nil response")
+	}
 	defer handling.Close(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
@@ -104,6 +107,9 @@ func validateChecksum(localPath, checksum string) error {
 func (c *GetCommand) Run(s *options.Options) error {
 	image := images.GetImageDetails(s.Type)
 	info := image.GetDownloadInfo(true)
+	if info == nil {
+		return fmt.Errorf("failed to get download information")
+	}
 
 	log.Printf("Found file %s with checksum %s\n", info.Filename, info.Checksum)
 

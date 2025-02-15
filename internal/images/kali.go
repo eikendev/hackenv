@@ -4,53 +4,49 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"net/http"
 	"regexp"
 	"runtime"
 	"strings"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	rawLibvirt "libvirt.org/libvirt-go"
+
+	"github.com/eikendev/hackenv/internal/network"
 )
 
 var kaliConfigurationCmds = []string{
 	"touch ~/.hushlogin",
 }
 
+func findKaliChecksumLine(scanner *bufio.Scanner) (string, error) {
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.Contains(line, "live-"+runtime.GOARCH+".iso") {
+			return strings.TrimSpace(line), nil
+		}
+	}
+
+	return "", errors.New("checksum not found in file")
+}
+
 func kaliInfoRetriever(url string, versionRegex *regexp.Regexp) (*DownloadInfo, error) {
-	resp, err := http.Get(url) //#nosec G107
+	resp, err := network.GetResponse(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get response: %w", err)
+	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Warnf("failed to close response body: %v", err)
+		}
+	}()
+
+	line, err := findKaliChecksumLine(bufio.NewScanner(resp.Body))
 	if err != nil {
 		return nil, err
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("bad HTTP status code (%s)", resp.Status)
-	}
-
-	var line string
-	scanner := bufio.NewScanner(resp.Body)
-
-	for scanner.Scan() {
-		line = scanner.Text()
-
-		if strings.Contains(line, "live-"+runtime.GOARCH+".iso") {
-			break
-		}
-	}
-
-	if line == "" {
-		return nil, errors.New("bad checksum file")
-	}
-
-	line = strings.TrimSpace(line)
-	parts := strings.Split(line, " ")
-	filename := parts[len(parts)-1]
-
-	return &DownloadInfo{
-		parts[0],
-		versionRegex.FindString(filename),
-		filename,
-	}, nil
+	return parseChecksumLine(line, versionRegex)
 }
 
 func kaliBootInitializer(dom *rawLibvirt.Domain) {

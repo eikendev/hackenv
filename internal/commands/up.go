@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -137,16 +138,19 @@ func provisionClient(_ *UpCommand, image *images.Image, guestIPAddr string) {
 	}
 }
 
-func configureClient(c *UpCommand, _ *rawLibvirt.Domain, image *images.Image, guestIPAddr string, keymap string) {
+func configureClient(c *UpCommand, _ *rawLibvirt.Domain, image *images.Image, guestIPAddr string, keymap string) error {
 	client, err := goph.NewUnknown(image.SSHUser, guestIPAddr, goph.Password(image.SSHPassword))
 	if err != nil {
-		log.Fatal(err)
+		return err
+	}
+	if client == nil {
+		return errors.New("nil goph client")
 	}
 
 	publicKeyPath := paths.GetDataFilePath(constants.SSHKeypairName + ".pub")
 	publicKey, err := os.ReadFile(publicKeyPath) //#nosec G304
 	if err != nil {
-		log.Fatalf("Unable to read private SSH key: %s\n", err)
+		return fmt.Errorf("unable to read private SSH key: %s", err)
 	}
 	publicKeyStr := string(publicKey)
 
@@ -180,9 +184,11 @@ func configureClient(c *UpCommand, _ *rawLibvirt.Domain, image *images.Image, gu
 	for _, cmd := range cmds {
 		_, err := client.Run(cmd)
 		if err != nil {
-			log.Fatalf("Failed to run command over SSH: %s\n", err)
+			return fmt.Errorf("failed to run command '%s' over SSH: %s", cmd, err)
 		}
 	}
+
+	return nil
 }
 
 func ensureSSHKeypairExists() error {
@@ -253,7 +259,12 @@ func (c *UpCommand) Run(s *options.Options) error {
 		guestIPAddr := waitBootComplete(dom, &image)
 		image.StartSSH(dom)
 
-		configureClient(c, dom, &image, guestIPAddr, s.Keymap)
+		err = configureClient(c, dom, &image, guestIPAddr, s.Keymap)
+		if err != nil {
+			log.Errorf("Cannot configure client: %s\n", err)
+			return err
+		}
+
 		log.Printf("%s is now ready to use\n", image.DisplayName)
 
 		if s.Provision {

@@ -74,7 +74,7 @@ var images = map[string]Image{
 		ArchiveURL:        "https://deb.parrot.sh/parrot/iso/current",
 		checksumPath:      "/signed-hashes.txt",
 		LocalImageName:    "parrot-%s.iso",
-		VersionRegex:      regexp.MustCompile(`\d+\.\d+`),
+		VersionRegex:      regexp.MustCompile(`\d+\.\d+(?:\.\d+)?`),
 		SSHUser:           "user",
 		SSHPassword:       "parrot",
 		MacAddress:        "52:54:00:08:f9:e9",
@@ -130,12 +130,9 @@ func (i *Image) GetLatestPath() string {
 	}
 
 	matches, err := filepath.Glob(path)
-	if err != nil {
-		log.Fatalf("Malformed glob pattern: %s\n", err)
-	}
-
-	if matches == nil {
-		log.Fatalf("Image for %s not found; download with get command\n", i.DisplayName)
+	if err != nil || len(matches) == 0 {
+		log.Fatalf("Cannot find image for %s\n", i.DisplayName)
+		return "" // Won't actually return due to log.Fatal
 	}
 
 	latestPath := matches[0]

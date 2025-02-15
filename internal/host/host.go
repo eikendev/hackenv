@@ -80,5 +80,9 @@ func GetHostKeyboardLayout() string {
 
 	line = strings.TrimSpace(line)
 	parts := strings.Split(line, " ")
+	if len(parts) < 2 {
+		log.Fatalf("Unable to retrieve host's keyboard layout\n")
+		return ""
+	}
 	return parts[len(parts)-1]
 }

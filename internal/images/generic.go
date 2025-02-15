@@ -20,8 +20,9 @@ func (vc genericVersionComparer) Lt(a, b string) bool {
 	aParts := strings.Split(a, ".")
 	bParts := strings.Split(b, ".")
 
-	if len(aParts) != len(bParts) {
+	if len(aParts) == 0 || len(bParts) == 0 || len(aParts) != len(bParts) {
 		log.Fatalf("Cannot compare versions %s and %s\n", a, b)
+		return false
 	}
 
 	for i := range aParts {
