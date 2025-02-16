@@ -6,7 +6,7 @@ import (
 	"os"
 
 	log "github.com/sirupsen/logrus"
-	rawLibvirt "libvirt.org/libvirt-go"
+	rawLibvirt "libvirt.org/go/libvirt"
 )
 
 // Close closes an io resource and prints a warning if that fails.

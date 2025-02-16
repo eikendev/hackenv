@@ -10,7 +10,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	rawLibvirt "libvirt.org/libvirt-go"
+	rawLibvirt "libvirt.org/go/libvirt"
 
 	"github.com/eikendev/hackenv/internal/network"
 )

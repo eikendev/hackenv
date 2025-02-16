@@ -11,7 +11,7 @@ import (
 
 	"github.com/adrg/xdg"
 	"github.com/eikendev/hackenv/internal/constants"
-	rawLibvirt "libvirt.org/libvirt-go"
+	rawLibvirt "libvirt.org/go/libvirt"
 )
 
 type infoRetriever func(string, *regexp.Regexp) (*DownloadInfo, error)

@@ -8,7 +8,7 @@ import (
 
 	"github.com/eikendev/hackenv/internal/constants"
 	"github.com/eikendev/hackenv/internal/images"
-	"libvirt.org/libvirt-go"
+	"libvirt.org/go/libvirt"
 )
 
 var domainStates = map[libvirt.DomainState]string{

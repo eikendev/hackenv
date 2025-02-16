@@ -9,7 +9,7 @@ require (
 	github.com/melbahja/goph v1.4.0
 	github.com/schollz/progressbar/v3 v3.18.0
 	github.com/sirupsen/logrus v1.9.3
-	libvirt.org/libvirt-go v7.4.0+incompatible
+	libvirt.org/go/libvirt v1.11001.0
 )
 
 require (

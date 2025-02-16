@@ -10,7 +10,7 @@ import (
 
 	"github.com/melbahja/goph"
 	log "github.com/sirupsen/logrus"
-	rawLibvirt "libvirt.org/libvirt-go"
+	rawLibvirt "libvirt.org/go/libvirt"
 
 	"github.com/eikendev/hackenv/internal/banner"
 	"github.com/eikendev/hackenv/internal/constants"

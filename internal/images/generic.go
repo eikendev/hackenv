@@ -7,7 +7,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	rawLibvirt "libvirt.org/libvirt-go"
+	rawLibvirt "libvirt.org/go/libvirt"
 )
 
 type genericVersionComparer struct{}
@@ -61,16 +61,13 @@ func genericBootInitializer(dom *rawLibvirt.Domain) {
 }
 
 func switchToTTY(dom *rawLibvirt.Domain) {
-	// Includes two dummy keys. See [0].
-	// [0] https://gitlab.com/libvirt/libvirt-go/-/issues/10
-	sendKeys(dom, []uint{KEY_LEFTCTRL, KEY_LEFTALT, KEY_F1, KEY_RESERVED, KEY_RESERVED})
+	sendKeys(dom, []uint{KEY_LEFTCTRL, KEY_LEFTALT, KEY_F1})
 
 	time.Sleep(500 * time.Millisecond)
 }
 
 func switchFromTTY(dom *rawLibvirt.Domain) {
-	// Includes two dummy keys as above.
-	sendKeys(dom, []uint{KEY_LEFTCTRL, KEY_LEFTALT, KEY_F7, KEY_RESERVED, KEY_RESERVED})
+	sendKeys(dom, []uint{KEY_LEFTCTRL, KEY_LEFTALT, KEY_F7})
 
 	time.Sleep(500 * time.Millisecond)
 }
