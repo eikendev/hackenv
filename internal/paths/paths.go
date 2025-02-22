@@ -7,9 +7,9 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/adrg/xdg"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/adrg/xdg"
 	"github.com/eikendev/hackenv/internal/constants"
 )
 

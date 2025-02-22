@@ -7,11 +7,11 @@ import (
 	"regexp"
 	"time"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/adrg/xdg"
-	"github.com/eikendev/hackenv/internal/constants"
+	log "github.com/sirupsen/logrus"
 	rawLibvirt "libvirt.org/go/libvirt"
+
+	"github.com/eikendev/hackenv/internal/constants"
 )
 
 type infoRetriever func(string, *regexp.Regexp) (*DownloadInfo, error)

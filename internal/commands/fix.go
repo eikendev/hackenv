@@ -5,9 +5,10 @@ import (
 	"os/exec"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/eikendev/hackenv/internal/options"
 	"github.com/eikendev/hackenv/internal/scripts"
-	log "github.com/sirupsen/logrus"
 )
 
 // FixCommand represents the options specific to the fix command.

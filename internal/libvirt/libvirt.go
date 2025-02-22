@@ -5,10 +5,10 @@ import (
 	"errors"
 
 	log "github.com/sirupsen/logrus"
+	"libvirt.org/go/libvirt"
 
 	"github.com/eikendev/hackenv/internal/constants"
 	"github.com/eikendev/hackenv/internal/images"
-	"libvirt.org/go/libvirt"
 )
 
 var domainStates = map[libvirt.DomainState]string{
