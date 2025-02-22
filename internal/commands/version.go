@@ -3,8 +3,8 @@ package commands
 
 import (
 	"fmt"
+	"runtime/debug"
 
-	"github.com/eikendev/hackenv/internal/buildconfig"
 	"github.com/eikendev/hackenv/internal/options"
 )
 
@@ -13,7 +13,11 @@ type VersionCommand struct{}
 
 // Run is the function for the version command.
 func (*VersionCommand) Run(_ *options.Options) error {
-	fmt.Printf("hackenv %s\n", buildconfig.Version)
+	buildInfo, ok := debug.ReadBuildInfo()
+	if !ok {
+		return fmt.Errorf("build info not available")
+	}
 
+	fmt.Printf("hackenv %s\n", buildInfo.Main.Version)
 	return nil
 }
