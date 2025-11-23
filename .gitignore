@@ -1,6 +1,15 @@
 dist/
 out/
 
+# Configuration files for coding agents
+.claude/
+.clinerules/
+.kilocode/
+.roorules/
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+
 ### Go
 # Binaries for programs and plugins
 *.exe
