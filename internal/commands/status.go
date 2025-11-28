@@ -2,8 +2,7 @@ package commands
 
 import (
 	"fmt"
-
-	log "github.com/sirupsen/logrus"
+	"log/slog"
 
 	"github.com/eikendev/hackenv/internal/handling"
 	"github.com/eikendev/hackenv/internal/images"
@@ -31,7 +30,7 @@ func (*StatusCommand) Run(_ *options.Options) error {
 
 			info, err := dom.GetInfo()
 			if err != nil {
-				log.Printf("Cannot get domain info: %s\n", err)
+				slog.Warn("Cannot get domain info", "err", err, "domain", image.Name)
 				continue
 			}
 

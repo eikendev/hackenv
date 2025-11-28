@@ -3,12 +3,13 @@ package images
 
 import (
 	"fmt"
+	"log/slog"
+	"os"
 	"path/filepath"
 	"regexp"
 	"time"
 
 	"github.com/adrg/xdg"
-	log "github.com/sirupsen/logrus"
 	rawLibvirt "libvirt.org/go/libvirt"
 
 	"github.com/eikendev/hackenv/internal/constants"
@@ -90,7 +91,8 @@ var images = map[string]Image{
 func (i *Image) GetDownloadInfo(strict bool) *DownloadInfo {
 	info, err := i.infoRetriever(i.ArchiveURL+i.checksumPath, i.VersionRegex)
 	if err != nil && strict {
-		log.Fatalf("Cannot retrieve latest image details: %s\n", err)
+		slog.Error("Cannot retrieve latest image details", "image", i.DisplayName, "err", err)
+		os.Exit(1)
 	}
 
 	return info
@@ -98,13 +100,13 @@ func (i *Image) GetDownloadInfo(strict bool) *DownloadInfo {
 
 // Boot executes the necessary steps to boot a downloaded image.
 func (i *Image) Boot(dom *rawLibvirt.Domain, version string) {
-	log.Printf("Booting %s %s\n", i.DisplayName, version)
+	slog.Info("Booting image", "image", i.DisplayName, "version", version)
 	i.bootInitializer(dom)
 }
 
 // StartSSH executes the necessary steps to start SSH on a booted image.
 func (i *Image) StartSSH(dom *rawLibvirt.Domain) {
-	log.Printf("Bootstraping...\n")
+	slog.Info("Bootstrapping SSH", "image", i.DisplayName)
 	i.sshStarter(dom)
 }
 
@@ -114,7 +116,8 @@ func (i *Image) GetLocalPath(version string) string {
 
 	path, err := xdg.DataFile(filepath.Join(constants.XdgAppname, filename))
 	if err != nil {
-		log.Fatalf("Cannot access data directory: %s\n", err)
+		slog.Error("Cannot access data directory", "err", err, "file", filename)
+		os.Exit(1)
 	}
 
 	return path
@@ -126,12 +129,14 @@ func (i *Image) GetLatestPath() string {
 
 	path, err := xdg.DataFile(filepath.Join(constants.XdgAppname, imageGlob))
 	if err != nil {
-		log.Fatalf("Cannot access data directory: %s\n", err)
+		slog.Error("Cannot access data directory", "err", err, "pattern", imageGlob)
+		os.Exit(1)
 	}
 
 	matches, err := filepath.Glob(path)
 	if err != nil || len(matches) == 0 {
-		log.Fatalf("Cannot find image for %s\n", i.DisplayName)
+		slog.Error("Cannot find image", "image", i.DisplayName, "err", err)
+		os.Exit(1)
 		return "" // Won't actually return due to log.Fatal
 	}
 
@@ -139,7 +144,7 @@ func (i *Image) GetLatestPath() string {
 	latestVersion := i.FileVersion(latestPath)
 
 	for _, path := range matches {
-		log.Printf("Found image path %s\n", path)
+		slog.Info("Found image path", "path", path)
 		if newVersion := i.FileVersion(path); i.VersionComparer.Gt(newVersion, latestVersion) {
 			latestPath = path
 			latestVersion = newVersion
@@ -153,7 +158,8 @@ func (i *Image) GetLatestPath() string {
 func GetImageDetails(name string) Image {
 	image, ok := images[name]
 	if !ok {
-		log.Fatalf("Image not supported: %s", name)
+		slog.Error("Image not supported", "image", name)
+		os.Exit(1)
 	}
 	return image
 }
@@ -171,7 +177,8 @@ func (i *Image) FileVersion(path string) string {
 func sendKeys(dom *rawLibvirt.Domain, keys []uint) {
 	err := dom.SendKey(uint(rawLibvirt.KEYCODE_SET_LINUX), 10, keys, 0)
 	if err != nil {
-		log.Fatalf("Cannot send keys: %s", err)
+		slog.Error("Cannot send keys", "err", err)
+		os.Exit(1)
 	}
 
 	time.Sleep(20 * time.Millisecond)

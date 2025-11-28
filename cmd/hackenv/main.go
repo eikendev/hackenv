@@ -2,12 +2,10 @@
 package main
 
 import (
-	"os"
-
 	"github.com/alecthomas/kong"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/eikendev/hackenv/internal/commands"
+	"github.com/eikendev/hackenv/internal/logging"
 	"github.com/eikendev/hackenv/internal/options"
 )
 
@@ -23,23 +21,15 @@ var cmd struct {
 	Version commands.VersionCommand `cmd:"version" help:"Print the version of hackenv"`
 }
 
-func init() {
-	log.SetOutput(os.Stderr)
-	log.SetLevel(log.InfoLevel)
-	log.SetFormatter(&log.TextFormatter{
-		DisableTimestamp: true,
-	})
-}
-
 func main() {
-	ctx := kong.Parse(&cmd)
+	kctx := kong.Parse(&cmd,
+		kong.Description("hackenv provisions and manages preconfigured VMs for security research."),
+		kong.UsageOnError(),
+		kong.Bind(&cmd.Options),
+	)
 
-	if cmd.Verbose {
-		log.SetLevel(log.DebugLevel)
-	}
+	logging.Setup(cmd.Verbose)
 
-	err := ctx.Run(&cmd.Options)
-	if err != nil {
-		os.Exit(1)
-	}
+	err := kctx.Run()
+	kctx.FatalIfErrorf(err)
 }

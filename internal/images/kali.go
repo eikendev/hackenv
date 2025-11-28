@@ -4,12 +4,12 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"log/slog"
 	"regexp"
 	"runtime"
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	rawLibvirt "libvirt.org/go/libvirt"
 
 	"github.com/eikendev/hackenv/internal/network"
@@ -37,7 +37,7 @@ func kaliInfoRetriever(url string, versionRegex *regexp.Regexp) (*DownloadInfo, 
 	}
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
-			log.Warnf("failed to close response body: %v", err)
+			slog.Warn("Failed to close response body", "err", err)
 		}
 	}()
 

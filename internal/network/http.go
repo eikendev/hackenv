@@ -3,9 +3,8 @@ package network
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // GetResponse performs an HTTP GET request and returns the response with proper error handling
@@ -21,7 +20,7 @@ func GetResponse(url string) (*http.Response, error) {
 	if resp.StatusCode != http.StatusOK {
 		err = resp.Body.Close()
 		if err != nil {
-			log.Warnf("failed to close response body: %v", err)
+			slog.Warn("Failed to close response body", "err", err, "url", url)
 		}
 
 		return nil, fmt.Errorf("bad HTTP status code (%s)", resp.Status)

@@ -3,11 +3,11 @@ package host
 
 import (
 	"bufio"
+	"log/slog"
 	"net"
+	"os"
 	"os/exec"
 	"strings"
-
-	log "github.com/sirupsen/logrus"
 
 	"github.com/eikendev/hackenv/internal/paths"
 )
@@ -16,7 +16,8 @@ import (
 func GetHostIPAddress(ifaceName string) string {
 	ifaces, err := net.Interfaces()
 	if err != nil {
-		log.Fatalf("Cannot retrieve host interfaces: %s\n", err)
+		slog.Error("Cannot retrieve host interfaces", "err", err)
+		os.Exit(1)
 	}
 
 	for _, iface := range ifaces {
@@ -49,7 +50,8 @@ func GetHostIPAddress(ifaceName string) string {
 		}
 	}
 
-	log.Fatalln("Cannot retrieve host IP address")
+	slog.Error("Cannot retrieve host IP address", "interface", ifaceName)
+	os.Exit(1)
 	return "" // Does not actually return.
 }
 
@@ -60,7 +62,8 @@ func GetHostKeyboardLayout() string {
 		"-query",
 	).Output() //#nosec G204
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("Failed to query keyboard layout", "err", err)
+		os.Exit(1)
 	}
 
 	var line string
@@ -75,13 +78,15 @@ func GetHostKeyboardLayout() string {
 	}
 
 	if line == "" {
-		log.Fatalf("Unable to retrieve host's keyboard layout\n")
+		slog.Error("Unable to retrieve host keyboard layout: layout line missing")
+		os.Exit(1)
 	}
 
 	line = strings.TrimSpace(line)
 	parts := strings.Split(line, " ")
 	if len(parts) < 2 {
-		log.Fatalf("Unable to retrieve host's keyboard layout\n")
+		slog.Error("Unable to retrieve host keyboard layout: malformed output", "output", line)
+		os.Exit(1)
 		return ""
 	}
 	return parts[len(parts)-1]

@@ -3,10 +3,10 @@ package banner
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/fatih/color"
-	log "github.com/sirupsen/logrus"
 )
 
 const banner = `
@@ -24,7 +24,7 @@ func PrintBanner() {
 
 	_, err := color.New(color.FgBlue).Fprintln(os.Stderr, "                @eikendev")
 	if err != nil {
-		log.Warnf("Cannot print banner: %s", err)
+		slog.Warn("Cannot print banner", "err", err)
 	}
 
 	fmt.Fprintln(os.Stderr, "")

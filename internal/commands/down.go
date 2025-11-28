@@ -1,7 +1,7 @@
 package commands
 
 import (
-	log "github.com/sirupsen/logrus"
+	"log/slog"
 
 	"github.com/eikendev/hackenv/internal/handling"
 	"github.com/eikendev/hackenv/internal/images"
@@ -24,7 +24,7 @@ func (c *DownCommand) Run(s *options.Options) error {
 
 	err := dom.Destroy()
 	if err != nil {
-		log.Errorf("Cannot destroy domain: %s\n", err)
+		slog.Error("Cannot destroy domain", "err", err)
 		return err
 	}
 

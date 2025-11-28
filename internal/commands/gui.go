@@ -2,10 +2,9 @@ package commands
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
-
-	log "github.com/sirupsen/logrus"
 
 	"github.com/eikendev/hackenv/internal/constants"
 	"github.com/eikendev/hackenv/internal/handling"
@@ -58,13 +57,13 @@ func (c *GuiCommand) Run(s *options.Options) error {
 			"SPICE://localhost",
 		}
 	} else {
-		log.Errorf("Unable to locate %s to connect to the VM.\n", c.Viewer)
+		slog.Error("Unable to locate viewer to connect to the VM", "viewer", c.Viewer)
 		return fmt.Errorf("unable to locate %s to connect to the VM", c.Viewer)
 	}
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		log.Printf("Cannot get current working directory: %s\n", err)
+		slog.Warn("Cannot get current working directory", "err", err)
 	}
 
 	cmd := exec.Command(args[0], args[1:]...) //#nosec G204
@@ -73,7 +72,7 @@ func (c *GuiCommand) Run(s *options.Options) error {
 
 	err = cmd.Start()
 	if err != nil {
-		log.Printf("Cannot spawn process: %s\n", err)
+		slog.Error("Cannot spawn viewer process", "err", err)
 	}
 	defer handling.ReleaseProcess(cmd.Process)
 

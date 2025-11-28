@@ -8,7 +8,6 @@ require (
 	github.com/fatih/color v1.18.0
 	github.com/melbahja/goph v1.4.0
 	github.com/schollz/progressbar/v3 v3.18.0
-	github.com/sirupsen/logrus v1.9.3
 	libvirt.org/go/libvirt v1.11006.0
 )
 

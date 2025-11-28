@@ -1,11 +1,11 @@
 package images
 
 import (
+	"fmt"
+	"log/slog"
 	"strconv"
 	"strings"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 
 	rawLibvirt "libvirt.org/go/libvirt"
 )
@@ -21,19 +21,22 @@ func (vc genericVersionComparer) Lt(a, b string) bool {
 	bParts := strings.Split(b, ".")
 
 	if len(aParts) == 0 || len(bParts) == 0 || len(aParts) != len(bParts) {
-		log.Fatalf("Cannot compare versions %s and %s\n", a, b)
+		slog.Error("Cannot compare versions with different parts", "a", a, "b", b)
+		panic(fmt.Sprintf("Cannot compare versions %s and %s", a, b))
 		return false
 	}
 
 	for i := range aParts {
 		aPart, err := strconv.Atoi(aParts[i])
 		if err != nil {
-			log.Fatalf("Cannot convert version part %s to number: %s\n", aParts[i], err)
+			slog.Error("Cannot convert version part to number", "value", aParts[i], "err", err)
+			panic(fmt.Sprintf("Cannot convert version part %s to number", aParts[i]))
 		}
 
 		bPart, err := strconv.Atoi(bParts[i])
 		if err != nil {
-			log.Fatalf("Cannot convert version part %s to number: %s\n", bParts[i], err)
+			slog.Error("Cannot convert version part to number", "value", bParts[i], "err", err)
+			panic(fmt.Sprintf("Cannot convert version part %s to number", bParts[i]))
 		}
 
 		if aPart < bPart {

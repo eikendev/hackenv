@@ -3,36 +3,36 @@ package handling
 
 import (
 	"io"
+	"log/slog"
 	"os"
 
-	log "github.com/sirupsen/logrus"
 	rawLibvirt "libvirt.org/go/libvirt"
 )
 
 // Close closes an io resource and prints a warning if that fails.
 func Close(c io.Closer) {
 	if err := c.Close(); err != nil {
-		log.Warn(err)
+		slog.Warn("Failed to close resource", "err", err)
 	}
 }
 
 // CloseConnect closes a libvirt connections and prints a warning if that fails.
 func CloseConnect(c *rawLibvirt.Connect) {
 	if _, err := c.Close(); err != nil {
-		log.Warn(err)
+		slog.Warn("Failed to close libvirt connection", "err", err)
 	}
 }
 
 // FreeDomain frees a libvirt domain and prints a warning if that fails.
 func FreeDomain(d *rawLibvirt.Domain) {
 	if err := d.Free(); err != nil {
-		log.Warn(err)
+		slog.Warn("Failed to free libvirt domain", "err", err)
 	}
 }
 
 // ReleaseProcess releases process information and prints a warning if that fails.
 func ReleaseProcess(p *os.Process) {
 	if err := p.Release(); err != nil {
-		log.Warn(err)
+		slog.Warn("Failed to release process", "err", err)
 	}
 }

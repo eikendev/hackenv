@@ -3,13 +3,13 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
 	"syscall"
 	"time"
 
 	"github.com/melbahja/goph"
-	log "github.com/sirupsen/logrus"
 	rawLibvirt "libvirt.org/go/libvirt"
 
 	"github.com/eikendev/hackenv/internal/banner"
@@ -103,18 +103,19 @@ func buildXML(c *UpCommand, image images.Image, path string) string {
 
 func waitBootComplete(dom *rawLibvirt.Domain, image *images.Image) string {
 	for i := 1; i <= connectTries; i++ {
-		log.Printf("Waiting for VM to become active (%02d/%d)...\n", i, connectTries)
+		slog.Info("Waiting for VM to become active", "attempt", i, "maxAttempts", connectTries, "image", image.Name)
 
 		ipAddr, err := libvirt.GetDomainIPAddress(dom, image)
 		if err == nil {
-			log.Printf("VM is up with IP address %s\n", ipAddr)
+			slog.Info("VM is up", "ip", ipAddr, "image", image.Name)
 			return ipAddr
 		}
 
 		time.Sleep(2 * time.Second)
 	}
 
-	log.Fatalf("VM is not up\n")
+	slog.Error("VM did not become active", "image", image.Name, "attempts", connectTries)
+	os.Exit(1)
 	return "" // Does not actually return.
 }
 
@@ -128,12 +129,13 @@ func provisionClient(_ *UpCommand, image *images.Image, guestIPAddr string) {
 			fmt.Sprintf("/shared/%s", constants.PostbootFile),
 		})
 
-		log.Info("Provisioning...")
+		slog.Info("Provisioning VM", "image", image.Name)
 
 		//#nosec G204
 		err := syscall.Exec(args[0], args, os.Environ())
 		if err != nil {
-			log.Fatalf("Cannot spawn process: %s\n", err)
+			slog.Error("Cannot provision VM", "err", err)
+			os.Exit(1)
 		}
 	}
 }
@@ -230,12 +232,13 @@ func (c *UpCommand) Run(s *options.Options) error {
 
 	if info := image.GetDownloadInfo(false); info != nil {
 		if !image.VersionComparer.Eq(info.Version, localVersion) {
-			log.Printf("Version %s for %s is available! Download with the get command.\n", info.Version, image.DisplayName)
+			slog.Info("New image version available", "image", image.DisplayName, "version", info.Version)
 		}
 	}
 
 	if err := ensureSSHKeypairExists(); err != nil {
-		log.Fatalf("Cannot create SSH keypair: %s\n", err)
+		slog.Error("Cannot create SSH keypair", "err", err)
+		os.Exit(1)
 	}
 
 	xml := buildXML(c, image, localPath)
@@ -247,12 +250,12 @@ func (c *UpCommand) Run(s *options.Options) error {
 	defer handling.FreeDomain(dom)
 
 	if err != nil && s.Provision {
-		log.Infof("%s is already running, provisioning instead\n", image.DisplayName)
+		slog.Info("Domain already running, provisioning instead", "image", image.DisplayName)
 		dom = libvirt.GetDomain(conn, &image, true)
 		guestIPAddr := waitBootComplete(dom, &image)
 		provisionClient(c, &image, guestIPAddr)
 	} else if err != nil {
-		log.Errorf("Cannot create domain: %s\nTry running 'hackenv fix all'.\n", err)
+		slog.Error("Cannot create domain. Try running 'hackenv fix all'.", "err", err)
 		return err
 	} else {
 		image.Boot(dom, localVersion)
@@ -261,11 +264,11 @@ func (c *UpCommand) Run(s *options.Options) error {
 
 		err = configureClient(c, dom, &image, guestIPAddr, s.Keymap)
 		if err != nil {
-			log.Errorf("Cannot configure client: %s\n", err)
+			slog.Error("Cannot configure client", "err", err)
 			return err
 		}
 
-		log.Printf("%s is now ready to use\n", image.DisplayName)
+		slog.Info("VM is ready to use", "image", image.DisplayName)
 
 		if s.Provision {
 			provisionClient(c, &image, guestIPAddr)

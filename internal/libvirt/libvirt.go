@@ -3,8 +3,9 @@ package libvirt
 
 import (
 	"errors"
+	"log/slog"
+	"os"
 
-	log "github.com/sirupsen/logrus"
 	"libvirt.org/go/libvirt"
 
 	"github.com/eikendev/hackenv/internal/constants"
@@ -26,7 +27,8 @@ var domainStates = map[libvirt.DomainState]string{
 func Connect() *libvirt.Connect {
 	conn, err := libvirt.NewConnect(constants.ConnectURI)
 	if err != nil {
-		log.Fatalf("Cannot establish connection with libvirt: %s\n", err)
+		slog.Error("Cannot establish connection with libvirt", "err", err)
+		os.Exit(1)
 	}
 
 	return conn
@@ -37,7 +39,8 @@ func GetDomain(conn *libvirt.Connect, image *images.Image, fail bool) *libvirt.D
 	dom, err := conn.LookupDomainByName(image.Name)
 	if err != nil {
 		if fail {
-			log.Fatalf("%s is down\n", image.DisplayName)
+			slog.Error("Domain is down", "image", image.DisplayName)
+			os.Exit(1)
 		}
 		dom = nil
 	}
@@ -49,7 +52,8 @@ func GetDomain(conn *libvirt.Connect, image *images.Image, fail bool) *libvirt.D
 func GetDomainIPAddress(dom *libvirt.Domain, image *images.Image) (string, error) {
 	ifaces, err := dom.ListAllInterfaceAddresses(libvirt.DOMAIN_INTERFACE_ADDRESSES_SRC_ARP)
 	if err != nil {
-		log.Fatalf("Cannot retrieve VM's IP address: %s\n", err)
+		slog.Error("Cannot retrieve VM IP address", "err", err, "image", image.Name)
+		os.Exit(1)
 	}
 
 	for _, iface := range ifaces {
@@ -65,7 +69,8 @@ func GetDomainIPAddress(dom *libvirt.Domain, image *images.Image) (string, error
 func ResolveDomainState(state libvirt.DomainState) string {
 	display, ok := domainStates[state]
 	if !ok {
-		log.Fatalf("Cannot resolve domain state: %d\n", state)
+		slog.Error("Cannot resolve domain state", "state", state)
+		os.Exit(1)
 	}
 
 	return display

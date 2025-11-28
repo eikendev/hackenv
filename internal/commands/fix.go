@@ -2,10 +2,9 @@ package commands
 
 import (
 	"fmt"
+	"log/slog"
 	"os/exec"
 	"strings"
-
-	log "github.com/sirupsen/logrus"
 
 	"github.com/eikendev/hackenv/internal/options"
 	"github.com/eikendev/hackenv/internal/scripts"
@@ -47,7 +46,7 @@ func (c *all) Run(s *options.Options) error {
 func execCommand(scripts []string, verbose bool) error {
 	for i, script := range scripts {
 		cmd := exec.Command("bash")
-		log.Infof("Running script %v/%v...\n\n", i, len(scripts)-1)
+		slog.Info("Running script", "index", i+1, "total", len(scripts))
 		cmd.Stdin = strings.NewReader(script)
 		b, err := cmd.CombinedOutput()
 		if verbose {

@@ -2,10 +2,9 @@ package commands
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"syscall"
-
-	log "github.com/sirupsen/logrus"
 
 	"github.com/eikendev/hackenv/internal/constants"
 	"github.com/eikendev/hackenv/internal/handling"
@@ -30,7 +29,7 @@ func (c *SSHCommand) Run(s *options.Options) error {
 
 	ipAddr, err := libvirt.GetDomainIPAddress(dom, &image)
 	if err != nil {
-		log.Errorf("Cannot retrieve guest's IP address\n")
+		slog.Error("Cannot retrieve guest IP address", "err", err)
 		return err
 	}
 
@@ -42,7 +41,7 @@ func (c *SSHCommand) Run(s *options.Options) error {
 	//#nosec G204
 	err = syscall.Exec(args[0], args, os.Environ())
 	if err != nil {
-		log.Printf("Cannot spawn process: %s\n", err)
+		slog.Error("Cannot spawn SSH process", "err", err)
 	}
 
 	return nil
