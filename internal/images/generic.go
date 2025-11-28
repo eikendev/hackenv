@@ -23,7 +23,6 @@ func (vc genericVersionComparer) Lt(a, b string) bool {
 	if len(aParts) == 0 || len(bParts) == 0 || len(aParts) != len(bParts) {
 		slog.Error("Cannot compare versions with different parts", "a", a, "b", b)
 		panic(fmt.Sprintf("Cannot compare versions %s and %s", a, b))
-		return false
 	}
 
 	for i := range aParts {
