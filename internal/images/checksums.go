@@ -10,7 +10,7 @@ import (
 func parseChecksumLine(line string, versionRegex *regexp.Regexp) (*DownloadInfo, error) {
 	parts := strings.Fields(line)
 	if len(parts) < 2 {
-		return nil, fmt.Errorf("invalid checksum line format: %s", line)
+		return nil, fmt.Errorf("encountered invalid checksum line format: %s", line)
 	}
 
 	checksum := parts[0]

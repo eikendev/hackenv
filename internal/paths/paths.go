@@ -14,44 +14,34 @@ import (
 )
 
 // GetDataFilePath returns a file from the XDG data directory.
-func GetDataFilePath(file string) string {
+func GetDataFilePath(file string) (string, error) {
 	path, err := xdg.DataFile(filepath.Join(constants.XdgAppname, file))
 	if err != nil {
 		slog.Error("Cannot access data directory", "file", file, "err", err)
-		os.Exit(1)
+		return "", fmt.Errorf("cannot resolve data file %q: %w", file, err)
 	}
 
-	return path
+	return path, nil
 }
 
 // EnsureDirExists creates the given directory if it does not exists.
-func EnsureDirExists(path string) {
+func EnsureDirExists(path string) error {
 	err := os.MkdirAll(path, 0o750)
 	if err != nil {
 		slog.Error("Cannot create directory", "path", path, "err", err)
-		os.Exit(1)
+		return fmt.Errorf("cannot create directory %q: %w", path, err)
 	}
+	return nil
 }
 
 // DoesPostbootExist returns true if the postboot file exists, otherwise false.
 func DoesPostbootExist(path string) bool {
 	path = fmt.Sprintf("%s/%s", path, constants.PostbootFile)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		slog.Warn("Postboot file does not exist", "path", path)
+		slog.Info("Postboot file does not exist", "path", path)
 		return false
 	}
 	return true
-}
-
-// GetCmdPathOrExit returns the given executable from the PATH.
-func GetCmdPathOrExit(cmd string) string {
-	path, err := exec.LookPath(cmd)
-	if err != nil {
-		slog.Error("Command not found", "command", cmd)
-		os.Exit(1)
-	}
-
-	return path
 }
 
 // GetCmdPath returns the given executable from the PATH, otherwise an error.

@@ -57,24 +57,30 @@ func (vc genericVersionComparer) Gt(a, b string) bool {
 	return !vc.Lt(a, b) && !vc.Eq(a, b)
 }
 
-func genericBootInitializer(dom *rawLibvirt.Domain) {
+func genericBootInitializer(dom *rawLibvirt.Domain) error {
 	time.Sleep(1 * time.Second)
-	sendKeys(dom, []uint{KEY_ENTER})
+	return sendKeys(dom, []uint{KEY_ENTER})
 }
 
-func switchToTTY(dom *rawLibvirt.Domain) {
-	sendKeys(dom, []uint{KEY_LEFTCTRL, KEY_LEFTALT, KEY_F1})
-
+func switchToTTY(dom *rawLibvirt.Domain) error {
+	if err := sendKeys(dom, []uint{KEY_LEFTCTRL, KEY_LEFTALT, KEY_F1}); err != nil {
+		slog.Error("Failed to send key sequence to switch to TTY", "err", err)
+		return fmt.Errorf("failed to switch console to TTY: %w", err)
+	}
 	time.Sleep(500 * time.Millisecond)
+	return nil
 }
 
-func switchFromTTY(dom *rawLibvirt.Domain) {
-	sendKeys(dom, []uint{KEY_LEFTCTRL, KEY_LEFTALT, KEY_F7})
-
+func switchFromTTY(dom *rawLibvirt.Domain) error {
+	if err := sendKeys(dom, []uint{KEY_LEFTCTRL, KEY_LEFTALT, KEY_F7}); err != nil {
+		slog.Error("Failed to send key sequence to switch from TTY", "err", err)
+		return fmt.Errorf("failed to switch console from TTY: %w", err)
+	}
 	time.Sleep(500 * time.Millisecond)
+	return nil
 }
 
-func enablePasswordSSH(dom *rawLibvirt.Domain) {
+func enablePasswordSSH(dom *rawLibvirt.Domain) error {
 	// sudo sed -i '/.assword.uthentication/s/no/yes/' /etc/ssh/sshd*<Tab>
 
 	keys := []uint{
@@ -89,13 +95,17 @@ func enablePasswordSSH(dom *rawLibvirt.Domain) {
 	}
 
 	for _, key := range keys {
-		sendKeys(dom, []uint{key})
+		if err := sendKeys(dom, []uint{key}); err != nil {
+			slog.Error("Failed to send key while enabling password SSH", "err", err, "key", key)
+			return fmt.Errorf("failed to enable password SSH: %w", err)
+		}
 	}
 
 	time.Sleep(500 * time.Millisecond)
+	return nil
 }
 
-func systemdRestartSSH(dom *rawLibvirt.Domain) {
+func systemdRestartSSH(dom *rawLibvirt.Domain) error {
 	// sudo systemctl restart ssh
 
 	keys := []uint{
@@ -105,8 +115,12 @@ func systemdRestartSSH(dom *rawLibvirt.Domain) {
 	}
 
 	for _, key := range keys {
-		sendKeys(dom, []uint{key})
+		if err := sendKeys(dom, []uint{key}); err != nil {
+			slog.Error("Failed to send key while restarting SSH via systemd", "err", err, "key", key)
+			return fmt.Errorf("failed to restart SSH via systemd: %w", err)
+		}
 	}
 
 	time.Sleep(1500 * time.Millisecond)
+	return nil
 }

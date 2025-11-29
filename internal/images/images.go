@@ -4,7 +4,6 @@ package images
 import (
 	"fmt"
 	"log/slog"
-	"os"
 	"path/filepath"
 	"regexp"
 	"time"
@@ -17,9 +16,9 @@ import (
 
 type infoRetriever func(string, *regexp.Regexp) (*DownloadInfo, error)
 
-type bootInitializer func(*rawLibvirt.Domain)
+type bootInitializer func(*rawLibvirt.Domain) error
 
-type sshStarter func(*rawLibvirt.Domain)
+type sshStarter func(*rawLibvirt.Domain) error
 
 type versionComparer interface {
 	Lt(string, string) bool
@@ -88,56 +87,59 @@ var images = map[string]Image{
 }
 
 // GetDownloadInfo retreives the necessary information to download an image.
-func (i *Image) GetDownloadInfo(strict bool) *DownloadInfo {
+func (i *Image) GetDownloadInfo(strict bool) (*DownloadInfo, error) {
 	info, err := i.infoRetriever(i.ArchiveURL+i.checksumPath, i.VersionRegex)
-	if err != nil && strict {
-		slog.Error("Cannot retrieve latest image details", "image", i.DisplayName, "err", err)
-		os.Exit(1)
+	if err != nil {
+		slog.Error("Cannot retrieve latest image details", "image", i.DisplayName, "err", err, "strict", strict)
+		return nil, fmt.Errorf("cannot retrieve latest image details for %s: %w", i.DisplayName, err)
 	}
 
-	return info
+	return info, nil
 }
 
 // Boot executes the necessary steps to boot a downloaded image.
-func (i *Image) Boot(dom *rawLibvirt.Domain, version string) {
+func (i *Image) Boot(dom *rawLibvirt.Domain, version string) error {
 	slog.Info("Booting image", "image", i.DisplayName, "version", version)
-	i.bootInitializer(dom)
+	return i.bootInitializer(dom)
 }
 
 // StartSSH executes the necessary steps to start SSH on a booted image.
-func (i *Image) StartSSH(dom *rawLibvirt.Domain) {
+func (i *Image) StartSSH(dom *rawLibvirt.Domain) error {
 	slog.Info("Bootstrapping SSH", "image", i.DisplayName)
-	i.sshStarter(dom)
+	return i.sshStarter(dom)
 }
 
 // GetLocalPath builds the full path of a downloaded image based on a given version.
-func (i *Image) GetLocalPath(version string) string {
+func (i *Image) GetLocalPath(version string) (string, error) {
 	filename := fmt.Sprintf(i.LocalImageName, version)
 
 	path, err := xdg.DataFile(filepath.Join(constants.XdgAppname, filename))
 	if err != nil {
 		slog.Error("Cannot access data directory", "err", err, "file", filename)
-		os.Exit(1)
+		return "", fmt.Errorf("cannot resolve data path for %s: %w", filename, err)
 	}
 
-	return path
+	return path, nil
 }
 
 // GetLatestPath returns the full path of the image with the greatest version.
-func (i *Image) GetLatestPath() string {
+func (i *Image) GetLatestPath() (string, error) {
 	imageGlob := fmt.Sprintf(i.LocalImageName, "*")
 
 	path, err := xdg.DataFile(filepath.Join(constants.XdgAppname, imageGlob))
 	if err != nil {
 		slog.Error("Cannot access data directory", "err", err, "pattern", imageGlob)
-		os.Exit(1)
+		return "", fmt.Errorf("cannot resolve data path for pattern %s: %w", imageGlob, err)
 	}
 
 	matches, err := filepath.Glob(path)
-	if err != nil || len(matches) == 0 {
+	if err != nil {
 		slog.Error("Cannot find image", "image", i.DisplayName, "err", err)
-		os.Exit(1)
-		return "" // Won't actually return due to log.Fatal
+		return "", fmt.Errorf("cannot glob images for %s: %w", i.DisplayName, err)
+	}
+	if len(matches) == 0 {
+		slog.Error("Cannot find image", "image", i.DisplayName)
+		return "", fmt.Errorf("found no images for %s", i.DisplayName)
 	}
 
 	latestPath := matches[0]
@@ -151,17 +153,17 @@ func (i *Image) GetLatestPath() string {
 		}
 	}
 
-	return latestPath
+	return latestPath, nil
 }
 
 // GetImageDetails returns detailed information about a given image.
-func GetImageDetails(name string) Image {
+func GetImageDetails(name string) (Image, error) {
 	image, ok := images[name]
 	if !ok {
 		slog.Error("Image not supported", "image", name)
-		os.Exit(1)
+		return Image{}, fmt.Errorf("cannot use image %s: not supported", name)
 	}
-	return image
+	return image, nil
 }
 
 // GetAllImages returns a map of all available images.
@@ -174,12 +176,13 @@ func (i *Image) FileVersion(path string) string {
 	return i.VersionRegex.FindString(path)
 }
 
-func sendKeys(dom *rawLibvirt.Domain, keys []uint) {
+func sendKeys(dom *rawLibvirt.Domain, keys []uint) error {
 	err := dom.SendKey(uint(rawLibvirt.KEYCODE_SET_LINUX), 10, keys, 0)
 	if err != nil {
 		slog.Error("Cannot send keys", "err", err)
-		os.Exit(1)
+		return fmt.Errorf("cannot send keys: %w", err)
 	}
 
 	time.Sleep(20 * time.Millisecond)
+	return nil
 }

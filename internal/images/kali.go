@@ -27,12 +27,13 @@ func findKaliChecksumLine(scanner *bufio.Scanner) (string, error) {
 		}
 	}
 
-	return "", errors.New("checksum not found in file")
+	return "", errors.New("cannot find checksum in file")
 }
 
 func kaliInfoRetriever(url string, versionRegex *regexp.Regexp) (*DownloadInfo, error) {
 	resp, err := network.GetResponse(url)
 	if err != nil {
+		slog.Error("Failed to fetch Kali checksum file", "url", url, "err", err)
 		return nil, fmt.Errorf("failed to get response: %w", err)
 	}
 	defer func() {
@@ -43,20 +44,38 @@ func kaliInfoRetriever(url string, versionRegex *regexp.Regexp) (*DownloadInfo, 
 
 	line, err := findKaliChecksumLine(bufio.NewScanner(resp.Body))
 	if err != nil {
-		return nil, err
+		slog.Error("Failed to find Kali checksum line", "err", err)
+		return nil, fmt.Errorf("cannot find Kali checksum line: %w", err)
 	}
 
 	return parseChecksumLine(line, versionRegex)
 }
 
-func kaliBootInitializer(dom *rawLibvirt.Domain) {
-	genericBootInitializer(dom)
+func kaliBootInitializer(dom *rawLibvirt.Domain) error {
+	if err := genericBootInitializer(dom); err != nil {
+		slog.Error("Failed to boot Kali image", "err", err)
+		return fmt.Errorf("failed to boot Kali image: %w", err)
+	}
+	return nil
 }
 
-func kaliSSHStarter(dom *rawLibvirt.Domain) {
+func kaliSSHStarter(dom *rawLibvirt.Domain) error {
 	time.Sleep(5 * time.Second)
-	switchToTTY(dom)
+	if err := switchToTTY(dom); err != nil {
+		slog.Error("Failed to switch Kali console to TTY", "err", err)
+		return fmt.Errorf("failed to switch Kali console to TTY: %w", err)
+	}
+
 	time.Sleep(1 * time.Second)
-	systemdRestartSSH(dom)
-	switchFromTTY(dom)
+	if err := systemdRestartSSH(dom); err != nil {
+		slog.Error("Failed to restart SSH on Kali image", "err", err)
+		return fmt.Errorf("failed to restart SSH on Kali image: %w", err)
+	}
+
+	if err := switchFromTTY(dom); err != nil {
+		slog.Error("Failed to switch Kali console back from TTY", "err", err)
+		return fmt.Errorf("failed to switch Kali console from TTY: %w", err)
+	}
+
+	return nil
 }

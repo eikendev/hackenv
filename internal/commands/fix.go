@@ -53,7 +53,8 @@ func execCommand(scripts []string, verbose bool) error {
 			fmt.Println(string(b))
 		}
 		if err != nil {
-			return err
+			slog.Error("Script execution failed", "index", i+1, "total", len(scripts), "err", err)
+			return fmt.Errorf("failed to run script %d/%d: %w", i+1, len(scripts), err)
 		}
 	}
 

@@ -3,9 +3,9 @@ package host
 
 import (
 	"bufio"
+	"fmt"
 	"log/slog"
 	"net"
-	"os"
 	"os/exec"
 	"strings"
 
@@ -13,11 +13,11 @@ import (
 )
 
 // GetHostIPAddress retrieves the IP address of the host on the given interface.
-func GetHostIPAddress(ifaceName string) string {
+func GetHostIPAddress(ifaceName string) (string, error) {
 	ifaces, err := net.Interfaces()
 	if err != nil {
 		slog.Error("Cannot retrieve host interfaces", "err", err)
-		os.Exit(1)
+		return "", fmt.Errorf("cannot retrieve host interfaces: %w", err)
 	}
 
 	for _, iface := range ifaces {
@@ -46,24 +46,29 @@ func GetHostIPAddress(ifaceName string) string {
 				continue
 			}
 
-			return ip.String()
+			return ip.String(), nil
 		}
 	}
 
 	slog.Error("Cannot retrieve host IP address", "interface", ifaceName)
-	os.Exit(1)
-	return "" // Does not actually return.
+	return "", fmt.Errorf("cannot retrieve host IP address for interface %s", ifaceName)
 }
 
 // GetHostKeyboardLayout retrieves the configured keyboard layout on the host.
-func GetHostKeyboardLayout() string {
+func GetHostKeyboardLayout() (string, error) {
+	setxkbmapPath, err := paths.GetCmdPath("setxkbmap")
+	if err != nil {
+		slog.Error("setxkbmap command not found", "err", err)
+		return "", fmt.Errorf("cannot locate setxkbmap command: %w", err)
+	}
+
 	out, err := exec.Command(
-		paths.GetCmdPathOrExit("setxkbmap"),
+		setxkbmapPath,
 		"-query",
 	).Output() //#nosec G204
 	if err != nil {
 		slog.Error("Failed to query keyboard layout", "err", err)
-		os.Exit(1)
+		return "", fmt.Errorf("failed to query keyboard layout: %w", err)
 	}
 
 	var line string
@@ -79,15 +84,14 @@ func GetHostKeyboardLayout() string {
 
 	if line == "" {
 		slog.Error("Unable to retrieve host keyboard layout: layout line missing")
-		os.Exit(1)
+		return "", fmt.Errorf("unable to retrieve host keyboard layout: layout line missing")
 	}
 
 	line = strings.TrimSpace(line)
 	parts := strings.Split(line, " ")
 	if len(parts) < 2 {
 		slog.Error("Unable to retrieve host keyboard layout: malformed output", "output", line)
-		os.Exit(1)
-		return ""
+		return "", fmt.Errorf("unable to retrieve host keyboard layout: malformed output")
 	}
-	return parts[len(parts)-1]
+	return parts[len(parts)-1], nil
 }

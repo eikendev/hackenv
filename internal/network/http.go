@@ -11,10 +11,10 @@ import (
 func GetResponse(url string) (*http.Response, error) {
 	resp, err := http.Get(url) //#nosec G107
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to perform HTTP GET %s: %w", url, err)
 	}
 	if resp == nil {
-		return nil, fmt.Errorf("nil HTTP response from %s", url)
+		return nil, fmt.Errorf("received nil HTTP response from %s", url)
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -23,7 +23,7 @@ func GetResponse(url string) (*http.Response, error) {
 			slog.Warn("Failed to close response body", "err", err, "url", url)
 		}
 
-		return nil, fmt.Errorf("bad HTTP status code (%s)", resp.Status)
+		return nil, fmt.Errorf("received bad HTTP status code (%s)", resp.Status)
 	}
 
 	return resp, nil

@@ -27,38 +27,31 @@ type GuiCommand struct {
 
 // Run is the function for the gui command.
 func (c *GuiCommand) Run(s *options.Options) error {
-	image := images.GetImageDetails(s.Type)
+	image, err := images.GetImageDetails(s.Type)
+	if err != nil {
+		slog.Error("Failed to get image details for GUI command", "type", s.Type, "err", err)
+		return fmt.Errorf("cannot resolve image details for %q: %w", s.Type, err)
+	}
 
-	conn := libvirt.Connect()
+	conn, err := libvirt.Connect()
+	if err != nil {
+		slog.Error("Failed to connect to libvirt for GUI command", "err", err)
+		return fmt.Errorf("cannot connect to libvirt: %w", err)
+	}
 	defer handling.CloseConnect(conn)
 
 	// Check if the domain is up.
-	dom := libvirt.GetDomain(conn, &image, true)
+	dom, err := libvirt.GetDomain(conn, &image, true)
+	if err != nil {
+		slog.Error("Failed to lookup domain for GUI command", "image", image.Name, "err", err)
+		return fmt.Errorf("cannot look up domain %q: %w", image.Name, err)
+	}
 	defer handling.FreeDomain(dom)
 
-	var args []string
-
-	if virtViewerPath, err := paths.GetCmdPath(virtViewerBin); c.Viewer == virtViewerBin && err == nil {
-		args = []string{
-			virtViewerPath,
-			"--connect",
-			constants.ConnectURI,
-			image.Name,
-		}
-
-		if c.Fullscreen {
-			args = append(args, []string{"--full-screen"}...)
-		}
-
-	} else if remminaPath, err := paths.GetCmdPath(remminaBin); c.Viewer == remminaBin && err == nil {
-		args = []string{
-			remminaPath,
-			"-c",
-			"SPICE://localhost",
-		}
-	} else {
-		slog.Error("Unable to locate viewer to connect to the VM", "viewer", c.Viewer)
-		return fmt.Errorf("unable to locate %s to connect to the VM", c.Viewer)
+	args, err := c.viewerArgs(&image)
+	if err != nil {
+		slog.Error("Failed to resolve viewer arguments", "viewer", c.Viewer, "err", err)
+		return fmt.Errorf("cannot resolve viewer %q: %w", c.Viewer, err)
 	}
 
 	cwd, err := os.Getwd()
@@ -73,8 +66,46 @@ func (c *GuiCommand) Run(s *options.Options) error {
 	err = cmd.Start()
 	if err != nil {
 		slog.Error("Cannot spawn viewer process", "err", err)
+		return fmt.Errorf("cannot start viewer %q: %w", args[0], err)
 	}
 	defer handling.ReleaseProcess(cmd.Process)
 
 	return nil
+}
+
+func (c *GuiCommand) viewerArgs(image *images.Image) ([]string, error) {
+	switch c.Viewer {
+	case virtViewerBin:
+		virtViewerPath, err := paths.GetCmdPath(virtViewerBin)
+		if err != nil {
+			slog.Error("Unable to locate viewer", "viewer", c.Viewer, "err", err)
+			return nil, fmt.Errorf("unable to locate %s", c.Viewer)
+		}
+
+		args := []string{
+			virtViewerPath,
+			"--connect",
+			constants.ConnectURI,
+			image.Name,
+		}
+		if c.Fullscreen {
+			args = append(args, "--full-screen")
+		}
+		return args, nil
+	case remminaBin:
+		remminaPath, err := paths.GetCmdPath(remminaBin)
+		if err != nil {
+			slog.Error("Unable to locate viewer", "viewer", c.Viewer, "err", err)
+			return nil, fmt.Errorf("unable to locate %s", c.Viewer)
+		}
+
+		return []string{
+			remminaPath,
+			"-c",
+			"SPICE://localhost",
+		}, nil
+	default:
+		slog.Error("Unsupported viewer", "viewer", c.Viewer)
+		return nil, fmt.Errorf("cannot use viewer %s: unsupported", c.Viewer)
+	}
 }

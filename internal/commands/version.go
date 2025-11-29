@@ -15,7 +15,7 @@ type VersionCommand struct{}
 func (*VersionCommand) Run(_ *options.Options) error {
 	buildInfo, ok := debug.ReadBuildInfo()
 	if !ok {
-		return fmt.Errorf("build info not available")
+		return fmt.Errorf("cannot read build info")
 	}
 
 	fmt.Printf("hackenv %s\n", buildInfo.Main.Version)
