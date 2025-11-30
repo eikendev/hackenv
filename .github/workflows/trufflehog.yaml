@@ -8,7 +8,7 @@ on:
 
 jobs:
   scan-secrets:
-    name: Secrets Check
+    name: Scan for secrets
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -16,7 +16,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Scan for secrets with TruffleHog
+      - name: Run TruffleHog
         uses: trufflesecurity/trufflehog@main
         with:
           extra_args: --results=verified,unknown
