@@ -16,7 +16,7 @@ jobs:
         with:
           fetch-depth: 0
 
-	  - name: Scan for secrets wih TruffleHog
+      - name: Scan for secrets with TruffleHog
         uses: trufflesecurity/trufflehog@main
         with:
           extra_args: --results=verified,unknown
