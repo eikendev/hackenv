@@ -19,7 +19,7 @@ env:
 jobs:
   test_publish:
     name: Test and publish
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     timeout-minutes: 10
     steps:
       - name: Checkout code
