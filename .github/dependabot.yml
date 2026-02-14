@@ -10,7 +10,7 @@ updates:
     commit-message:
       prefix: "deps(go)"
     labels:
-      - "dependencies"
+      - "area:deps"
     pull-request-branch-name:
       separator: "-"
     cooldown:
@@ -31,6 +31,8 @@ updates:
     open-pull-requests-limit: 10
     commit-message:
       prefix: "deps(actions)"
+    labels:
+      - "area:deps"
     pull-request-branch-name:
       separator: "-"
     groups:
