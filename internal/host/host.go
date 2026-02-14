@@ -90,7 +90,7 @@ func GetHostKeyboardLayout() (string, error) {
 	line = strings.TrimSpace(line)
 	parts := strings.Split(line, " ")
 	if len(parts) < 2 {
-		slog.Error("Unable to retrieve host keyboard layout: malformed output", "output", line)
+		slog.Error("Unable to retrieve host keyboard layout: malformed output")
 		return "", fmt.Errorf("unable to retrieve host keyboard layout: malformed output")
 	}
 	return parts[len(parts)-1], nil
