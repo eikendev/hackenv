@@ -4,7 +4,7 @@ go 1.26
 
 require (
 	github.com/adrg/xdg v0.5.3
-	github.com/alecthomas/kong v1.13.0
+	github.com/alecthomas/kong v1.14.0
 	github.com/fatih/color v1.18.0
 	github.com/melbahja/goph v1.4.0
 	github.com/schollz/progressbar/v3 v3.19.0
