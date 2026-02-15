@@ -1,0 +1,21 @@
+name: "Setup"
+description: "Prepares the Go build environment"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Go toolchain
+      uses: actions/setup-go@v6
+      with:
+        go-version-file: go.mod
+        cache: true
+
+    - name: Install system dependencies
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libvirt-dev
+
+    - name: Install project dependencies
+      shell: bash
+      run: make setup

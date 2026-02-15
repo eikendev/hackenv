@@ -1,0 +1,32 @@
+name: Continuous Integration
+run-name: CI • ${{ github.event_name }} • ${{ github.ref_name }}
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  workflow_call:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_and_test:
+    name: Build and test
+    runs-on: ubuntu-slim
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up build environment
+        uses: ./.github/actions/setup
+
+      - name: Execute tests
+        run: make test
+
+      - name: Build project
+        run: make build
