@@ -1,8 +1,8 @@
-name: "Setup"
-description: "Prepares the Go build environment"
+name: Setup
+description: Prepare environment and install dependencies
 
 runs:
-  using: "composite"
+  using: composite
   steps:
     - name: Set up Go toolchain
       uses: actions/setup-go@v6
@@ -16,6 +16,6 @@ runs:
         sudo apt-get update
         sudo apt-get install -y libvirt-dev
 
-    - name: Install project dependencies
+    - name: Install dependencies
       shell: bash
       run: make setup
