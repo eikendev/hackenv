@@ -1,6 +1,9 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 version: 2
 
+release:
+  mode: keep-existing
+
 builds:
   - id: hackenv
     main: ./cmd/hackenv
