@@ -17,7 +17,7 @@ concurrency:
 jobs:
   ci:
     name: Continuous Integration
-    uses: ./.github/workflows/release.yaml
+    uses: ./.github/workflows/pr.yaml
 
   publish:
     name: Publish release
