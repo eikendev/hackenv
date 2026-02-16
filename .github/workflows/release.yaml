@@ -40,6 +40,13 @@ jobs:
         with:
           config-file: release-please-config.json
 
+      - name: Fetch tags
+        run: git fetch --force --tags
+
+      - name: Checkout release tag
+        if: ${{ steps.release.outputs.release_created }}
+        run: git checkout ${{ steps.release.outputs.tag_name }}
+
       - name: Publish release artifacts
         if: ${{ steps.release.outputs.release_created }}
         uses: goreleaser/goreleaser-action@v6
