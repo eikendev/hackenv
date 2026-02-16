@@ -6,7 +6,3 @@
 ### Documentation
 
 * initialize changelog ([060c75e](https://github.com/eikendev/hackenv/commit/060c75e889c923a76d6c0bb1799664afe7c8a552))
-
-## Changelog
-
-All notable changes to this project are documented below.
