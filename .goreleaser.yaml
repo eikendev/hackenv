@@ -21,3 +21,7 @@ archives:
       - hackenv
     formats:
       - tar.gz
+    files:
+      - CHANGELOG.md
+      - LICENSE
+      - README.md
