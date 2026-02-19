@@ -16,6 +16,7 @@ clean:
 .PHONY: test
 test: lint_scripts
 	if [ -n "$$(gofumpt -l $(GO_FILES))" ]; then echo "Code is not properly formatted"; exit 1; fi
+	if [ -n "$$(go fix -diff ./...)" ]; then echo "Code does not use latest idioms of Go"; exit 1; fi
 	if [ -n "$$(goimports -l -local $(GO_MODULE) $(GO_FILES))" ]; then echo "Imports are not properly formatted"; exit 1; fi
 	go vet ./...
 	misspell -error $(GO_FILES)
