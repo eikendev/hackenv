@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.3](https://github.com/eikendev/hackenv/compare/v0.2.2...v0.2.3) (2026-02-28)
+
+
+### Build
+
+* enforce go fix check in test ([4548f60](https://github.com/eikendev/hackenv/commit/4548f60b67517c09838f7a49a9e13a65ede0a55b))
+* include docs in release archive ([202ff7c](https://github.com/eikendev/hackenv/commit/202ff7c9df1d4f39fce02293c4f1c78c0e42b352))
+
 ## [0.2.2](https://github.com/eikendev/hackenv/compare/v0.2.1...v0.2.2) (2026-02-16)
 
 
