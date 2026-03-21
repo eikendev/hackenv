@@ -90,8 +90,23 @@ var images = map[string]Image{
 func (i *Image) GetDownloadInfo(strict bool) (*DownloadInfo, error) {
 	info, err := i.infoRetriever(i.ArchiveURL+i.checksumPath, i.VersionRegex)
 	if err != nil {
-		slog.Error("Cannot retrieve latest image details", "image", i.DisplayName, "err", err, "strict", strict)
-		return nil, fmt.Errorf("cannot retrieve latest image details for %s: %w", i.DisplayName, err)
+		if strict {
+			slog.Error("Cannot retrieve latest image details", "image", i.DisplayName, "err", err, "strict", strict)
+			return nil, fmt.Errorf("cannot retrieve latest image details for %s: %w", i.DisplayName, err)
+		}
+
+		slog.Warn("Cannot retrieve latest image details", "image", i.DisplayName, "err", err, "strict", strict)
+		return nil, nil
+	}
+
+	if info == nil || info.Version == "" || info.Filename == "" || info.Checksum == "" {
+		if strict {
+			slog.Error("Invalid download info retrieved", "image", i.DisplayName, "strict", strict)
+			return nil, fmt.Errorf("invalid download info for %s", i.DisplayName)
+		}
+
+		slog.Warn("Invalid download info retrieved", "image", i.DisplayName, "strict", strict)
+		return nil, nil
 	}
 
 	return info, nil
