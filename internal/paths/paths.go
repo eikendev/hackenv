@@ -36,7 +36,7 @@ func EnsureDirExists(path string) error {
 
 // DoesPostbootExist returns true if the postboot file exists, otherwise false.
 func DoesPostbootExist(path string) bool {
-	path = fmt.Sprintf("%s/%s", path, constants.PostbootFile)
+	path = filepath.Join(path, constants.PostbootFile)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		slog.Info("Postboot file does not exist", "path", path)
 		return false
