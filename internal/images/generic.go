@@ -17,26 +17,11 @@ func getGenericVersionComparer() *genericVersionComparer {
 }
 
 func (vc genericVersionComparer) Lt(a, b string) bool {
-	aParts := strings.Split(a, ".")
-	bParts := strings.Split(b, ".")
-
-	if len(aParts) == 0 || len(bParts) == 0 || len(aParts) != len(bParts) {
-		slog.Error("Cannot compare versions with different parts", "a", a, "b", b)
-		panic(fmt.Sprintf("Cannot compare versions %s and %s", a, b))
-	}
+	aParts, bParts := normalizeVersionParts(a, b)
 
 	for i := range aParts {
-		aPart, err := strconv.Atoi(aParts[i])
-		if err != nil {
-			slog.Error("Cannot convert version part to number", "value", aParts[i], "err", err)
-			panic(fmt.Sprintf("Cannot convert version part %s to number", aParts[i]))
-		}
-
-		bPart, err := strconv.Atoi(bParts[i])
-		if err != nil {
-			slog.Error("Cannot convert version part to number", "value", bParts[i], "err", err)
-			panic(fmt.Sprintf("Cannot convert version part %s to number", bParts[i]))
-		}
+		aPart := parseVersionPart(aParts[i])
+		bPart := parseVersionPart(bParts[i])
 
 		if aPart < bPart {
 			return true
@@ -47,6 +32,38 @@ func (vc genericVersionComparer) Lt(a, b string) bool {
 	}
 
 	return false
+}
+
+func normalizeVersionParts(a, b string) ([]string, []string) {
+	aParts := strings.Split(a, ".")
+	bParts := strings.Split(b, ".")
+
+	if len(aParts) == 0 || len(bParts) == 0 {
+		slog.Error("failed to compare versions", "a", a, "b", b)
+		panic(fmt.Sprintf("cannot compare versions %s and %s", a, b))
+	}
+
+	if len(aParts) != len(bParts) {
+		slog.Warn("found invalid version parts", "a", a, "b", b, "a_parts", len(aParts), "b_parts", len(bParts))
+		for len(aParts) < len(bParts) {
+			aParts = append(aParts, "0")
+		}
+		for len(bParts) < len(aParts) {
+			bParts = append(bParts, "0")
+		}
+	}
+
+	return aParts, bParts
+}
+
+func parseVersionPart(value string) int {
+	part, err := strconv.Atoi(value)
+	if err != nil {
+		slog.Error("failed to parse version part", "value", value, "err", err)
+		panic(fmt.Sprintf("cannot parse version part %s", value))
+	}
+
+	return part
 }
 
 func (vc genericVersionComparer) Eq(a, b string) bool {
