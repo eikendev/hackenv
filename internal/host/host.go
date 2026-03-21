@@ -41,12 +41,12 @@ func GetHostIPAddress(ifaceName string) (string, error) {
 				continue
 			}
 
-			ip = ip.To16()
-			if ip == nil {
-				continue
+			if ip4 := ip.To4(); ip4 != nil {
+				return ip4.String(), nil
 			}
-
-			return ip.String(), nil
+			if ip16 := ip.To16(); ip16 != nil {
+				return ip16.String(), nil
+			}
 		}
 	}
 
