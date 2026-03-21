@@ -155,7 +155,7 @@ func provisionClient(_ *UpCommand, image *images.Image, guestIPAddr string) erro
 	return nil
 }
 
-func configureClient(c *UpCommand, _ *rawLibvirt.Domain, image *images.Image, guestIPAddr string, keymap string) error {
+func configureClient(c *UpCommand, image *images.Image, guestIPAddr string, keymap string) error {
 	client, err := goph.NewUnknown(image.SSHUser, guestIPAddr, goph.Password(image.SSHPassword))
 	if err != nil {
 		slog.Error("Failed to create SSH client for guest configuration", "image", image.Name, "err", err)
@@ -378,7 +378,7 @@ func (c *UpCommand) bootAndConfigure(dom *rawLibvirt.Domain, image *images.Image
 		return fmt.Errorf("failed to start SSH on %s: %w", image.DisplayName, err)
 	}
 
-	if err := configureClient(c, dom, image, guestIPAddr, opts.Keymap); err != nil {
+	if err := configureClient(c, image, guestIPAddr, opts.Keymap); err != nil {
 		slog.Error("Cannot configure client", "err", err)
 		return fmt.Errorf("cannot configure guest %s: %w", image.DisplayName, err)
 	}
