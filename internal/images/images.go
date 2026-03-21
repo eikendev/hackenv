@@ -86,7 +86,7 @@ var images = map[string]Image{
 	},
 }
 
-// GetDownloadInfo retreives the necessary information to download an image.
+// GetDownloadInfo retrieves the necessary information to download an image.
 func (i *Image) GetDownloadInfo(strict bool) (*DownloadInfo, error) {
 	info, err := i.infoRetriever(i.ArchiveURL+i.checksumPath, i.VersionRegex)
 	if err != nil {
