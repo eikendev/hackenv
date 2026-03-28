@@ -5,7 +5,7 @@ go 1.26
 require (
 	github.com/adrg/xdg v0.5.3
 	github.com/alecthomas/kong v1.14.0
-	github.com/fatih/color v1.18.0
+	github.com/fatih/color v1.19.0
 	github.com/melbahja/goph v1.5.0
 	github.com/schollz/progressbar/v3 v3.19.0
 	libvirt.org/go/libvirt v1.12001.0
@@ -20,6 +20,6 @@ require (
 	github.com/pkg/sftp v1.13.10 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	golang.org/x/crypto v0.48.0 // indirect
-	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/sys v0.42.0 // indirect
 	golang.org/x/term v0.40.0 // indirect
 )
