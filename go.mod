@@ -4,11 +4,11 @@ go 1.26
 
 require (
 	github.com/adrg/xdg v0.5.3
-	github.com/alecthomas/kong v1.14.0
+	github.com/alecthomas/kong v1.15.0
 	github.com/fatih/color v1.19.0
 	github.com/melbahja/goph v1.5.0
 	github.com/schollz/progressbar/v3 v3.19.0
-	libvirt.org/go/libvirt v1.12001.0
+	libvirt.org/go/libvirt v1.12002.0
 )
 
 require (
