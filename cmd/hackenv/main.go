@@ -22,7 +22,8 @@ var cmd struct {
 }
 
 func main() {
-	kctx := kong.Parse(&cmd,
+	kctx := kong.Parse(
+		&cmd,
 		kong.Description("hackenv provisions and manages preconfigured VMs for security research."),
 		kong.UsageOnError(),
 		kong.Bind(&cmd.Options),
