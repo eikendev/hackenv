@@ -7,8 +7,8 @@ require (
 	github.com/alecthomas/kong v1.15.0
 	github.com/fatih/color v1.19.0
 	github.com/melbahja/goph v1.5.1
-	github.com/schollz/progressbar/v3 v3.19.0
-	libvirt.org/go/libvirt v1.12003.0
+	github.com/schollz/progressbar/v3 v3.19.1
+	libvirt.org/go/libvirt v1.12004.0
 )
 
 require (
@@ -20,6 +20,6 @@ require (
 	github.com/pkg/sftp v1.13.10 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	golang.org/x/crypto v0.52.0 // indirect
-	golang.org/x/sys v0.45.0 // indirect
-	golang.org/x/term v0.43.0 // indirect
+	golang.org/x/sys v0.46.0 // indirect
+	golang.org/x/term v0.44.0 // indirect
 )
