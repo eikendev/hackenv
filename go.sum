@@ -46,5 +46,5 @@ golang.org/x/term v0.44.0 h1:0rLvDRCtNj0gZkyIXhCyOb2OAzEhLVqc4B+hrsBhrmc=
 golang.org/x/term v0.44.0/go.mod h1:7ze4MdzUzLXpSAoFP1H0bOI9aXDqveSvatT5vKcFh2Y=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
-libvirt.org/go/libvirt v1.12004.0 h1:8jEjLdZBJk/4ZgVkfMuzJ1QDoMvGohsXdXYet0t+xGU=
-libvirt.org/go/libvirt v1.12004.0/go.mod h1:1WiFE8EjZfq+FCVog+rvr1yatKbKZ9FaFMZgEqxEJqQ=
+libvirt.org/go/libvirt v1.12005.0 h1:YKHw7kpDu5OXyK1FKzgSfMCXkcQuEnpr7aFGcjs+7pU=
+libvirt.org/go/libvirt v1.12005.0/go.mod h1:1WiFE8EjZfq+FCVog+rvr1yatKbKZ9FaFMZgEqxEJqQ=
