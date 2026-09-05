@@ -8,7 +8,7 @@ require (
 	github.com/fatih/color v1.19.0
 	github.com/melbahja/goph v1.5.2
 	github.com/schollz/progressbar/v3 v3.19.1
-	libvirt.org/go/libvirt v1.12006.0
+	libvirt.org/go/libvirt v1.12007.0
 )
 
 require (
