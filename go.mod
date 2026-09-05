@@ -1,6 +1,6 @@
 module github.com/eikendev/hackenv
 
-go 1.26
+go 1.27
 
 require (
 	github.com/adrg/xdg v0.5.3
@@ -19,7 +19,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pkg/sftp v1.13.11 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	golang.org/x/crypto v0.54.0 // indirect
+	golang.org/x/crypto v0.56.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/term v0.45.0 // indirect
 )
