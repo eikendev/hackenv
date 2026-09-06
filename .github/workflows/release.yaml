@@ -6,9 +6,7 @@ on:
     branches: [ "main" ]
 
 permissions:
-  contents: write
-  pull-requests: write
-  issues: write
+  contents: read
 
 concurrency:
   group: release-${{ github.ref }}
@@ -17,7 +15,7 @@ concurrency:
 jobs:
   ci:
     name: Continuous Integration
-    uses: ./.github/workflows/pr.yaml
+    uses: $/.github/workflows/pr.yaml
 
   publish:
     name: Publish release
@@ -25,14 +23,20 @@ jobs:
     runs-on: ubuntu-slim
     timeout-minutes: 15
 
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Set up build environment
-        uses: ./.github/actions/setup
+        uses: $/.github/actions/setup
 
       - name: Create GitHub release
         id: release
@@ -45,7 +49,9 @@ jobs:
 
       - name: Checkout release tag
         if: ${{ steps.release.outputs.release_created }}
-        run: git checkout ${{ steps.release.outputs.tag_name }}
+        env:
+          TAG_NAME: ${{ steps.release.outputs.tag_name }}
+        run: git checkout "$TAG_NAME"
 
       - name: Publish release artifacts
         if: ${{ steps.release.outputs.release_created }}

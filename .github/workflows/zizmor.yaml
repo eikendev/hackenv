@@ -1,4 +1,4 @@
-name: TruffleHog
+name: zizmor
 
 on:
   push:
@@ -10,17 +10,17 @@ permissions:
   contents: read
 
 jobs:
-  scan-secrets:
-    name: Scan for secrets
+  scan-workflows:
+    name: Scan workflows
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
         with:
-          fetch-depth: 0
           persist-credentials: false
 
-      - name: Run TruffleHog
-        uses: trufflesecurity/trufflehog@main
+      - name: Run zizmor
+        uses: zizmorcore/zizmor-action@v0.6.3
         with:
-          extra_args: --results=verified,unknown
+          advanced-security: false # Requires GitHub Advanced Security on private repos
+          annotations: true
