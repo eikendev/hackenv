@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/eikendev/hackenv/compare/v0.2.3...v0.2.4) (2026-09-06)
+
+
+### Bug Fixes
+
+* **deps:** bump go to 1.27 and x/crypto to v0.56.0 ([9035bea](https://github.com/eikendev/hackenv/commit/9035beafb848d8b13eed4139a42865781eb52a73))
+
 ## [0.2.3](https://github.com/eikendev/hackenv/compare/v0.2.2...v0.2.3) (2026-03-21)
 
 
