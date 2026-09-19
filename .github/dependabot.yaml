@@ -8,7 +8,7 @@ updates:
       time: "09:00"
     open-pull-requests-limit: 10
     commit-message:
-      prefix: "deps(go)"
+      prefix: "build(go)"
     labels:
       - "area:deps"
     pull-request-branch-name:
@@ -31,7 +31,7 @@ updates:
       time: "09:00"
     open-pull-requests-limit: 10
     commit-message:
-      prefix: "deps(actions)"
+      prefix: "build(actions)"
     labels:
       - "area:deps"
     pull-request-branch-name:
