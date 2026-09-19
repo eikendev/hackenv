@@ -17,48 +17,61 @@ jobs:
     name: Continuous Integration
     uses: $/.github/workflows/pr.yaml
 
-  publish:
-    name: Publish release
+  release:
+    name: Create release
     needs: ci
     runs-on: ubuntu-slim
-    timeout-minutes: 15
+    timeout-minutes: 10
 
     permissions:
       contents: write
       pull-requests: write
       issues: write
 
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Set up build environment
-        uses: $/.github/actions/setup
-
       - name: Create GitHub release
         id: release
         uses: googleapis/release-please-action@v5
         with:
           config-file: release-please-config.json
 
-      - name: Fetch tags
-        run: git fetch --force --tags
+  artifacts:
+    name: Publish release artifacts
+    needs: release
+    if: ${{ needs.release.outputs.release_created }}
+    runs-on: ubuntu-slim
+    timeout-minutes: 15
 
+    permissions:
+      contents: write
+      id-token: write # Sigstore signing certificate for the attestation.
+      attestations: write
+
+    steps:
       - name: Checkout release tag
-        if: ${{ steps.release.outputs.release_created }}
-        env:
-          TAG_NAME: ${{ steps.release.outputs.tag_name }}
-        run: git checkout "$TAG_NAME"
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release.outputs.tag_name }}
+          fetch-depth: 0
+          persist-credentials: false
 
-      - name: Publish release artifacts
-        if: ${{ steps.release.outputs.release_created }}
+      - name: Set up build environment
+        uses: $/.github/actions/setup
+
+      - name: Build and upload artifacts
         uses: goreleaser/goreleaser-action@v7
         with:
           version: latest
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GORELEASER_CURRENT_TAG: ${{ steps.release.outputs.tag_name }}
+          GORELEASER_CURRENT_TAG: ${{ needs.release.outputs.tag_name }}
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-checksums: ./dist/checksums.txt

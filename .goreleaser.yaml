@@ -14,6 +14,8 @@ builds:
 
 checksum:
   algorithm: sha256
+  # Predictable name so release.yaml can attest the listed artifacts.
+  name_template: "checksums.txt"
 
 archives:
   - id: hackenv
