@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.3.0](https://github.com/eikendev/hackenv/compare/v0.2.3...v0.3.0) (2026-09-19)
+
+
+### Features
+
+* attest build provenance of release artifacts ([112c15d](https://github.com/eikendev/hackenv/commit/112c15d01f4b00a9e7bc7b7014efb08de2ee316a))
+
+
+### Bug Fixes
+
+* **deps:** bump go to 1.27 and x/crypto to v0.56.0 ([9035bea](https://github.com/eikendev/hackenv/commit/9035beafb848d8b13eed4139a42865781eb52a73))
+
+
+### Build
+
+* route dependabot commits to the build type ([e68e359](https://github.com/eikendev/hackenv/commit/e68e359d3b7bfcd6443dcabdef7e9b2a8bad09d3))
+
 ## [0.2.3](https://github.com/eikendev/hackenv/compare/v0.2.2...v0.2.3) (2026-03-21)
 
 
