@@ -9,6 +9,9 @@ runs:
       with:
         go-version-file: go.mod
         cache: true
+        cache-dependency-path: |
+          go.sum
+          tools/go.sum
 
     - name: Install system dependencies
       shell: bash
