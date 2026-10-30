@@ -14,7 +14,26 @@ import (
 	"github.com/eikendev/hackenv/internal/constants"
 )
 
-type infoRetriever func(*Image) (*DownloadInfo, error)
+const (
+	maxIndexSize        = 1 << 20
+	maxChecksumFileSize = 1 << 20
+	maxSignatureSize    = 64 << 10
+)
+
+// FetchOptions controls how download information is retrieved.
+type FetchOptions struct {
+	SkipSignature bool
+	SigningKey    []byte
+}
+
+func (i *Image) signingKeyFor(opts FetchOptions) []byte {
+	if len(opts.SigningKey) > 0 {
+		return opts.SigningKey
+	}
+	return i.signingKey
+}
+
+type infoRetriever func(*Image, FetchOptions) (*DownloadInfo, error)
 
 type bootInitializer func(*rawLibvirt.Domain) error
 
@@ -32,6 +51,8 @@ type Image struct {
 	DisplayName       string
 	ArchiveURL        string
 	checksumPath      string
+	signaturePath     string
+	signingKey        []byte
 	LocalImageName    string
 	VersionRegex      *regexp.Regexp
 	SSHUser           string
@@ -59,6 +80,8 @@ var images = map[string]Image{
 		DisplayName:       "Kali Linux",
 		ArchiveURL:        "https://kali.download/base-images/current",
 		checksumPath:      "/SHA256SUMS",
+		signaturePath:     "/SHA256SUMS.gpg",
+		signingKey:        kaliSigningKey,
 		LocalImageName:    "kali-%s.iso",
 		VersionRegex:      regexp.MustCompile(`\d\d\d\d\.\d+`),
 		SSHUser:           "kali",
@@ -76,6 +99,7 @@ var images = map[string]Image{
 		DisplayName:       "Parrot Security",
 		ArchiveURL:        "https://download.parrot.sh/parrot/iso",
 		checksumPath:      "/signed-hashes.txt",
+		signingKey:        parrotSigningKey,
 		LocalImageName:    "parrot-%s.iso",
 		VersionRegex:      regexp.MustCompile(`\d+\.\d+(?:\.\d+)?`),
 		SSHUser:           "user",
@@ -91,8 +115,12 @@ var images = map[string]Image{
 }
 
 // GetDownloadInfo retrieves the necessary information to download an image.
-func (i *Image) GetDownloadInfo(strict bool) (*DownloadInfo, error) {
-	info, err := i.infoRetriever(i)
+func (i *Image) GetDownloadInfo(strict bool, opts FetchOptions) (*DownloadInfo, error) {
+	if opts.SkipSignature {
+		slog.Warn("skipping signature verification", "image", i.Name)
+	}
+
+	info, err := i.infoRetriever(i, opts)
 	if err != nil {
 		if strict {
 			slog.Error("failed to fetch download info", "image", i.DisplayName, "err", err, "strict", strict)

@@ -411,7 +411,7 @@ func (c *UpCommand) resolveImage(s *options.Options) (images.Image, string, stri
 
 	localVersion := image.FileVersion(localPath)
 
-	if info, err := image.GetDownloadInfo(false); err == nil && info != nil {
+	if info, err := image.GetDownloadInfo(false, images.FetchOptions{}); err == nil && info != nil {
 		if !image.VersionComparer.Eq(info.Version, localVersion) {
 			slog.Info("found new image version", "image", image.DisplayName, "version", info.Version)
 		}

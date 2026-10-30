@@ -3,6 +3,7 @@ package network
 
 import (
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 )
@@ -27,4 +28,24 @@ func GetResponse(url string) (*http.Response, error) {
 	}
 
 	return resp, nil
+}
+
+// GetBytes performs an HTTP GET request and returns at most limit bytes of the body.
+func GetBytes(url string, limit int64) ([]byte, error) {
+	resp, err := GetResponse(url)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			slog.Warn("failed to close response body", "err", err, "url", url)
+		}
+	}()
+
+	body, err := io.ReadAll(io.LimitReader(resp.Body, limit))
+	if err != nil {
+		return nil, fmt.Errorf("failed to read HTTP response from %s: %w", url, err)
+	}
+
+	return body, nil
 }

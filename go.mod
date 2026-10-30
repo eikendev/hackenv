@@ -3,6 +3,7 @@ module github.com/eikendev/hackenv
 go 1.27
 
 require (
+	github.com/ProtonMail/go-crypto v1.5.2
 	github.com/adrg/xdg v0.5.3
 	github.com/alecthomas/kong v1.16.1
 	github.com/fatih/color v1.19.0
@@ -13,6 +14,7 @@ require (
 )
 
 require (
+	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/mattn/go-colorable v0.1.15 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect

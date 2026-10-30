@@ -2,6 +2,7 @@ package images
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -29,21 +30,33 @@ func findKaliChecksumLine(scanner *bufio.Scanner) (string, error) {
 	return "", errors.New("cannot find checksum in file")
 }
 
-func kaliInfoRetriever(image *Image) (*DownloadInfo, error) {
-	url := image.ArchiveURL + image.checksumPath
-
-	resp, err := network.GetResponse(url)
+func fetchKaliChecksums(image *Image, opts FetchOptions) ([]byte, error) {
+	sums, err := network.GetBytes(image.ArchiveURL+image.checksumPath, maxChecksumFileSize)
 	if err != nil {
-		slog.Error("failed to fetch checksum file", "url", url, "err", err)
-		return nil, fmt.Errorf("failed to get response: %w", err)
+		slog.Error("failed to fetch checksum file", "url", image.ArchiveURL+image.checksumPath, "err", err)
+		return nil, fmt.Errorf("failed to fetch checksum file: %w", err)
 	}
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			slog.Warn("failed to close response body", "err", err)
-		}
-	}()
 
-	line, err := findKaliChecksumLine(bufio.NewScanner(resp.Body))
+	if opts.SkipSignature {
+		return sums, nil
+	}
+
+	signature, err := network.GetBytes(image.ArchiveURL+image.signaturePath, maxSignatureSize)
+	if err != nil {
+		slog.Error("failed to fetch signature file", "url", image.ArchiveURL+image.signaturePath, "err", err)
+		return nil, fmt.Errorf("failed to fetch signature file: %w", err)
+	}
+
+	return verifyDetached(image.signingKeyFor(opts), sums, signature)
+}
+
+func kaliInfoRetriever(image *Image, opts FetchOptions) (*DownloadInfo, error) {
+	sums, err := fetchKaliChecksums(image, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	line, err := findKaliChecksumLine(bufio.NewScanner(bytes.NewReader(sums)))
 	if err != nil {
 		slog.Error("missing checksum line", "err", err)
 		return nil, fmt.Errorf("cannot find Kali checksum line: %w", err)

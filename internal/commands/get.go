@@ -18,8 +18,25 @@ import (
 
 // GetCommand represents the options specific to the get command.
 type GetCommand struct {
-	Force  bool `short:"f" name:"force" help:"Force to download the new image"`
-	Update bool `short:"u" name:"update" help:"Allow update to the latest image"`
+	Force         bool   `short:"f" name:"force" help:"Force to download the new image"`
+	Update        bool   `short:"u" name:"update" help:"Allow update to the latest image"`
+	SkipSignature bool   `name:"skip-signature" help:"Do not verify the signature of the checksum file"`
+	SigningKey    string `name:"signing-key" env:"HACKENV_SIGNING_KEY" type:"existingfile" help:"Armored public key to verify the checksum file with instead of the embedded one"`
+}
+
+func (c *GetCommand) fetchOptions() (images.FetchOptions, error) {
+	opts := images.FetchOptions{SkipSignature: c.SkipSignature}
+
+	if c.SigningKey != "" {
+		key, err := os.ReadFile(c.SigningKey) //#nosec G304
+		if err != nil {
+			slog.Error("failed to read signing key", "path", c.SigningKey, "err", err)
+			return opts, fmt.Errorf("cannot read signing key %s: %w", c.SigningKey, err)
+		}
+		opts.SigningKey = key
+	}
+
+	return opts, nil
 }
 
 // https://golang.org/pkg/crypto/sha256/#example_New_file
@@ -112,7 +129,12 @@ func (c *GetCommand) Run(s *options.Options) error {
 		slog.Error("failed to resolve image", "type", s.Type, "err", err)
 		return fmt.Errorf("cannot resolve image details for %q: %w", s.Type, err)
 	}
-	info, err := image.GetDownloadInfo(true)
+	opts, err := c.fetchOptions()
+	if err != nil {
+		return err
+	}
+
+	info, err := image.GetDownloadInfo(true, opts)
 	if err != nil {
 		slog.Error("failed to fetch download info", "image", image.DisplayName, "err", err)
 		return fmt.Errorf("cannot fetch download info for %s: %w", image.DisplayName, err)

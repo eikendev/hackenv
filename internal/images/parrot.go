@@ -2,9 +2,9 @@ package images
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
-	"io"
 	"log/slog"
 	"regexp"
 	"runtime"
@@ -15,8 +15,6 @@ import (
 
 	"github.com/eikendev/hackenv/internal/network"
 )
-
-const maxIndexSize = 1 << 20
 
 var parrotReleaseDirRegex = regexp.MustCompile(`href="(\d+(?:\.\d+)+)/"`)
 
@@ -66,27 +64,30 @@ func findLatestRelease(index string, comparer versionComparer) (string, error) {
 }
 
 func latestParrotRelease(image *Image) (string, error) {
-	resp, err := network.GetResponse(image.ArchiveURL + "/")
+	index, err := network.GetBytes(image.ArchiveURL+"/", maxIndexSize)
 	if err != nil {
 		slog.Error("failed to fetch release index", "url", image.ArchiveURL, "err", err)
 		return "", fmt.Errorf("failed to fetch release index: %w", err)
-	}
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			slog.Warn("failed to close response body", "err", err)
-		}
-	}()
-
-	index, err := io.ReadAll(io.LimitReader(resp.Body, maxIndexSize))
-	if err != nil {
-		slog.Error("failed to read release index", "url", image.ArchiveURL, "err", err)
-		return "", fmt.Errorf("failed to read release index: %w", err)
 	}
 
 	return findLatestRelease(string(index), image.VersionComparer)
 }
 
-func parrotInfoRetriever(image *Image) (*DownloadInfo, error) {
+func fetchParrotChecksums(image *Image, releaseURL string, opts FetchOptions) ([]byte, error) {
+	message, err := network.GetBytes(releaseURL+image.checksumPath, maxChecksumFileSize)
+	if err != nil {
+		slog.Error("failed to fetch checksum file", "url", releaseURL+image.checksumPath, "err", err)
+		return nil, fmt.Errorf("failed to fetch checksum file: %w", err)
+	}
+
+	if opts.SkipSignature {
+		return message, nil
+	}
+
+	return verifyClearsigned(image.signingKeyFor(opts), message)
+}
+
+func parrotInfoRetriever(image *Image, opts FetchOptions) (*DownloadInfo, error) {
 	release, err := latestParrotRelease(image)
 	if err != nil {
 		return nil, err
@@ -94,18 +95,12 @@ func parrotInfoRetriever(image *Image) (*DownloadInfo, error) {
 
 	releaseURL := image.ArchiveURL + "/" + release
 
-	resp, err := network.GetResponse(releaseURL + image.checksumPath)
+	sums, err := fetchParrotChecksums(image, releaseURL, opts)
 	if err != nil {
-		slog.Error("failed to fetch checksum file", "url", releaseURL+image.checksumPath, "err", err)
-		return nil, fmt.Errorf("failed to get response: %w", err)
+		return nil, err
 	}
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			slog.Warn("failed to close response body", "err", err)
-		}
-	}()
 
-	line, err := findParrotChecksumLine(bufio.NewScanner(resp.Body))
+	line, err := findParrotChecksumLine(bufio.NewScanner(bytes.NewReader(sums)))
 	if err != nil {
 		slog.Error("missing checksum line", "err", err)
 		return nil, fmt.Errorf("cannot find Parrot checksum line: %w", err)
