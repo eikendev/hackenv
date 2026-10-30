@@ -66,6 +66,7 @@ This will download a live image from the official mirrors.
 The download can take a while, so sit back and enjoy some tea.
 
 Before anything is downloaded, hackenv verifies the vendor's OpenPGP signature on the checksum file using the public keys embedded in the binary (Kali `827C 8569 F251 8CC6 77FE CA1A ED65 462E C8D5 E4C5`, Parrot `B711 8223 4655 2E4D 92DA 02DF 7A82 86AF 0E81 EE4A`), and then checks the image against that file.
+If you already have the image, for example from the official torrent, import it with `hackenv get --file PATH`; it is checked against the same signed checksum list before it is copied into place.
 If a vendor rotates its key before hackenv ships the new one, pass the fresh key with `hackenv get --signing-key FILE`.
 `hackenv get --skip-signature` bypasses the signature check entirely and is meant as a last resort.
 

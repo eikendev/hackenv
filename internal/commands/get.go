@@ -28,6 +28,8 @@ const (
 type GetCommand struct {
 	Force         bool   `short:"f" name:"force" help:"Force to download the new image"`
 	Update        bool   `short:"u" name:"update" help:"Allow update to the latest image"`
+	Yes           bool   `short:"y" name:"yes" help:"Answer yes to all questions"`
+	File          string `name:"file" type:"existingfile" help:"Import this already downloaded image instead of downloading it"`
 	SkipSignature bool   `name:"skip-signature" help:"Do not verify the signature of the checksum file"`
 	SigningKey    string `name:"signing-key" env:"HACKENV_SIGNING_KEY" type:"existingfile" help:"Armored public key to verify the checksum file with instead of the embedded one"`
 }
@@ -167,32 +169,9 @@ func (c *GetCommand) Run(s *options.Options) error {
 	ctx, stop := interruptContext()
 	defer stop()
 
-	image, err := images.GetImageDetails(s.Type)
-	if err != nil {
-		slog.Error("failed to resolve image", "type", s.Type, "err", err)
-		return fmt.Errorf("cannot resolve image details for %q: %w", s.Type, err)
-	}
-	opts, err := c.fetchOptions()
+	image, info, localPath, err := c.resolveTarget(ctx, s.Type)
 	if err != nil {
 		return err
-	}
-
-	info, err := image.GetDownloadInfo(ctx, true, opts)
-	if err != nil {
-		slog.Error("failed to fetch download info", "image", image.DisplayName, "err", err)
-		return fmt.Errorf("cannot fetch download info for %s: %w", image.DisplayName, err)
-	}
-	if info == nil {
-		slog.Error("missing download info", "image", image.DisplayName)
-		return fmt.Errorf("failed to get download information")
-	}
-
-	slog.Info("found image to download", "filename", info.Filename, "checksum", info.Checksum)
-
-	localPath, err := image.GetLocalPath(info.Version)
-	if err != nil {
-		slog.Error("failed to resolve image path", "image", image.DisplayName, "version", info.Version, "err", err)
-		return fmt.Errorf("cannot resolve local path for %s %s: %w", image.DisplayName, info.Version, err)
 	}
 
 	skipDownload, err := c.shouldSkipDownload(localPath, image, info)
@@ -204,17 +183,65 @@ func (c *GetCommand) Run(s *options.Options) error {
 		return nil
 	}
 
+	obtained, err := c.obtainImage(ctx, info, localPath)
+	if err != nil {
+		return err
+	}
+	if obtained {
+		hintSELinuxLabels()
+	}
+
+	return nil
+}
+
+func (c *GetCommand) resolveTarget(ctx context.Context, imageType string) (images.Image, *images.DownloadInfo, string, error) {
+	image, err := images.GetImageDetails(imageType)
+	if err != nil {
+		slog.Error("failed to resolve image", "type", imageType, "err", err)
+		return images.Image{}, nil, "", fmt.Errorf("cannot resolve image details for %q: %w", imageType, err)
+	}
+
+	opts, err := c.fetchOptions()
+	if err != nil {
+		return images.Image{}, nil, "", err
+	}
+
+	info, err := image.GetDownloadInfo(ctx, true, opts)
+	if err != nil {
+		slog.Error("failed to fetch download info", "image", image.DisplayName, "err", err)
+		return images.Image{}, nil, "", fmt.Errorf("cannot fetch download info for %s: %w", image.DisplayName, err)
+	}
+	if info == nil {
+		slog.Error("missing download info", "image", image.DisplayName)
+		return images.Image{}, nil, "", fmt.Errorf("failed to get download information")
+	}
+
+	slog.Info("found image to download", "filename", info.Filename, "checksum", info.Checksum)
+
+	localPath, err := image.GetLocalPath(info.Version)
+	if err != nil {
+		slog.Error("failed to resolve image path", "image", image.DisplayName, "version", info.Version, "err", err)
+		return images.Image{}, nil, "", fmt.Errorf("cannot resolve local path for %s %s: %w", image.DisplayName, info.Version, err)
+	}
+
+	return image, info, localPath, nil
+}
+
+// obtainImage places the image at localPath, either by importing a local file or by downloading it.
+func (c *GetCommand) obtainImage(ctx context.Context, info *images.DownloadInfo, localPath string) (bool, error) {
+	if c.File != "" {
+		return c.importImage(ctx, info, localPath)
+	}
+
 	if err := downloadImage(ctx, localPath, info.URL); err != nil {
-		return fmt.Errorf("cannot download image %s: %w", info.URL, err)
+		return false, fmt.Errorf("cannot download image %s: %w", info.URL, err)
 	}
 
 	if err := validateChecksum(localPath, info.Checksum); err != nil {
-		return fmt.Errorf("failed to validate checksum for %s: %w", localPath, err)
+		return false, fmt.Errorf("failed to validate checksum for %s: %w", localPath, err)
 	}
 
-	hintSELinuxLabels()
-
-	return nil
+	return true, nil
 }
 
 func (c *GetCommand) shouldSkipDownload(localPath string, image images.Image, info *images.DownloadInfo) (bool, error) {
