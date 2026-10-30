@@ -275,17 +275,17 @@ func configureClient(c *UpCommand, image *images.Image, port int, sharedMode, ke
 	cmds := image.ConfigurationCmds
 	cmds = append(cmds, []string{
 		// Add the SSH key to authorized_keys.
-		"mkdir ~/.ssh",
+		"mkdir -p ~/.ssh",
 		"chmod 700 ~/.ssh",
 		"printf '" + publicKeyStr + "' >> ~/.ssh/authorized_keys",
-		"chmod 660 ~/.ssh/authorized_keys",
+		"chmod 600 ~/.ssh/authorized_keys",
 
 		// Disable password authentication on SSH.
 		"sudo sed -i '/PasswordAuthentication/s/yes/no/' /etc/ssh/sshd_config",
 		"sudo systemctl reload ssh",
 
 		// Setup a shared directory.
-		"sudo mkdir " + guestSharedDir,
+		"sudo mkdir -p " + guestSharedDir,
 		domain.MountCommand(sharedMode, guestSharedDir),
 
 		// Set screen size to Full HD.
