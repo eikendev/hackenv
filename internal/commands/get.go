@@ -9,10 +9,12 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	progressbar "github.com/schollz/progressbar/v3"
 
+	"github.com/eikendev/hackenv/internal/download"
 	"github.com/eikendev/hackenv/internal/handling"
 	"github.com/eikendev/hackenv/internal/images"
 	"github.com/eikendev/hackenv/internal/network"
@@ -20,8 +22,9 @@ import (
 )
 
 const (
-	partialSuffix = ".part"
-	selinuxMount  = "/sys/fs/selinux"
+	partialSuffix      = ".part"
+	selinuxMount       = "/sys/fs/selinux"
+	maxTorrentFileSize = 4 << 20
 )
 
 // GetCommand represents the options specific to the get command.
@@ -32,6 +35,8 @@ type GetCommand struct {
 	File          string `name:"file" type:"existingfile" help:"Import this already downloaded image instead of downloading it"`
 	SkipSignature bool   `name:"skip-signature" help:"Do not verify the signature of the checksum file"`
 	SigningKey    string `name:"signing-key" env:"HACKENV_SIGNING_KEY" type:"existingfile" help:"Armored public key to verify the checksum file with instead of the embedded one"`
+
+	verbose bool
 }
 
 func (c *GetCommand) fetchOptions() (images.FetchOptions, error) {
@@ -128,6 +133,65 @@ func downloadImage(ctx context.Context, path, url string) error {
 	return nil
 }
 
+func (c *GetCommand) download(ctx context.Context, info *images.DownloadInfo, localPath string) error {
+	if info.TorrentURL != "" {
+		if err := downloadTorrent(ctx, localPath, info.TorrentURL, c.verbose); err != nil {
+			return fmt.Errorf("cannot download image via %s: %w", info.TorrentURL, err)
+		}
+		return nil
+	}
+
+	if err := downloadImage(ctx, localPath, info.URL); err != nil {
+		return fmt.Errorf("cannot download image %s: %w", info.URL, err)
+	}
+
+	return nil
+}
+
+// downloadTorrent fetches the torrent file, downloads its content into a temporary directory
+// next to path and moves the result into place.
+func downloadTorrent(ctx context.Context, path, torrentURL string, verbose bool) error {
+	slog.Info("downloading image", "path", path, "torrent", torrentURL)
+
+	metaInfo, err := network.GetBytes(ctx, torrentURL, maxTorrentFileSize)
+	if err != nil {
+		slog.Error("failed to fetch torrent file", "url", torrentURL, "err", err)
+		return fmt.Errorf("cannot fetch torrent file: %w", err)
+	}
+
+	tempDir, err := os.MkdirTemp(filepath.Dir(path), "download-")
+	if err != nil {
+		slog.Error("failed to create download directory", "dir", filepath.Dir(path), "err", err)
+		return fmt.Errorf("cannot create download directory: %w", err)
+	}
+	defer removeDir(tempDir)
+
+	logger := slog.New(slog.DiscardHandler)
+	if verbose {
+		logger = slog.Default()
+	}
+
+	downloaded, err := download.Torrent(ctx, metaInfo, tempDir, logger)
+	if err != nil {
+		slog.Error("failed to download image", "torrent", torrentURL, "err", err)
+		return err
+	}
+
+	if err := os.Rename(downloaded, path); err != nil {
+		slog.Error("failed to move image into place", "from", downloaded, "to", path, "err", err)
+		return fmt.Errorf("cannot move %s to %s: %w", downloaded, path, err)
+	}
+
+	slog.Info("downloaded image", "path", path)
+	return nil
+}
+
+func removeDir(path string) {
+	if err := os.RemoveAll(path); err != nil {
+		slog.Warn("failed to remove download directory", "dir", path, "err", err)
+	}
+}
+
 func removePartial(path string) {
 	if err := os.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
 		slog.Warn("failed to remove partial download", "path", path, "err", err)
@@ -168,6 +232,8 @@ func hintSELinuxLabels() {
 func (c *GetCommand) Run(s *options.Options) error {
 	ctx, stop := interruptContext()
 	defer stop()
+
+	c.verbose = s.Verbose
 
 	image, info, localPath, err := c.resolveTarget(ctx, s.Type)
 	if err != nil {
@@ -233,8 +299,8 @@ func (c *GetCommand) obtainImage(ctx context.Context, info *images.DownloadInfo,
 		return c.importImage(ctx, info, localPath)
 	}
 
-	if err := downloadImage(ctx, localPath, info.URL); err != nil {
-		return false, fmt.Errorf("cannot download image %s: %w", info.URL, err)
+	if err := c.download(ctx, info, localPath); err != nil {
+		return false, err
 	}
 
 	if err := validateChecksum(localPath, info.Checksum); err != nil {

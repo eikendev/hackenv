@@ -69,10 +69,11 @@ type Image struct {
 
 // DownloadInfo contains information about an image that can be downloaded.
 type DownloadInfo struct {
-	Checksum string
-	Version  string
-	Filename string
-	URL      string
+	Checksum   string
+	Version    string
+	Filename   string
+	URL        string
+	TorrentURL string
 }
 
 var images = map[string]Image{

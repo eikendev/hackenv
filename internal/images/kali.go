@@ -69,6 +69,7 @@ func kaliInfoRetriever(ctx context.Context, image *Image, opts FetchOptions) (*D
 	}
 
 	info.URL = image.ArchiveURL + "/" + info.Filename
+	info.TorrentURL = info.URL + ".torrent"
 	return info, nil
 }
 

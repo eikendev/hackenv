@@ -62,7 +62,8 @@ Alpine Linux (musl) and NixOS (no FHS library paths) cannot run the release bina
 First, make sure you have the [required dependencies](#dependencies) installed.
 
 Then, download an image using `hackenv get`.
-This will download a live image from the official mirrors.
+Parrot Security is fetched from the official mirrors over HTTPS.
+Kali Linux publishes its live images only as torrents, so hackenv downloads them with a built-in BitTorrent client: it only leeches, uses a random port, and exits as soon as the image is complete.
 The download can take a while, so sit back and enjoy some tea.
 
 Before anything is downloaded, hackenv verifies the vendor's OpenPGP signature on the checksum file using the public keys embedded in the binary (Kali `827C 8569 F251 8CC6 77FE CA1A ED65 462E C8D5 E4C5`, Parrot `B711 8223 4655 2E4D 92DA 02DF 7A82 86AF 0E81 EE4A`), and then checks the image against that file.
