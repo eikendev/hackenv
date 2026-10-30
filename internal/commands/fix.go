@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"log/slog"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -18,19 +19,19 @@ type FixCommand struct {
 type applyLabels struct{}
 
 // Run is the function for the apply-labels command.
-func (c *applyLabels) Run(s *options.Options) error {
-	return execScript(scripts.ApplyLabelsScript, s.Verbose)
+func (c *applyLabels) Run(_ *options.Options) error {
+	return execScript(scripts.ApplyLabelsScript)
 }
 
-func execScript(script string, verbose bool) error {
+func execScript(script string) error {
 	cmd := exec.Command("bash")
-	slog.Info("running script")
 	cmd.Stdin = strings.NewReader(script)
-	b, err := cmd.CombinedOutput()
-	if verbose {
-		fmt.Println(string(b))
-	}
-	if err != nil {
+	cmd.Stdout = os.Stderr
+	cmd.Stderr = os.Stderr
+
+	slog.Info("running script")
+
+	if err := cmd.Run(); err != nil {
 		slog.Error("failed to run script", "err", err)
 		return fmt.Errorf("failed to run script: %w", err)
 	}
