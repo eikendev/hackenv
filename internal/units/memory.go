@@ -18,7 +18,6 @@ const (
 )
 
 var unitMultipliers = map[string]int64{
-	"":    mib,
 	"k":   kib,
 	"kib": kib,
 	"m":   mib,
@@ -27,7 +26,8 @@ var unitMultipliers = map[string]int64{
 	"gib": gib,
 }
 
-// ParseMemory converts a size such as "4G", "4096M", "2097152K" or a bare number of MiB to KiB.
+// ParseMemory converts a size such as "4G", "4096M" or "2097152K" to KiB.
+// A unit is required so that values meant in another unit cannot be misread.
 func ParseMemory(value string) (Memory, error) {
 	text := strings.ToLower(strings.TrimSpace(value))
 	if text == "" {
@@ -36,6 +36,10 @@ func ParseMemory(value string) (Memory, error) {
 
 	digits := strings.TrimRight(text, "abcdefghijklmnopqrstuvwxyz")
 	unit := strings.TrimSpace(text[len(digits):])
+
+	if unit == "" {
+		return 0, fmt.Errorf("memory size %q needs a unit such as 4G, 4096M or 4194304K", value)
+	}
 
 	multiplier, ok := unitMultipliers[unit]
 	if !ok {

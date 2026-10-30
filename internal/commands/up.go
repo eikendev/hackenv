@@ -45,6 +45,22 @@ type UpCommand struct {
 	DisplaySize string       `name:"display-size" env:"HACKENV_DISPLAY_SIZE" default:"1920x1080" help:"The resolution of the VM's display"`
 }
 
+func (c *UpCommand) validateMemory() error {
+	total, err := host.TotalMemoryKiB()
+	if err != nil {
+		slog.Warn("failed to read host memory", "err", err)
+		return nil
+	}
+
+	if c.Memory.KiB() > total {
+		slog.Error("found invalid memory size", "requested", c.Memory.String(), "host", units.Memory(total).String())
+		return fmt.Errorf("requested memory %s exceeds host memory %s", c.Memory, units.Memory(total))
+	}
+
+	slog.Info("resolved guest memory", "memory", c.Memory.String())
+	return nil
+}
+
 func (c *UpCommand) resolveSSHPort(image *images.Image) (int, error) {
 	if c.SSHPort == 0 {
 		return image.SSHPort, nil
@@ -349,6 +365,10 @@ func (c *UpCommand) Run(s *options.Options) error {
 	if existing != nil {
 		defer handling.FreeDomain(existing)
 		return c.handleExistingDomain(existing, &image, s)
+	}
+
+	if err := c.validateMemory(); err != nil {
+		return err
 	}
 
 	port, err := c.resolveSSHPort(&image)
