@@ -3,6 +3,7 @@ package host
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os/exec"
@@ -11,44 +12,64 @@ import (
 	"github.com/eikendev/hackenv/internal/paths"
 )
 
+type layoutSource struct {
+	command string
+	args    []string
+	key     string
+}
+
+var layoutSources = []layoutSource{
+	{command: "setxkbmap", args: []string{"-query"}, key: "layout"},
+	{command: "localectl", args: []string{"status"}, key: "x11 layout"},
+}
+
 // GetHostKeyboardLayout retrieves the configured keyboard layout on the host.
 func GetHostKeyboardLayout() (string, error) {
-	setxkbmapPath, err := paths.GetCmdPath("setxkbmap")
-	if err != nil {
-		slog.Error("setxkbmap command not found", "err", err)
-		return "", fmt.Errorf("cannot locate setxkbmap command: %w", err)
+	var errs []error
+
+	for _, source := range layoutSources {
+		layout, err := queryLayout(source)
+		if err == nil {
+			return layout, nil
+		}
+
+		slog.Warn("failed to query keyboard layout", "command", source.command, "err", err)
+		errs = append(errs, err)
 	}
 
-	out, err := exec.Command(
-		setxkbmapPath,
-		"-query",
-	).Output() //#nosec G204
+	return "", fmt.Errorf("cannot determine keyboard layout: %w", errors.Join(errs...))
+}
+
+func queryLayout(source layoutSource) (string, error) {
+	path, err := paths.GetCmdPath(source.command)
 	if err != nil {
-		slog.Error("Failed to query keyboard layout", "err", err)
-		return "", fmt.Errorf("failed to query keyboard layout: %w", err)
+		return "", fmt.Errorf("cannot locate %s: %w", source.command, err)
 	}
 
-	var line string
-	scanner := bufio.NewScanner(strings.NewReader(string(out)))
+	out, err := exec.Command(path, source.args...).Output() //#nosec G204
+	if err != nil {
+		return "", fmt.Errorf("%s failed: %w", source.command, err)
+	}
+
+	return parseLayout(string(out), source.key)
+}
+
+func parseLayout(output, key string) (string, error) {
+	scanner := bufio.NewScanner(strings.NewReader(output))
 
 	for scanner.Scan() {
-		line = scanner.Text()
-
-		if strings.Contains(line, "layout") {
-			break
+		name, value, found := strings.Cut(scanner.Text(), ":")
+		if !found || !strings.EqualFold(strings.TrimSpace(name), key) {
+			continue
 		}
+
+		value = strings.TrimSpace(value)
+		if value == "" {
+			return "", fmt.Errorf("found empty value for %q", key)
+		}
+
+		return value, nil
 	}
 
-	if line == "" {
-		slog.Error("Unable to retrieve host keyboard layout: layout line missing")
-		return "", fmt.Errorf("unable to retrieve host keyboard layout: layout line missing")
-	}
-
-	line = strings.TrimSpace(line)
-	parts := strings.Split(line, " ")
-	if len(parts) < 2 {
-		slog.Error("Unable to retrieve host keyboard layout: malformed output")
-		return "", fmt.Errorf("unable to retrieve host keyboard layout: malformed output")
-	}
-	return parts[len(parts)-1], nil
+	return "", fmt.Errorf("missing %q in output", key)
 }

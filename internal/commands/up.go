@@ -251,8 +251,7 @@ func configureClient(c *UpCommand, image *images.Image, port int, keymap string)
 	if keymap == "" {
 		keymap, err = host.GetHostKeyboardLayout()
 		if err != nil {
-			slog.Error("Failed to detect host keyboard layout", "err", err)
-			return fmt.Errorf("cannot detect host keyboard layout: %w", err)
+			slog.Warn("skipping guest keymap configuration", "hint", "use --keymap to set one", "err", err)
 		}
 	}
 
@@ -274,10 +273,11 @@ func configureClient(c *UpCommand, image *images.Image, port int, keymap string)
 
 		// Set screen size to Full HD.
 		fmt.Sprintf("DISPLAY=:0 xrandr --size %s", c.DisplaySize),
-
-		// Set keyboard layout.
-		fmt.Sprintf("DISPLAY=:0 setxkbmap %s", keymap),
 	}...)
+
+	if keymap != "" {
+		cmds = append(cmds, fmt.Sprintf("DISPLAY=:0 setxkbmap %s", keymap))
+	}
 
 	for _, cmd := range cmds {
 		_, err := client.Run(cmd)
