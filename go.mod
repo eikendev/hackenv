@@ -9,6 +9,7 @@ require (
 	github.com/melbahja/goph v1.5.2
 	github.com/schollz/progressbar/v3 v3.19.1
 	golang.org/x/crypto v0.56.0
+	golang.org/x/sys v0.47.0
 	libvirt.org/go/libvirt v1.12007.0
 )
 
@@ -20,6 +21,5 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pkg/sftp v1.13.11 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/term v0.45.0 // indirect
 )

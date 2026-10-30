@@ -164,7 +164,7 @@ func (i *Image) GetLatestPath() (string, error) {
 	latestVersion := i.FileVersion(latestPath)
 
 	for _, path := range matches {
-		slog.Info("Found image path", "path", path)
+		slog.Debug("found image", "path", path)
 		if newVersion := i.FileVersion(path); i.VersionComparer.Gt(newVersion, latestVersion) {
 			latestPath = path
 			latestVersion = newVersion

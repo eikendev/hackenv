@@ -11,6 +11,7 @@ import (
 
 var cmd struct {
 	options.Options
+	Doctor  commands.DoctorCommand  `cmd:"doctor" help:"Check the host for missing prerequisites"`
 	Down    commands.DownCommand    `cmd:"down" aliases:"d" help:"Shut down the VM"`
 	Get     commands.GetCommand     `cmd:"get" help:"Download the VM image"`
 	GUI     commands.GuiCommand     `cmd:"gui" aliases:"g" help:"Open a GUI for the VM"`
