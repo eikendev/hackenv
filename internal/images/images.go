@@ -2,6 +2,7 @@
 package images
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"path/filepath"
@@ -33,7 +34,7 @@ func (i *Image) signingKeyFor(opts FetchOptions) []byte {
 	return i.signingKey
 }
 
-type infoRetriever func(*Image, FetchOptions) (*DownloadInfo, error)
+type infoRetriever func(context.Context, *Image, FetchOptions) (*DownloadInfo, error)
 
 type bootInitializer func(*rawLibvirt.Domain) error
 
@@ -115,12 +116,12 @@ var images = map[string]Image{
 }
 
 // GetDownloadInfo retrieves the necessary information to download an image.
-func (i *Image) GetDownloadInfo(strict bool, opts FetchOptions) (*DownloadInfo, error) {
+func (i *Image) GetDownloadInfo(ctx context.Context, strict bool, opts FetchOptions) (*DownloadInfo, error) {
 	if opts.SkipSignature {
 		slog.Warn("skipping signature verification", "image", i.Name)
 	}
 
-	info, err := i.infoRetriever(i, opts)
+	info, err := i.infoRetriever(ctx, i, opts)
 	if err != nil {
 		if strict {
 			slog.Error("failed to fetch download info", "image", i.DisplayName, "err", err, "strict", strict)

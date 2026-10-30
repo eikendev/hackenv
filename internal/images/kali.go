@@ -3,6 +3,7 @@ package images
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -30,8 +31,8 @@ func findKaliChecksumLine(scanner *bufio.Scanner) (string, error) {
 	return "", errors.New("cannot find checksum in file")
 }
 
-func fetchKaliChecksums(image *Image, opts FetchOptions) ([]byte, error) {
-	sums, err := network.GetBytes(image.ArchiveURL+image.checksumPath, maxChecksumFileSize)
+func fetchKaliChecksums(ctx context.Context, image *Image, opts FetchOptions) ([]byte, error) {
+	sums, err := network.GetBytes(ctx, image.ArchiveURL+image.checksumPath, maxChecksumFileSize)
 	if err != nil {
 		slog.Error("failed to fetch checksum file", "url", image.ArchiveURL+image.checksumPath, "err", err)
 		return nil, fmt.Errorf("failed to fetch checksum file: %w", err)
@@ -41,7 +42,7 @@ func fetchKaliChecksums(image *Image, opts FetchOptions) ([]byte, error) {
 		return sums, nil
 	}
 
-	signature, err := network.GetBytes(image.ArchiveURL+image.signaturePath, maxSignatureSize)
+	signature, err := network.GetBytes(ctx, image.ArchiveURL+image.signaturePath, maxSignatureSize)
 	if err != nil {
 		slog.Error("failed to fetch signature file", "url", image.ArchiveURL+image.signaturePath, "err", err)
 		return nil, fmt.Errorf("failed to fetch signature file: %w", err)
@@ -50,8 +51,8 @@ func fetchKaliChecksums(image *Image, opts FetchOptions) ([]byte, error) {
 	return verifyDetached(image.signingKeyFor(opts), sums, signature)
 }
 
-func kaliInfoRetriever(image *Image, opts FetchOptions) (*DownloadInfo, error) {
-	sums, err := fetchKaliChecksums(image, opts)
+func kaliInfoRetriever(ctx context.Context, image *Image, opts FetchOptions) (*DownloadInfo, error) {
+	sums, err := fetchKaliChecksums(ctx, image, opts)
 	if err != nil {
 		return nil, err
 	}

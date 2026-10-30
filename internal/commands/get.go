@@ -1,19 +1,27 @@
 package commands
 
 import (
+	"context"
 	"crypto/sha256"
 	"errors"
 	"fmt"
 	"io"
 	"log/slog"
-	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 
 	progressbar "github.com/schollz/progressbar/v3"
 
 	"github.com/eikendev/hackenv/internal/handling"
 	"github.com/eikendev/hackenv/internal/images"
+	"github.com/eikendev/hackenv/internal/network"
 	"github.com/eikendev/hackenv/internal/options"
+)
+
+const (
+	partialSuffix = ".part"
+	selinuxMount  = "/sys/fs/selinux"
 )
 
 // GetCommand represents the options specific to the get command.
@@ -39,6 +47,19 @@ func (c *GetCommand) fetchOptions() (images.FetchOptions, error) {
 	return opts, nil
 }
 
+// interruptContext returns a context that is cancelled on the first interrupt.
+// A second interrupt terminates the process as usual.
+func interruptContext() (context.Context, context.CancelFunc) {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		<-ctx.Done()
+		stop()
+	}()
+
+	return ctx, stop
+}
+
 // https://golang.org/pkg/crypto/sha256/#example_New_file
 func calculateFileChecksum(path string) (string, error) {
 	slog.Info("calculating checksum", "path", path)
@@ -59,10 +80,7 @@ func calculateFileChecksum(path string) (string, error) {
 	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
 
-// https://stackoverflow.com/a/11693049
-func downloadImage(path, url string) error {
-	slog.Info("downloading image", "path", path, "url", url)
-
+func downloadToFile(ctx context.Context, path, url string) error {
 	out, err := os.Create(path) //#nosec G304
 	if err != nil {
 		slog.Error("failed to create image file", "path", path, "err", err)
@@ -70,34 +88,48 @@ func downloadImage(path, url string) error {
 	}
 	defer handling.Close(out)
 
-	resp, err := http.Get(url) //#nosec G107
+	resp, err := network.GetResponse(ctx, url)
 	if err != nil {
 		slog.Error("failed to download image", "url", url, "err", err)
 		return fmt.Errorf("cannot download %s: %w", url, err)
 	}
-	if resp == nil {
-		return fmt.Errorf("received nil response")
-	}
 	defer handling.Close(resp.Body)
 
-	if resp.StatusCode != http.StatusOK {
-		slog.Error("failed to download image", "status", resp.Status)
-		return fmt.Errorf("cannot download %s: status %s", url, resp.Status)
-	}
+	bar := progressbar.DefaultBytes(resp.ContentLength, "downloading")
 
-	bar := progressbar.DefaultBytes(
-		resp.ContentLength,
-		"downloading",
-	)
-
-	_, err = io.Copy(io.MultiWriter(out, bar), resp.Body)
-	if err != nil {
+	if _, err := io.Copy(io.MultiWriter(out, bar), resp.Body); err != nil {
 		slog.Error("failed to write image file", "path", path, "err", err)
 		return fmt.Errorf("cannot write %s: %w", path, err)
 	}
 
-	slog.Info("downloaded image")
 	return nil
+}
+
+// downloadImage downloads url into a partial file next to path and renames it into place.
+func downloadImage(ctx context.Context, path, url string) error {
+	slog.Info("downloading image", "path", path, "url", url)
+
+	partial := path + partialSuffix
+
+	if err := downloadToFile(ctx, partial, url); err != nil {
+		removePartial(partial)
+		return err
+	}
+
+	if err := os.Rename(partial, path); err != nil {
+		removePartial(partial)
+		slog.Error("failed to move image into place", "from", partial, "to", path, "err", err)
+		return fmt.Errorf("cannot move %s to %s: %w", partial, path, err)
+	}
+
+	slog.Info("downloaded image", "path", path)
+	return nil
+}
+
+func removePartial(path string) {
+	if err := os.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
+		slog.Warn("failed to remove partial download", "path", path, "err", err)
+	}
 }
 
 func validateChecksum(localPath, checksum string) error {
@@ -122,8 +154,19 @@ func validateChecksum(localPath, checksum string) error {
 	return nil
 }
 
+func hintSELinuxLabels() {
+	if _, err := os.Stat(selinuxMount); err != nil {
+		return
+	}
+
+	slog.Warn("missing selinux labels on new image", "hint", "run hackenv fix apply-labels")
+}
+
 // Run is the function for the get command.
 func (c *GetCommand) Run(s *options.Options) error {
+	ctx, stop := interruptContext()
+	defer stop()
+
 	image, err := images.GetImageDetails(s.Type)
 	if err != nil {
 		slog.Error("failed to resolve image", "type", s.Type, "err", err)
@@ -134,7 +177,7 @@ func (c *GetCommand) Run(s *options.Options) error {
 		return err
 	}
 
-	info, err := image.GetDownloadInfo(true, opts)
+	info, err := image.GetDownloadInfo(ctx, true, opts)
 	if err != nil {
 		slog.Error("failed to fetch download info", "image", image.DisplayName, "err", err)
 		return fmt.Errorf("cannot fetch download info for %s: %w", image.DisplayName, err)
@@ -161,19 +204,15 @@ func (c *GetCommand) Run(s *options.Options) error {
 		return nil
 	}
 
-	err = downloadImage(localPath, info.URL)
-	if err != nil {
-		slog.Error("failed to download image", "path", localPath, "url", info.URL, "err", err)
+	if err := downloadImage(ctx, localPath, info.URL); err != nil {
 		return fmt.Errorf("cannot download image %s: %w", info.URL, err)
 	}
 
-	err = validateChecksum(localPath, info.Checksum)
-	if err != nil {
-		slog.Error("failed to validate checksum", "path", localPath, "err", err)
+	if err := validateChecksum(localPath, info.Checksum); err != nil {
 		return fmt.Errorf("failed to validate checksum for %s: %w", localPath, err)
 	}
 
-	slog.Info("skipping selinux labels", "hint", "run hackenv fix apply-labels when using SELinux")
+	hintSELinuxLabels()
 
 	return nil
 }

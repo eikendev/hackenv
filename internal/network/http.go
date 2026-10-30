@@ -2,6 +2,7 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log/slog"
@@ -9,8 +10,13 @@ import (
 )
 
 // GetResponse performs an HTTP GET request and returns the response with proper error handling
-func GetResponse(url string) (*http.Response, error) {
-	resp, err := http.Get(url) //#nosec G107
+func GetResponse(ctx context.Context, url string) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build HTTP GET %s: %w", url, err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to perform HTTP GET %s: %w", url, err)
 	}
@@ -31,8 +37,8 @@ func GetResponse(url string) (*http.Response, error) {
 }
 
 // GetBytes performs an HTTP GET request and returns at most limit bytes of the body.
-func GetBytes(url string, limit int64) ([]byte, error) {
-	resp, err := GetResponse(url)
+func GetBytes(ctx context.Context, url string, limit int64) ([]byte, error) {
+	resp, err := GetResponse(ctx, url)
 	if err != nil {
 		return nil, err
 	}

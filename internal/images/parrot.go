@@ -3,6 +3,7 @@ package images
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -63,8 +64,8 @@ func findLatestRelease(index string, comparer versionComparer) (string, error) {
 	return latest, nil
 }
 
-func latestParrotRelease(image *Image) (string, error) {
-	index, err := network.GetBytes(image.ArchiveURL+"/", maxIndexSize)
+func latestParrotRelease(ctx context.Context, image *Image) (string, error) {
+	index, err := network.GetBytes(ctx, image.ArchiveURL+"/", maxIndexSize)
 	if err != nil {
 		slog.Error("failed to fetch release index", "url", image.ArchiveURL, "err", err)
 		return "", fmt.Errorf("failed to fetch release index: %w", err)
@@ -73,8 +74,8 @@ func latestParrotRelease(image *Image) (string, error) {
 	return findLatestRelease(string(index), image.VersionComparer)
 }
 
-func fetchParrotChecksums(image *Image, releaseURL string, opts FetchOptions) ([]byte, error) {
-	message, err := network.GetBytes(releaseURL+image.checksumPath, maxChecksumFileSize)
+func fetchParrotChecksums(ctx context.Context, image *Image, releaseURL string, opts FetchOptions) ([]byte, error) {
+	message, err := network.GetBytes(ctx, releaseURL+image.checksumPath, maxChecksumFileSize)
 	if err != nil {
 		slog.Error("failed to fetch checksum file", "url", releaseURL+image.checksumPath, "err", err)
 		return nil, fmt.Errorf("failed to fetch checksum file: %w", err)
@@ -87,15 +88,15 @@ func fetchParrotChecksums(image *Image, releaseURL string, opts FetchOptions) ([
 	return verifyClearsigned(image.signingKeyFor(opts), message)
 }
 
-func parrotInfoRetriever(image *Image, opts FetchOptions) (*DownloadInfo, error) {
-	release, err := latestParrotRelease(image)
+func parrotInfoRetriever(ctx context.Context, image *Image, opts FetchOptions) (*DownloadInfo, error) {
+	release, err := latestParrotRelease(ctx, image)
 	if err != nil {
 		return nil, err
 	}
 
 	releaseURL := image.ArchiveURL + "/" + release
 
-	sums, err := fetchParrotChecksums(image, releaseURL, opts)
+	sums, err := fetchParrotChecksums(ctx, image, releaseURL, opts)
 	if err != nil {
 		return nil, err
 	}
