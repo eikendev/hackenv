@@ -1,0 +1,100 @@
+// Package guest provides utilities to reach the guest from the host.
+package guest
+
+import (
+	"encoding/xml"
+	"errors"
+	"fmt"
+	"log/slog"
+	"net"
+	"strconv"
+	"time"
+
+	rawLibvirt "libvirt.org/go/libvirt"
+)
+
+// Host is the address on which passt exposes forwarded guest ports.
+const Host = "127.0.0.1"
+
+type domainXML struct {
+	Devices struct {
+		Interfaces []struct {
+			PortForwards []struct {
+				Proto  string `xml:"proto,attr"`
+				Ranges []struct {
+					Start int `xml:"start,attr"`
+					To    int `xml:"to,attr"`
+				} `xml:"range"`
+			} `xml:"portForward"`
+		} `xml:"interface"`
+	} `xml:"devices"`
+}
+
+// SSHPort returns the host port that is forwarded to the guest's SSH port.
+func SSHPort(dom *rawLibvirt.Domain) (int, error) {
+	desc, err := dom.GetXMLDesc(0)
+	if err != nil {
+		slog.Error("failed to read domain description", "err", err)
+		return 0, fmt.Errorf("cannot read domain description: %w", err)
+	}
+
+	return parseSSHPort(desc)
+}
+
+func parseSSHPort(desc string) (int, error) {
+	var parsed domainXML
+	if err := xml.Unmarshal([]byte(desc), &parsed); err != nil {
+		slog.Error("failed to parse domain description", "err", err)
+		return 0, fmt.Errorf("cannot parse domain description: %w", err)
+	}
+
+	for _, iface := range parsed.Devices.Interfaces {
+		for _, forward := range iface.PortForwards {
+			if forward.Proto != "tcp" {
+				continue
+			}
+			for _, r := range forward.Ranges {
+				if r.To == 22 {
+					return r.Start, nil
+				}
+			}
+		}
+	}
+
+	slog.Error("missing ssh port forward")
+	return 0, errors.New("domain has no SSH port forward")
+}
+
+// Address returns the host address and port to reach the guest's SSH server.
+func Address(port int) string {
+	return net.JoinHostPort(Host, strconv.Itoa(port))
+}
+
+// EnsurePortFree fails if the given host port cannot be bound.
+func EnsurePortFree(port int) error {
+	listener, err := net.Listen("tcp", Address(port))
+	if err != nil {
+		slog.Error("failed to bind ssh port", "port", port, "err", err)
+		return fmt.Errorf("port %d is not available on the host: %w", port, err)
+	}
+
+	if err := listener.Close(); err != nil {
+		slog.Warn("failed to close probe listener", "port", port, "err", err)
+	}
+
+	return nil
+}
+
+// IsSSHReachable reports whether the forwarded SSH port accepts connections.
+func IsSSHReachable(port int, timeout time.Duration) bool {
+	conn, err := net.DialTimeout("tcp", Address(port), timeout)
+	if err != nil {
+		return false
+	}
+
+	if err := conn.Close(); err != nil {
+		slog.Warn("failed to close probe connection", "port", port, "err", err)
+	}
+
+	return true
+}

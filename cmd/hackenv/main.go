@@ -17,7 +17,7 @@ var cmd struct {
 	SSH     commands.SSHCommand     `cmd:"ssh" aliases:"s" help:"Open an SSH session for the VM"`
 	Status  commands.StatusCommand  `cmd:"status" help:"Print the status of the VM"`
 	Up      commands.UpCommand      `cmd:"up" aliases:"u" help:"Initialize and start the VM or provision if already running"`
-	Fix     commands.FixCommand     `cmd:"fix" aliases:"f" help:"Fix helpers: manage bridge and apply SELinux labels"`
+	Fix     commands.FixCommand     `cmd:"fix" aliases:"f" help:"Fix helpers: apply SELinux labels"`
 	Version commands.VersionCommand `cmd:"version" help:"Print the version of hackenv"`
 }
 

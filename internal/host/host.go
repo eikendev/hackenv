@@ -5,54 +5,11 @@ import (
 	"bufio"
 	"fmt"
 	"log/slog"
-	"net"
 	"os/exec"
 	"strings"
 
 	"github.com/eikendev/hackenv/internal/paths"
 )
-
-// GetHostIPAddress retrieves the IP address of the host on the given interface.
-func GetHostIPAddress(ifaceName string) (string, error) {
-	ifaces, err := net.Interfaces()
-	if err != nil {
-		slog.Error("Cannot retrieve host interfaces", "err", err)
-		return "", fmt.Errorf("cannot retrieve host interfaces: %w", err)
-	}
-
-	for _, iface := range ifaces {
-		if iface.Name != ifaceName {
-			continue
-		}
-
-		addrs, err := iface.Addrs()
-		if err != nil {
-			continue
-		}
-
-		for _, addr := range addrs {
-			var ip net.IP
-			switch v := addr.(type) {
-			case *net.IPNet:
-				ip = v.IP
-			case *net.IPAddr:
-				ip = v.IP
-			default:
-				continue
-			}
-
-			if ip4 := ip.To4(); ip4 != nil {
-				return ip4.String(), nil
-			}
-			if ip16 := ip.To16(); ip16 != nil {
-				return ip16.String(), nil
-			}
-		}
-	}
-
-	slog.Error("Cannot retrieve host IP address", "interface", ifaceName)
-	return "", fmt.Errorf("cannot retrieve host IP address for interface %s", ifaceName)
-}
 
 // GetHostKeyboardLayout retrieves the configured keyboard layout on the host.
 func GetHostKeyboardLayout() (string, error) {

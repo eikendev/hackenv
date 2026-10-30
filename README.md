@@ -39,8 +39,6 @@ sudo systemctl start virtqemud.socket
 ## 📄&nbsp;Usage
 
 First, make sure you have the [required dependencies](#dependencies) installed.
-Also, you will need a bridge interface [as described below](#creating-a-bridge-interface).
-This can be as simple as running `hackenv fix create-bridge` (or `./bin/hackenv_createbridge`).
 
 Then, download an image using `hackenv get`.
 This will download a live image from the official mirrors.
@@ -55,6 +53,9 @@ The VM will be short-lived (volatile), meaning any data and configuration stored
 This is by design and admittedly opinionated.
 
 You can now start an SSH session with `hackenv ssh` or spin up a GUI with `hackenv gui`.
+The VM uses user-mode networking via [passt](https://passt.top/), so no bridge or privileges are needed.
+Its SSH server is forwarded to `127.0.0.1:2222` for Kali Linux and `127.0.0.1:2223` for Parrot Security.
+If a port is taken on your host, pick another one with `hackenv up --ssh-port` or `$HACKENV_SSH_PORT`.
 
 Note that by default, hackenv will operate with Kali Linux, and respectively download its image.
 If you want to operate with Parrot Security instead, specify `hackenv --type=parrot`, or check out [the configuration](#configuration).
@@ -68,15 +69,6 @@ If SELinux denies access to the shared directory, you have to adjust the context
 You can run `hackenv fix apply-labels` (or `./bin/hackenv_applylabels`) if you are on Fedora or similar.
 The script will also relabel the downloaded images.
 If you add new files to the shared directory from outside, do not forget to label them as well.
-
-### Creating a Bridge Interface
-
-hackenv uses a bridge so that you can reach the guest from the host for SSH, while the guest can access the Internet.
-You can create this bridge by running `hackenv fix create-bridge` (or `./bin/hackenv_createbridge`).
-Note that this script **will request privileges** so it can create an interface.
-
-Of course, please adapt the script to your specific needs.
-The interface is expected to have the name `virbr0` by default, but this can be changed using command line flags.
 
 ## ⚙&nbsp;Configuration
 
@@ -93,7 +85,8 @@ alias parrot='hackenv --type=parrot'
 
 ## 🥙&nbsp;Dependencies
 
-- [libvirt](https://libvirt.org/) (virsh)
+- [libvirt](https://libvirt.org/) 9.0 or newer with [QEMU](https://www.qemu.org/) and KVM
+- [passt](https://passt.top/)
 - [OpenSSH](https://www.openssh.com/) (ssh and ssh-keygen)
 - setxkbmap
 - [virt-viewer](https://virt-manager.org/) or [Remmina](https://remmina.org/)

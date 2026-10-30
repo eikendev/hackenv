@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strconv"
 	"syscall"
 
 	"github.com/eikendev/hackenv/internal/constants"
+	"github.com/eikendev/hackenv/internal/guest"
 	"github.com/eikendev/hackenv/internal/handling"
 	"github.com/eikendev/hackenv/internal/images"
 	"github.com/eikendev/hackenv/internal/libvirt"
@@ -39,15 +41,15 @@ func (c *SSHCommand) Run(s *options.Options) error {
 	}
 	defer handling.FreeDomain(dom)
 
-	ipAddr, err := libvirt.GetDomainIPAddress(dom, &image)
+	port, err := guest.SSHPort(dom)
 	if err != nil {
-		slog.Error("Cannot retrieve guest IP address", "err", err)
-		return fmt.Errorf("cannot retrieve guest IP address: %w", err)
+		slog.Error("failed to resolve ssh port", "image", image.Name, "err", err)
+		return fmt.Errorf("cannot determine SSH port of %q: %w", image.Name, err)
 	}
 
-	args, err := buildSSHArgs([]string{
+	args, err := buildSSHArgs(port, []string{
 		"-X",
-		fmt.Sprintf("%s@%s", image.SSHUser, ipAddr),
+		fmt.Sprintf("%s@%s", image.SSHUser, guest.Host),
 	})
 	if err != nil {
 		slog.Error("Failed to build SSH arguments", "err", err)
@@ -64,7 +66,7 @@ func (c *SSHCommand) Run(s *options.Options) error {
 	return nil
 }
 
-func buildSSHArgs(customArgs []string) ([]string, error) {
+func buildSSHArgs(port int, customArgs []string) ([]string, error) {
 	sshPath, err := paths.GetCmdPath("ssh")
 	if err != nil {
 		slog.Error("ssh command not found", "err", err)
@@ -79,6 +81,7 @@ func buildSSHArgs(customArgs []string) ([]string, error) {
 	args := []string{
 		sshPath,
 		"-i", keyPath,
+		"-p", strconv.Itoa(port),
 		"-S", "none",
 		"-o", "LogLevel=ERROR",
 		"-o", "StrictHostKeyChecking=no",

@@ -36,6 +36,7 @@ type Image struct {
 	VersionRegex      *regexp.Regexp
 	SSHUser           string
 	SSHPassword       string
+	SSHPort           int
 	MacAddress        string
 	infoRetriever     infoRetriever
 	bootInitializer   bootInitializer
@@ -61,6 +62,7 @@ var images = map[string]Image{
 		VersionRegex:      regexp.MustCompile(`\d\d\d\d\.\d+`),
 		SSHUser:           "kali",
 		SSHPassword:       "kali",
+		SSHPort:           2222,
 		MacAddress:        "52:54:00:08:f9:e8",
 		infoRetriever:     kaliInfoRetriever,
 		bootInitializer:   kaliBootInitializer,
@@ -77,6 +79,7 @@ var images = map[string]Image{
 		VersionRegex:      regexp.MustCompile(`\d+\.\d+(?:\.\d+)?`),
 		SSHUser:           "user",
 		SSHPassword:       "parrot",
+		SSHPort:           2223,
 		MacAddress:        "52:54:00:08:f9:e9",
 		infoRetriever:     parrotInfoRetriever,
 		bootInitializer:   parrotBootInitializer,

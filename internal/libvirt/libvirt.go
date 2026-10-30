@@ -2,7 +2,6 @@
 package libvirt
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 
@@ -46,31 +45,6 @@ func GetDomain(conn *libvirt.Connect, image *images.Image, fail bool) (*libvirt.
 	}
 
 	return dom, nil
-}
-
-// GetDomainIPAddress retrieves the IP address of the Domain.
-func GetDomainIPAddress(dom *libvirt.Domain, image *images.Image) (string, error) {
-	ifaces, err := dom.ListAllInterfaceAddresses(libvirt.DOMAIN_INTERFACE_ADDRESSES_SRC_ARP)
-	if err != nil {
-		slog.Debug("failed to retrieve vm ip address", "err", err, "image", image.Name)
-		return "", fmt.Errorf("cannot retrieve VM IP address: %w", err)
-	}
-
-	for _, iface := range ifaces {
-		if iface.Hwaddr == image.MacAddress {
-			for _, addr := range iface.Addrs {
-				if addr.Addr != "" {
-					return addr.Addr, nil
-				}
-			}
-
-			slog.Debug("missing interface address", "image", image.Name, "hwaddr", iface.Hwaddr)
-			return "", errors.New("matching interface has no addresses")
-		}
-	}
-
-	slog.Debug("no matching interface", "image", image.Name, "hwaddr", image.MacAddress)
-	return "", errors.New("no matching interface for mac address")
 }
 
 // ResolveDomainState translates the Domain status into a readable format.

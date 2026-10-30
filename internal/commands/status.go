@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"log/slog"
 
+	rawLibvirt "libvirt.org/go/libvirt"
+
+	"github.com/eikendev/hackenv/internal/guest"
 	"github.com/eikendev/hackenv/internal/handling"
 	"github.com/eikendev/hackenv/internal/images"
 	"github.com/eikendev/hackenv/internal/libvirt"
@@ -23,34 +26,45 @@ func (*StatusCommand) Run(_ *options.Options) error {
 	defer handling.CloseConnect(conn)
 
 	for _, image := range images.GetAllImages() {
-		var state string
-
-		image := image
 		dom, err := libvirt.GetDomain(conn, &image, false)
 		if err != nil {
 			slog.Error("Failed to lookup domain for status command", "image", image.Name, "err", err)
 			return fmt.Errorf("cannot look up domain %q: %w", image.Name, err)
 		}
-		if dom == nil {
-			state = "DOWN"
-		} else {
-			defer handling.FreeDomain(dom)
 
-			info, err := dom.GetInfo()
+		state, address := "DOWN", "-"
+		if dom != nil {
+			state, address, err = describeDomain(dom, &image)
+			handling.FreeDomain(dom)
 			if err != nil {
-				slog.Warn("Cannot get domain info", "err", err, "domain", image.Name)
-				continue
-			}
-
-			state, err = libvirt.ResolveDomainState(info.State)
-			if err != nil {
-				slog.Error("Failed to resolve domain state", "image", image.Name, "err", err)
-				return fmt.Errorf("cannot resolve domain state for %q: %w", image.Name, err)
+				return err
 			}
 		}
 
-		fmt.Printf("%s\t%s\n", image.Name, state)
+		fmt.Printf("%s\t%s\t%s\n", image.Name, state, address)
 	}
 
 	return nil
+}
+
+func describeDomain(dom *rawLibvirt.Domain, image *images.Image) (string, string, error) {
+	info, err := dom.GetInfo()
+	if err != nil {
+		slog.Error("failed to get domain info", "image", image.Name, "err", err)
+		return "", "", fmt.Errorf("cannot get domain info for %q: %w", image.Name, err)
+	}
+
+	state, err := libvirt.ResolveDomainState(info.State)
+	if err != nil {
+		slog.Error("failed to resolve domain state", "image", image.Name, "err", err)
+		return "", "", fmt.Errorf("cannot resolve domain state for %q: %w", image.Name, err)
+	}
+
+	port, err := guest.SSHPort(dom)
+	if err != nil {
+		slog.Warn("failed to resolve ssh port", "image", image.Name, "err", err)
+		return state, "-", nil
+	}
+
+	return state, guest.Address(port), nil
 }
