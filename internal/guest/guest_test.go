@@ -54,6 +54,48 @@ func TestParseSSHPort(t *testing.T) {
 	}
 }
 
+func TestParseSharedMode(t *testing.T) {
+	tests := []struct {
+		name    string
+		desc    string
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "virtiofs",
+			desc: `<domain><devices><filesystem type='mount'><driver type='virtiofs'/><target dir='shared'/></filesystem></devices></domain>`,
+			want: "virtiofs",
+		},
+		{
+			name: "9p without driver",
+			desc: `<domain><devices><filesystem type='mount' accessmode='mapped'><target dir='shared'/></filesystem></devices></domain>`,
+			want: "9p",
+		},
+		{
+			name: "9p with path driver",
+			desc: `<domain><devices><filesystem type='mount'><driver type='path'/></filesystem></devices></domain>`,
+			want: "9p",
+		},
+		{
+			name:    "no filesystem",
+			desc:    `<domain><devices/></domain>`,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parseSharedMode(tt.desc)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("parseSharedMode() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if got != tt.want {
+				t.Fatalf("parseSharedMode() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestAddress(t *testing.T) {
 	if got := Address(2222); got != "127.0.0.1:2222" {
 		t.Fatalf("Address() = %q", got)

@@ -15,6 +15,7 @@ import (
 
 	"github.com/eikendev/hackenv/internal/banner"
 	"github.com/eikendev/hackenv/internal/constants"
+	"github.com/eikendev/hackenv/internal/domain"
 	"github.com/eikendev/hackenv/internal/guest"
 	"github.com/eikendev/hackenv/internal/handling"
 	"github.com/eikendev/hackenv/internal/host"
@@ -32,66 +33,13 @@ const (
 	sshProbeWindow    = 10 * time.Second
 	sshProbeInterval  = time.Second
 	sshConnectTimeout = 20 * time.Second
-	xmlTemplate       = `
-    <domain type='kvm'>
-      <name>%s</name>
-      <memory unit='KiB'>%d</memory>
-      <vcpu placement='static'>%d</vcpu>
-      <os>
-        <type>hvm</type>
-        <boot dev='cdrom'/>
-      </os>
-      <features>
-        <acpi/>
-        <apic/>
-      </features>
-      <devices>
-        <disk type='file' device='cdrom'>
-          <driver name='qemu' type='raw'/>
-          <source file='%s'/>
-          <target dev='sda' bus='sata'/>
-          <readonly/>
-        </disk>
-        <filesystem type='mount' accessmode='mapped'>
-          <source dir='%s'/>
-          <target dir='/shared'/>
-        </filesystem>
-        <interface type='user'>
-          <mac address='%s'/>
-          <model type='virtio'/>
-          <backend type='passt'/>
-          <portForward proto='tcp' address='%s'>
-            <range start='%d' to='22'/>
-          </portForward>
-        </interface>
-        <console type='pty'>
-          <target type='serial'/>
-        </console>
-        <graphics type='spice' port='-1' autoport='yes'>
-          <listen type='address' address='127.0.0.1'/>
-          <image compression='off'/>
-        </graphics>
-        <channel type="spicevmc">
-            <target type="virtio" name="com.redhat.spice.0"/>
-        </channel>
-        <video>
-          <model type='qxl'/>
-        </video>
-        <sound model='ich6'/>
-        <input type='mouse' bus='ps2'/>
-        <input type='keyboard' bus='ps2'/>
-        <rng model='virtio'>
-          <backend model='random'>/dev/urandom</backend>
-        </rng>
-      </devices>
-    </domain>
-`
+	guestSharedDir    = "/shared"
 )
 
 // UpCommand represents the options specific to the up command.
 type UpCommand struct {
 	Cores       int    `name:"cores" env:"HACKENV_CORES" default:"2" help:"How many virtual CPU cores to assign to the VM"`
-	Memory      int    `name:"memory" env:"HACKENV_MEMORY" default:"2097152" help:"How much RAM to assign to the VM (KiB)"`
+	Memory      int    `name:"memory" env:"HACKENV_MEMORY" default:"4194304" help:"How much RAM to assign to the VM (KiB)"`
 	SSHPort     int    `name:"ssh-port" env:"HACKENV_SSH_PORT" default:"0" help:"The host port forwarded to the SSH server of the VM (default depends on the image)"`
 	DisplaySize string `name:"display_size" env:"HACKENV_DISPLAY_SIZE" default:"1920x1080" help:"The resolution of the VM's display"`
 }
@@ -109,29 +57,59 @@ func (c *UpCommand) resolveSSHPort(image *images.Image) (int, error) {
 	return c.SSHPort, nil
 }
 
-func buildXML(c *UpCommand, image *images.Image, path string, port int) (string, error) {
+func buildSpec(c *UpCommand, image *images.Image, path string, port int, features libvirt.HostFeatures) (domain.Spec, error) {
 	sharedPath, err := paths.GetDataFilePath(sharedDir)
 	if err != nil {
 		slog.Error("failed to resolve shared directory", "err", err)
-		return "", fmt.Errorf("cannot resolve shared directory path: %w", err)
+		return domain.Spec{}, fmt.Errorf("cannot resolve shared directory path: %w", err)
 	}
 
 	if err := paths.EnsureDirExists(sharedPath); err != nil {
 		slog.Error("failed to create shared directory", "path", sharedPath, "err", err)
-		return "", fmt.Errorf("cannot ensure shared directory at %s: %w", sharedPath, err)
+		return domain.Spec{}, fmt.Errorf("cannot ensure shared directory at %s: %w", sharedPath, err)
 	}
 
-	return fmt.Sprintf(
-		xmlTemplate,
-		image.Name,
-		c.Memory,
-		c.Cores,
-		path,
-		sharedPath,
-		image.MacAddress,
-		guest.Host,
-		port,
-	), nil
+	sharedMode := domain.Shared9p
+	if features.Virtiofs {
+		sharedMode = domain.SharedVirtiofs
+	}
+
+	return domain.Spec{
+		Name:        image.Name,
+		MemoryKiB:   c.Memory,
+		Cores:       c.Cores,
+		ImagePath:   path,
+		SharedPath:  sharedPath,
+		SharedMode:  sharedMode,
+		Machine:     features.Machine,
+		CPUMode:     features.CPUMode,
+		VideoModel:  features.VideoModel,
+		MacAddress:  image.MacAddress,
+		ForwardHost: guest.Host,
+		SSHPort:     port,
+	}, nil
+}
+
+func createDomain(conn *rawLibvirt.Connect, spec domain.Spec) (*rawLibvirt.Domain, error) {
+	xml, err := domain.Render(spec)
+	if err != nil {
+		slog.Error("failed to build domain xml", "image", spec.Name, "err", err)
+		return nil, fmt.Errorf("cannot build domain definition: %w", err)
+	}
+
+	dom, err := conn.DomainCreateXML(xml, 0)
+	if err == nil {
+		return dom, nil
+	}
+
+	if spec.SharedMode != domain.SharedVirtiofs {
+		slog.Error("failed to create domain", "image", spec.Name, "hint", "run hackenv doctor", "err", err)
+		return nil, fmt.Errorf("cannot create domain %q: %w", spec.Name, err)
+	}
+
+	slog.Warn("retrying domain creation", "image", spec.Name, "shared", domain.Shared9p, "err", err)
+	spec.SharedMode = domain.Shared9p
+	return createDomain(conn, spec)
 }
 
 func pollSSH(port int, window time.Duration) bool {
@@ -240,7 +218,7 @@ func runGuestCommand(client *ssh.Client, cmd string) error {
 	return nil
 }
 
-func configureClient(c *UpCommand, image *images.Image, port int, keymap string) error {
+func configureClient(c *UpCommand, image *images.Image, port int, sharedMode, keymap string) error {
 	client, err := connectGuest(image, port)
 	if err != nil {
 		return err
@@ -281,8 +259,8 @@ func configureClient(c *UpCommand, image *images.Image, port int, keymap string)
 		"sudo systemctl reload ssh",
 
 		// Setup a shared directory.
-		"sudo mkdir /shared",
-		"sudo mount -t 9p -o trans=virtio,version=9p2000.L /shared /shared",
+		"sudo mkdir " + guestSharedDir,
+		domain.MountCommand(sharedMode, guestSharedDir),
 
 		// Set screen size to Full HD.
 		fmt.Sprintf("DISPLAY=:0 xrandr --size %s", c.DisplaySize),
@@ -381,16 +359,17 @@ func (c *UpCommand) Run(s *options.Options) error {
 		return fmt.Errorf("%w; choose another port with --ssh-port or HACKENV_SSH_PORT", err)
 	}
 
-	xml, err := buildXML(c, &image, localPath, port)
+	features := libvirt.DetectHostFeatures(conn)
+	slog.Info("detected host features", "features", features.String())
+
+	spec, err := buildSpec(c, &image, localPath, port, features)
 	if err != nil {
-		slog.Error("failed to build domain xml", "image", image.Name, "err", err)
-		return fmt.Errorf("cannot build domain definition: %w", err)
+		return err
 	}
 
-	dom, err := conn.DomainCreateXML(xml, 0)
+	dom, err := createDomain(conn, spec)
 	if err != nil {
-		slog.Error("failed to create domain", "image", image.Name, "hint", "run hackenv doctor", "err", err)
-		return fmt.Errorf("cannot create domain %q: %w", image.Name, err)
+		return err
 	}
 	defer handling.FreeDomain(dom)
 
@@ -459,7 +438,12 @@ func (c *UpCommand) bootAndConfigure(dom *rawLibvirt.Domain, image *images.Image
 		return err
 	}
 
-	if err := configureClient(c, image, port, opts.Keymap); err != nil {
+	sharedMode, err := guest.SharedMode(dom)
+	if err != nil {
+		return fmt.Errorf("cannot determine shared directory mode of %s: %w", image.DisplayName, err)
+	}
+
+	if err := configureClient(c, image, port, sharedMode, opts.Keymap); err != nil {
 		slog.Error("failed to configure guest", "err", err)
 		return fmt.Errorf("cannot configure guest %s: %w", image.DisplayName, err)
 	}
