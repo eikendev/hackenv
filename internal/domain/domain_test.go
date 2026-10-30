@@ -50,17 +50,13 @@ func TestRenderDefaults(t *testing.T) {
 		}
 	}
 
-	for _, unwanted := range []string{"<cpu", "<memoryBacking>", "virtiofs"} {
-		if strings.Contains(out, unwanted) {
-			t.Errorf("unexpected %q in\n%s", unwanted, out)
-		}
+	if strings.Contains(out, "<cpu") {
+		t.Errorf("unexpected cpu element in\n%s", out)
 	}
 }
 
 func TestRenderModernFeatures(t *testing.T) {
 	spec := baseSpec()
-	spec.SharedMode = SharedVirtiofs
-	spec.SharedIDMap = &IDMap{GuestID: 1000, HostUID: 1234, HostGID: 5678}
 	spec.Machine = "q35"
 	spec.CPUMode = "host-passthrough"
 	spec.VideoModel = "virtio"
@@ -70,11 +66,6 @@ func TestRenderModernFeatures(t *testing.T) {
 	for _, want := range []string{
 		"<type machine='q35'>hvm</type>",
 		"<cpu mode='host-passthrough' check='none' migratable='off'/>",
-		"<memoryBacking>",
-		"<driver type='virtiofs'/>",
-		"accessmode='passthrough'",
-		"<uid start='1000' target='1234' count='1'/>",
-		"<gid start='1000' target='5678' count='1'/>",
 		"<model type='virtio'/>",
 	} {
 		if !strings.Contains(out, want) {
@@ -95,10 +86,8 @@ func TestRenderEscapesPaths(t *testing.T) {
 }
 
 func TestMountCommand(t *testing.T) {
-	if got := MountCommand(SharedVirtiofs, "/shared"); got != "sudo mount -t virtiofs shared /shared" {
-		t.Fatalf("virtiofs mount = %q", got)
-	}
-	if got := MountCommand(Shared9p, "/shared"); !strings.Contains(got, "-t 9p") || !strings.HasSuffix(got, "shared /shared") {
-		t.Fatalf("9p mount = %q", got)
+	got := MountCommand("/shared")
+	if !strings.Contains(got, "-t 9p") || !strings.HasSuffix(got, "shared /shared") {
+		t.Fatalf("MountCommand() = %q", got)
 	}
 }

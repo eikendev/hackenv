@@ -21,11 +21,6 @@ const sshBannerPrefix = "SSH-"
 
 type domainXML struct {
 	Devices struct {
-		Filesystems []struct {
-			Driver struct {
-				Type string `xml:"type,attr"`
-			} `xml:"driver"`
-		} `xml:"filesystem"`
 		Interfaces []struct {
 			PortForwards []struct {
 				Proto  string `xml:"proto,attr"`
@@ -71,36 +66,6 @@ func parseSSHPort(desc string) (int, error) {
 
 	slog.Error("missing ssh port forward")
 	return 0, errors.New("domain has no SSH port forward")
-}
-
-// SharedMode returns the driver of the shared directory, "virtiofs" or "9p".
-func SharedMode(dom *rawLibvirt.Domain) (string, error) {
-	desc, err := dom.GetXMLDesc(0)
-	if err != nil {
-		slog.Error("failed to read domain description", "err", err)
-		return "", fmt.Errorf("cannot read domain description: %w", err)
-	}
-
-	return parseSharedMode(desc)
-}
-
-func parseSharedMode(desc string) (string, error) {
-	var parsed domainXML
-	if err := xml.Unmarshal([]byte(desc), &parsed); err != nil {
-		slog.Error("failed to parse domain description", "err", err)
-		return "", fmt.Errorf("cannot parse domain description: %w", err)
-	}
-
-	if len(parsed.Devices.Filesystems) == 0 {
-		slog.Error("missing shared filesystem")
-		return "", errors.New("domain has no shared filesystem")
-	}
-
-	if parsed.Devices.Filesystems[0].Driver.Type == "virtiofs" {
-		return "virtiofs", nil
-	}
-
-	return "9p", nil
 }
 
 // Address returns the host address and port to reach the guest's SSH server.

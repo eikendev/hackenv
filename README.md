@@ -91,7 +91,7 @@ If you want to operate with Parrot Security instead, specify `hackenv --type=par
 
 hackenv will automatically set up a shared directory between the host and the virtual machine.
 On the host side the directory is `~/.local/share/hackenv/shared`, while on the guest side it is located at `/shared`.
-It is shared through virtiofs where libvirt 10 or newer supports it, and through 9p otherwise; `hackenv up` logs which host features it detected.
+It is shared through 9p in mapped mode, so everything the guest writes belongs to your host user; `hackenv up` logs which other host features it detected.
 
 If SELinux denies access to the shared directory, you have to adjust the context of the directory.
 You can run `hackenv fix apply-labels` (or `./bin/hackenv_applylabels`) if you are on Fedora or similar.

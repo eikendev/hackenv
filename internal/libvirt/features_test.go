@@ -71,22 +71,17 @@ func TestPickMachine(t *testing.T) {
 }
 
 func TestApplyDomainCapabilities(t *testing.T) {
-	modern := applyDomainCapabilities(ConservativeFeatures(), sampleDomCaps, 12_000_000)
-	if modern.CPUMode != "host-passthrough" || modern.VideoModel != "virtio" || !modern.Virtiofs {
+	modern := applyDomainCapabilities(ConservativeFeatures(), sampleDomCaps)
+	if modern.CPUMode != "host-passthrough" || modern.VideoModel != "virtio" {
 		t.Fatalf("modern host = %s", modern)
 	}
 
-	oldLibvirt := applyDomainCapabilities(ConservativeFeatures(), sampleDomCaps, 9_000_000)
-	if oldLibvirt.Virtiofs {
-		t.Fatalf("virtiofs enabled on libvirt 9: %s", oldLibvirt)
-	}
-
-	old := applyDomainCapabilities(ConservativeFeatures(), oldDomCaps, 12_000_000)
-	if old.CPUMode != "host-model" || old.VideoModel != "qxl" || old.Virtiofs {
+	old := applyDomainCapabilities(ConservativeFeatures(), oldDomCaps)
+	if old.CPUMode != "host-model" || old.VideoModel != "qxl" {
 		t.Fatalf("old host = %s", old)
 	}
 
-	broken := applyDomainCapabilities(ConservativeFeatures(), "<domainCapabilities>", 12_000_000)
+	broken := applyDomainCapabilities(ConservativeFeatures(), "<domainCapabilities>")
 	if broken != ConservativeFeatures() {
 		t.Fatalf("malformed caps changed features: %s", broken)
 	}

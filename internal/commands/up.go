@@ -88,21 +88,12 @@ func buildSpec(c *UpCommand, image *images.Image, path string, port int, feature
 		return domain.Spec{}, fmt.Errorf("cannot ensure shared directory at %s: %w", sharedPath, err)
 	}
 
-	sharedMode := domain.Shared9p
-	var idMap *domain.IDMap
-	if features.Virtiofs {
-		sharedMode = domain.SharedVirtiofs
-		idMap = &domain.IDMap{GuestID: image.GuestID, HostUID: os.Getuid(), HostGID: os.Getgid()}
-	}
-
 	return domain.Spec{
 		Name:        image.Name,
 		MemoryKiB:   c.Memory.KiB(),
 		Cores:       c.Cores,
 		ImagePath:   path,
 		SharedPath:  sharedPath,
-		SharedMode:  sharedMode,
-		SharedIDMap: idMap,
 		Machine:     features.Machine,
 		CPUMode:     features.CPUMode,
 		VideoModel:  features.VideoModel,
@@ -120,18 +111,12 @@ func createDomain(conn *rawLibvirt.Connect, spec domain.Spec) (*rawLibvirt.Domai
 	}
 
 	dom, err := conn.DomainCreateXML(xml, 0)
-	if err == nil {
-		return dom, nil
-	}
-
-	if spec.SharedMode != domain.SharedVirtiofs {
+	if err != nil {
 		slog.Error("failed to create domain", "image", spec.Name, "hint", "run hackenv doctor", "err", err)
 		return nil, fmt.Errorf("cannot create domain %q: %w", spec.Name, err)
 	}
 
-	slog.Warn("retrying domain creation", "image", spec.Name, "shared", domain.Shared9p, "err", err)
-	spec.SharedMode = domain.Shared9p
-	return createDomain(conn, spec)
+	return dom, nil
 }
 
 func pollSSH(port int, window time.Duration) bool {
@@ -247,7 +232,7 @@ func closeSession(session *ssh.Session) {
 	}
 }
 
-func configureClient(c *UpCommand, image *images.Image, port int, sharedMode, keymap string) error {
+func configureClient(c *UpCommand, image *images.Image, port int, keymap string) error {
 	client, err := connectGuest(image, port)
 	if err != nil {
 		return err
@@ -289,7 +274,7 @@ func configureClient(c *UpCommand, image *images.Image, port int, sharedMode, ke
 
 		// Setup a shared directory.
 		"sudo mkdir -p " + guestSharedDir,
-		domain.MountCommand(sharedMode, guestSharedDir),
+		domain.MountCommand(guestSharedDir),
 
 		// Set screen size to Full HD.
 		fmt.Sprintf("DISPLAY=:0 xrandr --size %s", c.DisplaySize),
@@ -471,12 +456,7 @@ func (c *UpCommand) bootAndConfigure(dom *rawLibvirt.Domain, image *images.Image
 		return err
 	}
 
-	sharedMode, err := guest.SharedMode(dom)
-	if err != nil {
-		return fmt.Errorf("cannot determine shared directory mode of %s: %w", image.DisplayName, err)
-	}
-
-	if err := configureClient(c, image, port, sharedMode, opts.Keymap); err != nil {
+	if err := configureClient(c, image, port, opts.Keymap); err != nil {
 		slog.Error("failed to configure guest", "err", err)
 		return fmt.Errorf("cannot configure guest %s: %w", image.DisplayName, err)
 	}

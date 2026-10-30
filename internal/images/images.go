@@ -59,7 +59,6 @@ type Image struct {
 	SSHUser           string
 	SSHPassword       string
 	SSHPort           int
-	GuestID           int
 	MacAddress        string
 	infoRetriever     infoRetriever
 	bootInitializer   bootInitializer
@@ -90,7 +89,6 @@ var images = map[string]Image{
 		SSHUser:           "kali",
 		SSHPassword:       "kali",
 		SSHPort:           2222,
-		GuestID:           1000,
 		MacAddress:        "52:54:00:08:f9:e8",
 		infoRetriever:     kaliInfoRetriever,
 		bootInitializer:   kaliBootInitializer,
@@ -109,7 +107,6 @@ var images = map[string]Image{
 		SSHUser:           "user",
 		SSHPassword:       "parrot",
 		SSHPort:           2223,
-		GuestID:           1000,
 		MacAddress:        "52:54:00:08:f9:e9",
 		infoRetriever:     parrotInfoRetriever,
 		bootInitializer:   parrotBootInitializer,

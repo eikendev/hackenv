@@ -8,21 +8,8 @@ import (
 	"text/template"
 )
 
-// Shared directory drivers.
-const (
-	SharedVirtiofs = "virtiofs"
-	Shared9p       = "9p"
-)
-
 // SharedTag is the mount tag the guest uses to mount the shared directory.
 const SharedTag = "shared"
-
-// IDMap maps the guest's login user onto the host user that owns the shared directory.
-type IDMap struct {
-	GuestID int
-	HostUID int
-	HostGID int
-}
 
 // Spec describes the VM to define.
 type Spec struct {
@@ -31,8 +18,6 @@ type Spec struct {
 	Cores       int
 	ImagePath   string
 	SharedPath  string
-	SharedMode  string
-	SharedIDMap *IDMap
 	Machine     string
 	CPUMode     string
 	VideoModel  string
@@ -45,12 +30,6 @@ var domainTemplate = template.Must(template.New("domain").Funcs(template.FuncMap
   <name>{{esc .Name}}</name>
   <memory unit='KiB'>{{.MemoryKiB}}</memory>
   <vcpu placement='static'>{{.Cores}}</vcpu>
-{{- if eq .SharedMode "virtiofs"}}
-  <memoryBacking>
-    <source type='memfd'/>
-    <access mode='shared'/>
-  </memoryBacking>
-{{- end}}
   <os>
     <type{{if .Machine}} machine='{{esc .Machine}}'{{end}}>hvm</type>
     <boot dev='cdrom'/>
@@ -69,24 +48,10 @@ var domainTemplate = template.Must(template.New("domain").Funcs(template.FuncMap
       <target dev='sda' bus='sata'/>
       <readonly/>
     </disk>
-{{- if eq .SharedMode "virtiofs"}}
-    <filesystem type='mount' accessmode='passthrough'>
-      <driver type='virtiofs'/>
-      <source dir='{{esc .SharedPath}}'/>
-      <target dir='shared'/>
-{{- if .SharedIDMap}}
-      <idmap>
-        <uid start='{{.SharedIDMap.GuestID}}' target='{{.SharedIDMap.HostUID}}' count='1'/>
-        <gid start='{{.SharedIDMap.GuestID}}' target='{{.SharedIDMap.HostGID}}' count='1'/>
-      </idmap>
-{{- end}}
-    </filesystem>
-{{- else}}
     <filesystem type='mount' accessmode='mapped'>
       <source dir='{{esc .SharedPath}}'/>
       <target dir='shared'/>
     </filesystem>
-{{- end}}
     <interface type='user'>
       <mac address='{{esc .MacAddress}}'/>
       <model type='virtio'/>
@@ -128,9 +93,6 @@ func escape(s string) string {
 
 // Render produces the domain XML for the spec.
 func Render(spec Spec) (string, error) {
-	if spec.SharedMode == "" {
-		spec.SharedMode = Shared9p
-	}
 	if spec.VideoModel == "" {
 		spec.VideoModel = "qxl"
 	}
@@ -144,9 +106,6 @@ func Render(spec Spec) (string, error) {
 }
 
 // MountCommand returns the guest command that mounts the shared directory at target.
-func MountCommand(mode, target string) string {
-	if mode == SharedVirtiofs {
-		return fmt.Sprintf("sudo mount -t virtiofs %s %s", SharedTag, target)
-	}
+func MountCommand(target string) string {
 	return fmt.Sprintf("sudo mount -t 9p -o trans=virtio,version=9p2000.L %s %s", SharedTag, target)
 }

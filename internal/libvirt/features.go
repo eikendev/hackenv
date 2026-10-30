@@ -10,8 +10,6 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
-const minVirtiofsSessionVersion = 10_000_000
-
 var hostArchToLibvirt = map[string]string{
 	"amd64": "x86_64",
 	"arm64": "aarch64",
@@ -27,7 +25,6 @@ type HostFeatures struct {
 	Machine    string
 	CPUMode    string
 	VideoModel string
-	Virtiofs   bool
 }
 
 // ConservativeFeatures returns features every KVM host supports.
@@ -59,9 +56,6 @@ type domainCapabilitiesXML struct {
 		Video struct {
 			Enums []enumXML `xml:"enum"`
 		} `xml:"video"`
-		Filesystem struct {
-			Enums []enumXML `xml:"enum"`
-		} `xml:"filesystem"`
 	} `xml:"devices"`
 }
 
@@ -98,13 +92,7 @@ func DetectHostFeatures(conn *libvirt.Connect) HostFeatures {
 		return features
 	}
 
-	version, err := conn.GetLibVersion()
-	if err != nil {
-		slog.Warn("failed to read libvirt version", "err", err)
-		version = 0
-	}
-
-	return applyDomainCapabilities(features, domCaps, version)
+	return applyDomainCapabilities(features, domCaps)
 }
 
 func pickMachine(caps, arch string) string {
@@ -129,7 +117,7 @@ func pickMachine(caps, arch string) string {
 	return ""
 }
 
-func applyDomainCapabilities(features HostFeatures, domCaps string, libvirtVersion uint32) HostFeatures {
+func applyDomainCapabilities(features HostFeatures, domCaps string) HostFeatures {
 	var parsed domainCapabilitiesXML
 	if err := xml.Unmarshal([]byte(domCaps), &parsed); err != nil {
 		slog.Warn("failed to parse domain capabilities", "err", err)
@@ -153,14 +141,10 @@ func applyDomainCapabilities(features HostFeatures, domCaps string, libvirtVersi
 		features.VideoModel = "virtio"
 	}
 
-	if libvirtVersion >= minVirtiofsSessionVersion && slices.Contains(enumValues(parsed.Devices.Filesystem.Enums, "driverType"), "virtiofs") {
-		features.Virtiofs = true
-	}
-
 	return features
 }
 
 // String summarises the features for logging.
 func (f HostFeatures) String() string {
-	return fmt.Sprintf("machine=%q cpu=%q video=%q virtiofs=%t", f.Machine, f.CPUMode, f.VideoModel, f.Virtiofs)
+	return fmt.Sprintf("machine=%q cpu=%q video=%q", f.Machine, f.CPUMode, f.VideoModel)
 }
