@@ -139,11 +139,29 @@ func TestEnsurePortFree(t *testing.T) {
 	}
 }
 
+func serveBanner(t *testing.T, listener net.Listener, banner string) {
+	t.Helper()
+
+	go func() {
+		for {
+			conn, err := listener.Accept()
+			if err != nil {
+				return
+			}
+			if banner != "" {
+				_, _ = conn.Write([]byte(banner))
+			}
+			_ = conn.Close()
+		}
+	}()
+}
+
 func TestIsSSHReachable(t *testing.T) {
 	listener, port := listenOnFreePort(t)
+	serveBanner(t, listener, "SSH-2.0-OpenSSH_9.9\r\n")
 
 	if !IsSSHReachable(port, time.Second) {
-		t.Fatal("IsSSHReachable() = false for a listening port")
+		t.Fatal("IsSSHReachable() = false for an SSH banner")
 	}
 
 	if err := listener.Close(); err != nil {
@@ -152,5 +170,21 @@ func TestIsSSHReachable(t *testing.T) {
 
 	if IsSSHReachable(port, time.Second) {
 		t.Fatal("IsSSHReachable() = true for a closed port")
+	}
+}
+
+func TestIsSSHReachableWithoutBanner(t *testing.T) {
+	silent, silentPort := listenOnFreePort(t)
+	serveBanner(t, silent, "")
+
+	if IsSSHReachable(silentPort, 500*time.Millisecond) {
+		t.Fatal("IsSSHReachable() = true for a port that accepts but sends nothing")
+	}
+
+	other, otherPort := listenOnFreePort(t)
+	serveBanner(t, other, "HTTP/1.1 400 Bad Request\r\n")
+
+	if IsSSHReachable(otherPort, 500*time.Millisecond) {
+		t.Fatal("IsSSHReachable() = true for a non-SSH banner")
 	}
 }

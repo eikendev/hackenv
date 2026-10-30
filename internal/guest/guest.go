@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net"
 	"strconv"
@@ -15,6 +16,8 @@ import (
 
 // Host is the address on which passt exposes forwarded guest ports.
 const Host = "127.0.0.1"
+
+const sshBannerPrefix = "SSH-"
 
 type domainXML struct {
 	Devices struct {
@@ -120,16 +123,28 @@ func EnsurePortFree(port int) error {
 	return nil
 }
 
-// IsSSHReachable reports whether the forwarded SSH port accepts connections.
+// IsSSHReachable reports whether an SSH server answers on the forwarded port.
+// A plain TCP connect is not enough: passt accepts the connection on the host side
+// before it knows whether anything listens in the guest, so the SSH banner is required.
 func IsSSHReachable(port int, timeout time.Duration) bool {
 	conn, err := net.DialTimeout("tcp", Address(port), timeout)
 	if err != nil {
 		return false
 	}
+	defer func() {
+		if err := conn.Close(); err != nil {
+			slog.Warn("failed to close probe connection", "port", port, "err", err)
+		}
+	}()
 
-	if err := conn.Close(); err != nil {
-		slog.Warn("failed to close probe connection", "port", port, "err", err)
+	if err := conn.SetReadDeadline(time.Now().Add(timeout)); err != nil {
+		return false
 	}
 
-	return true
+	banner := make([]byte, len(sshBannerPrefix))
+	if _, err := io.ReadFull(conn, banner); err != nil {
+		return false
+	}
+
+	return string(banner) == sshBannerPrefix
 }
