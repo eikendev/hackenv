@@ -20,11 +20,32 @@ Alternatively, install the [required dependencies](#dependencies) and build it y
 go install github.com/eikendev/hackenv/cmd/...@latest
 ```
 
-Ensure that the libvirt daemon is running, and a socket created. On Fedora, this can be done as follows:
+Then install the [dependencies](#dependencies) for your distribution and run `hackenv doctor`.
+It checks every prerequisite and tells you what is missing.
+
+### Supported Platforms
+
+hackenv needs libvirt 9.0 or newer, QEMU with KVM, and passt.
+It talks to libvirt over the unprivileged `qemu:///session` connection, so no system daemon has to be configured and no root privileges are needed.
+
+| Distribution | Install dependencies |
+|---|---|
+| Fedora 40+ | `sudo dnf install libvirt-daemon-kvm qemu-kvm passt virt-viewer openssh-clients` |
+| Debian 12+, LMDE 6+ | `sudo apt install libvirt-daemon libvirt-clients qemu-system-x86 passt virt-viewer openssh-client` |
+| Ubuntu 24.04+, Linux Mint 22+ | `sudo apt install libvirt-daemon libvirt-clients qemu-system-x86 passt virt-viewer openssh-client` |
+| Arch Linux and derivatives | `sudo pacman -S libvirt qemu-desktop passt virt-viewer openssh` |
+| RHEL 9.2+, AlmaLinux, Rocky Linux, CentOS Stream 9+ | `sudo dnf install libvirt qemu-kvm passt virt-viewer openssh-clients` |
+
+On Debian, Ubuntu and their derivatives, add yourself to the `kvm` group and log in again so that your user can open `/dev/kvm`:
+```bash
+sudo usermod -aG kvm "$USER"
 ```
-sudo systemctl start libvirtd
-sudo systemctl start virtqemud.socket
-```
+
+> [!NOTE]
+> openSUSE Tumbleweed and Leap 15.6, Pop!_OS 24.04 and Gentoo ship recent enough versions of libvirt and passt according to their package lists, but have not been tested.
+
+Ubuntu 22.04, Linux Mint 21, Debian 11 and RHEL 8 ship a libvirt older than 9.0 and are not supported.
+Alpine Linux (musl) and NixOS (no FHS library paths) cannot run the release binary; build from source there.
 
 ## 🤘&nbsp;Features
 
@@ -67,8 +88,9 @@ On the host side the directory is `~/.local/share/hackenv/shared`, while on the 
 
 If SELinux denies access to the shared directory, you have to adjust the context of the directory.
 You can run `hackenv fix apply-labels` (or `./bin/hackenv_applylabels`) if you are on Fedora or similar.
-The script will also relabel the downloaded images.
+The script will also relabel the downloaded images, and `hackenv doctor` reports images and directories that still lack the label.
 If you add new files to the shared directory from outside, do not forget to label them as well.
+On hosts without SELinux the script does nothing.
 
 ## ⚙&nbsp;Configuration
 
@@ -88,8 +110,10 @@ alias parrot='hackenv --type=parrot'
 - [libvirt](https://libvirt.org/) 9.0 or newer with [QEMU](https://www.qemu.org/) and KVM
 - [passt](https://passt.top/)
 - [OpenSSH](https://www.openssh.com/) (ssh and ssh-keygen)
-- setxkbmap
-- [virt-viewer](https://virt-manager.org/) or [Remmina](https://remmina.org/)
+- setxkbmap or `localectl` to detect the keyboard layout (optional, otherwise pass `--keymap`)
+- [virt-viewer](https://virt-manager.org/) or [Remmina](https://remmina.org/) for `hackenv gui`
+
+Run `hackenv doctor` to verify that everything is in place.
 
 The binary loads the libvirt client library at runtime, which every libvirt installation provides (`libvirt-libs` on Fedora, `libvirt0` on Debian and Ubuntu).
 Building from source needs a C compiler but no libvirt development files.
