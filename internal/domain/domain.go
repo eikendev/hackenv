@@ -20,7 +20,7 @@ const SharedTag = "shared"
 // Spec describes the VM to define.
 type Spec struct {
 	Name        string
-	MemoryKiB   int
+	MemoryKiB   int64
 	Cores       int
 	ImagePath   string
 	SharedPath  string
