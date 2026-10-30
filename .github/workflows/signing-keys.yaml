@@ -1,0 +1,46 @@
+name: Signing keys
+
+on:
+  schedule:
+    - cron: '30 2 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    name: Compare embedded keys with upstream
+    runs-on: ubuntu-slim
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Fetch upstream keys
+        run: |
+          curl -fsSL https://archive.kali.org/archive-key.asc -o kali-upstream.asc
+          curl -fsSL https://deb.parrot.sh/parrot/misc/parrotsec.gpg -o parrot-upstream.gpg
+
+      - name: Compare fingerprints
+        run: |
+          fingerprint() {
+            gpg --with-colons --show-keys "$1" | awk -F: '$1 == "fpr" { print $10; exit }'
+          }
+          status=0
+          for pair in "kali:kali-upstream.asc" "parrot:parrot-upstream.gpg"; do
+            name="${pair%%:*}"
+            upstream="${pair#*:}"
+            embedded="$(fingerprint "internal/images/keys/${name}.asc")"
+            current="$(fingerprint "${upstream}")"
+            if [ "${embedded}" != "${current}" ]; then
+              echo "::error::${name}: embedded ${embedded} differs from upstream ${current}"
+              status=1
+            else
+              echo "${name}: ${embedded} matches upstream"
+            fi
+          done
+          exit "${status}"
