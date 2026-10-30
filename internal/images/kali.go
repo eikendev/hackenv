@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -30,7 +29,9 @@ func findKaliChecksumLine(scanner *bufio.Scanner) (string, error) {
 	return "", errors.New("cannot find checksum in file")
 }
 
-func kaliInfoRetriever(url string, versionRegex *regexp.Regexp) (*DownloadInfo, error) {
+func kaliInfoRetriever(image *Image) (*DownloadInfo, error) {
+	url := image.ArchiveURL + image.checksumPath
+
 	resp, err := network.GetResponse(url)
 	if err != nil {
 		slog.Error("failed to fetch checksum file", "url", url, "err", err)
@@ -48,7 +49,13 @@ func kaliInfoRetriever(url string, versionRegex *regexp.Regexp) (*DownloadInfo, 
 		return nil, fmt.Errorf("cannot find Kali checksum line: %w", err)
 	}
 
-	return parseChecksumLine(line, versionRegex)
+	info, err := parseChecksumLine(line, image.VersionRegex)
+	if err != nil {
+		return nil, err
+	}
+
+	info.URL = image.ArchiveURL + "/" + info.Filename
+	return info, nil
 }
 
 func kaliBootInitializer(dom *rawLibvirt.Domain) error {
@@ -74,7 +81,7 @@ func kaliSSHStarter(dom *rawLibvirt.Domain) error {
 
 	if err := switchFromTTY(dom); err != nil {
 		slog.Error("failed to switch from tty", "err", err)
-		return fmt.Errorf("failed to switch Kali console from TTY: %w", err)
+		return fmt.Errorf("failed to switch Kali console back from TTY: %w", err)
 	}
 
 	return nil

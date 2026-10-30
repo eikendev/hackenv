@@ -14,7 +14,7 @@ import (
 	"github.com/eikendev/hackenv/internal/constants"
 )
 
-type infoRetriever func(string, *regexp.Regexp) (*DownloadInfo, error)
+type infoRetriever func(*Image) (*DownloadInfo, error)
 
 type bootInitializer func(*rawLibvirt.Domain) error
 
@@ -50,13 +50,14 @@ type DownloadInfo struct {
 	Checksum string
 	Version  string
 	Filename string
+	URL      string
 }
 
 var images = map[string]Image{
 	"kali": {
 		Name:              "kali",
 		DisplayName:       "Kali Linux",
-		ArchiveURL:        "https://kali.download/base-images/current/",
+		ArchiveURL:        "https://kali.download/base-images/current",
 		checksumPath:      "/SHA256SUMS",
 		LocalImageName:    "kali-%s.iso",
 		VersionRegex:      regexp.MustCompile(`\d\d\d\d\.\d+`),
@@ -73,7 +74,7 @@ var images = map[string]Image{
 	"parrot": {
 		Name:              "parrot",
 		DisplayName:       "Parrot Security",
-		ArchiveURL:        "https://deb.parrot.sh/parrot/iso/current",
+		ArchiveURL:        "https://download.parrot.sh/parrot/iso",
 		checksumPath:      "/signed-hashes.txt",
 		LocalImageName:    "parrot-%s.iso",
 		VersionRegex:      regexp.MustCompile(`\d+\.\d+(?:\.\d+)?`),
@@ -91,7 +92,7 @@ var images = map[string]Image{
 
 // GetDownloadInfo retrieves the necessary information to download an image.
 func (i *Image) GetDownloadInfo(strict bool) (*DownloadInfo, error) {
-	info, err := i.infoRetriever(i.ArchiveURL+i.checksumPath, i.VersionRegex)
+	info, err := i.infoRetriever(i)
 	if err != nil {
 		if strict {
 			slog.Error("failed to fetch download info", "image", i.DisplayName, "err", err, "strict", strict)
@@ -102,7 +103,7 @@ func (i *Image) GetDownloadInfo(strict bool) (*DownloadInfo, error) {
 		return nil, nil
 	}
 
-	if info == nil || info.Version == "" || info.Filename == "" || info.Checksum == "" {
+	if info == nil || info.Version == "" || info.Filename == "" || info.Checksum == "" || info.URL == "" {
 		if strict {
 			slog.Error("found invalid download info", "image", i.DisplayName, "strict", strict)
 			return nil, fmt.Errorf("invalid download info for %s", i.DisplayName)

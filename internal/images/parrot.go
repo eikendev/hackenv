@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"regexp"
 	"runtime"
@@ -14,6 +15,10 @@ import (
 
 	"github.com/eikendev/hackenv/internal/network"
 )
+
+const maxIndexSize = 1 << 20
+
+var parrotReleaseDirRegex = regexp.MustCompile(`href="(\d+(?:\.\d+)+)/"`)
 
 func findParrotChecksumLine(scanner *bufio.Scanner) (string, error) {
 	const (
@@ -34,7 +39,7 @@ func findParrotChecksumLine(scanner *bufio.Scanner) (string, error) {
 			inSha256Section = false
 			continue
 		case inSha256Section &&
-			strings.Contains(line, "Parrot-security") &&
+			strings.Contains(line, "Parrot-security-") &&
 			strings.Contains(line, "_"+runtime.GOARCH+".iso"):
 			return strings.TrimSpace(line), nil
 		}
@@ -43,10 +48,55 @@ func findParrotChecksumLine(scanner *bufio.Scanner) (string, error) {
 	return "", errors.New("cannot find checksum in file")
 }
 
-func parrotInfoRetriever(url string, versionRegex *regexp.Regexp) (*DownloadInfo, error) {
-	resp, err := network.GetResponse(url)
+func findLatestRelease(index string, comparer versionComparer) (string, error) {
+	var latest string
+
+	for _, match := range parrotReleaseDirRegex.FindAllStringSubmatch(index, -1) {
+		version := match[1]
+		if latest == "" || comparer.Gt(version, latest) {
+			latest = version
+		}
+	}
+
+	if latest == "" {
+		return "", errors.New("cannot find release directories in index")
+	}
+
+	return latest, nil
+}
+
+func latestParrotRelease(image *Image) (string, error) {
+	resp, err := network.GetResponse(image.ArchiveURL + "/")
 	if err != nil {
-		slog.Error("failed to fetch checksum file", "url", url, "err", err)
+		slog.Error("failed to fetch release index", "url", image.ArchiveURL, "err", err)
+		return "", fmt.Errorf("failed to fetch release index: %w", err)
+	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			slog.Warn("failed to close response body", "err", err)
+		}
+	}()
+
+	index, err := io.ReadAll(io.LimitReader(resp.Body, maxIndexSize))
+	if err != nil {
+		slog.Error("failed to read release index", "url", image.ArchiveURL, "err", err)
+		return "", fmt.Errorf("failed to read release index: %w", err)
+	}
+
+	return findLatestRelease(string(index), image.VersionComparer)
+}
+
+func parrotInfoRetriever(image *Image) (*DownloadInfo, error) {
+	release, err := latestParrotRelease(image)
+	if err != nil {
+		return nil, err
+	}
+
+	releaseURL := image.ArchiveURL + "/" + release
+
+	resp, err := network.GetResponse(releaseURL + image.checksumPath)
+	if err != nil {
+		slog.Error("failed to fetch checksum file", "url", releaseURL+image.checksumPath, "err", err)
 		return nil, fmt.Errorf("failed to get response: %w", err)
 	}
 	defer func() {
@@ -61,7 +111,13 @@ func parrotInfoRetriever(url string, versionRegex *regexp.Regexp) (*DownloadInfo
 		return nil, fmt.Errorf("cannot find Parrot checksum line: %w", err)
 	}
 
-	return parseChecksumLine(line, versionRegex)
+	info, err := parseChecksumLine(line, image.VersionRegex)
+	if err != nil {
+		return nil, err
+	}
+
+	info.URL = releaseURL + "/" + info.Filename
+	return info, nil
 }
 
 func parrotBootInitializer(dom *rawLibvirt.Domain) error {
@@ -92,7 +148,7 @@ func parrotSSHStarter(dom *rawLibvirt.Domain) error {
 
 	if err := switchFromTTY(dom); err != nil {
 		slog.Error("failed to switch from tty", "err", err)
-		return fmt.Errorf("failed to switch Parrot console from TTY: %w", err)
+		return fmt.Errorf("failed to switch Parrot console back from TTY: %w", err)
 	}
 
 	return nil

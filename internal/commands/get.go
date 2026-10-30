@@ -139,10 +139,10 @@ func (c *GetCommand) Run(s *options.Options) error {
 		return nil
 	}
 
-	err = downloadImage(localPath, image.ArchiveURL+"/"+info.Filename)
+	err = downloadImage(localPath, info.URL)
 	if err != nil {
-		slog.Error("failed to download image", "path", localPath, "url", image.ArchiveURL+"/"+info.Filename, "err", err)
-		return fmt.Errorf("cannot download image %s/%s: %w", image.ArchiveURL, info.Filename, err)
+		slog.Error("failed to download image", "path", localPath, "url", info.URL, "err", err)
+		return fmt.Errorf("cannot download image %s: %w", info.URL, err)
 	}
 
 	err = validateChecksum(localPath, info.Checksum)
