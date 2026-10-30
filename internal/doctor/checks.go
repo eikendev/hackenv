@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+	"time"
 
 	"golang.org/x/sys/unix"
 	rawLibvirt "libvirt.org/go/libvirt"
@@ -22,6 +23,7 @@ const (
 	selinuxMount      = "/sys/fs/selinux"
 	selinuxLabel      = "svirt_image_t"
 	kvmDevice         = "/dev/kvm"
+	keyExpiryWarning  = 90 * 24 * time.Hour
 )
 
 var hostArchToLibvirt = map[string]string{
@@ -43,6 +45,7 @@ func Checks() []Check {
 		{Name: "keyboard layout", Run: anyCommandCheck("keyboard layout", []string{"setxkbmap", "localectl"}, "pass --keymap to hackenv up")},
 		{Name: "viewer", Run: anyCommandCheck("viewer", []string{"virt-viewer", "remmina"}, "install virt-viewer or remmina for hackenv gui")},
 		{Name: "selinux labels", Run: checkSELinuxLabels},
+		{Name: "signing keys", Run: checkSigningKeys},
 	}
 
 	for _, image := range images.GetAllImages() {
@@ -247,6 +250,38 @@ func hasSELinuxType(path, wantType string) bool {
 	}
 
 	return parts[2] == wantType
+}
+
+func checkSigningKeys() Result {
+	const name = "signing keys"
+
+	return checkKeyExpiry(name, images.SigningKeys(), time.Now())
+}
+
+func checkKeyExpiry(name string, keys []images.SigningKey, now time.Time) Result {
+	var expiring []string
+
+	for _, key := range keys {
+		expiry, err := key.Expiry()
+		if err != nil {
+			return fail(name, fmt.Sprintf("%s: %v", key.Image, err), "")
+		}
+		if expiry.IsZero() {
+			continue
+		}
+		if now.After(expiry) {
+			return fail(name, fmt.Sprintf("%s key expired on %s", key.Image, expiry.Format(time.DateOnly)), "update hackenv or pass --signing-key to hackenv get")
+		}
+		if expiry.Sub(now) < keyExpiryWarning {
+			expiring = append(expiring, fmt.Sprintf("%s expires %s", key.Image, expiry.Format(time.DateOnly)))
+		}
+	}
+
+	if len(expiring) > 0 {
+		return fail(name, strings.Join(expiring, ", "), "update hackenv once a release with the new key is available")
+	}
+
+	return pass(name, "valid")
 }
 
 func imageCheck(image images.Image) func() Result {

@@ -1,6 +1,11 @@
 package doctor
 
-import "testing"
+import (
+	"testing"
+	"time"
+
+	"github.com/eikendev/hackenv/internal/images"
+)
 
 const sampleCapabilities = `<capabilities>
   <host><cpu><arch>x86_64</arch></cpu></host>
@@ -59,6 +64,32 @@ func TestFormatLibvirtVersion(t *testing.T) {
 		if got := formatLibvirtVersion(version); got != want {
 			t.Errorf("formatLibvirtVersion(%d) = %q, want %q", version, got, want)
 		}
+	}
+}
+
+func TestCheckKeyExpiry(t *testing.T) {
+	keys := images.SigningKeys()
+	expiry, err := keys[0].Expiry()
+	if err != nil {
+		t.Fatalf("expiry: %v", err)
+	}
+
+	tests := []struct {
+		name string
+		now  time.Time
+		want Status
+	}{
+		{name: "long before expiry", now: expiry.Add(-365 * 24 * time.Hour), want: Pass},
+		{name: "shortly before expiry", now: expiry.Add(-24 * time.Hour), want: Fail},
+		{name: "after expiry", now: expiry.Add(24 * time.Hour), want: Fail},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := checkKeyExpiry("signing keys", keys[:1], tt.now); got.Status != tt.want {
+				t.Fatalf("checkKeyExpiry() = %s (%s), want %s", got.Status, got.Detail, tt.want)
+			}
+		})
 	}
 }
 
