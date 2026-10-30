@@ -9,10 +9,15 @@ builds:
     main: ./cmd/hackenv
     tags:
       - libvirt_dlopen
+    env:
+      - CGO_ENABLED=1
+      - >-
+        {{- if eq .Arch "arm64" }}CC=aarch64-linux-gnu-gcc{{- else }}CC=gcc{{- end }}
     goos:
       - linux
     goarch:
       - amd64
+      - arm64
 
 checksum:
   algorithm: sha256
