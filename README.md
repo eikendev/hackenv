@@ -17,7 +17,7 @@ The **preferred way** is to download the binary for amd64 or arm64 from the [lat
 
 Alternatively, build it yourself:
 ```bash
-go install -tags libvirt_dlopen github.com/eikendev/hackenv/cmd/...@latest
+go install -tags libvirt_dlopen,nosqlite,disable_libutp github.com/eikendev/hackenv/cmd/...@latest
 ```
 
 Then install the [dependencies](#dependencies) for your distribution and run `hackenv doctor`.

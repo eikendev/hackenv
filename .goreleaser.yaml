@@ -9,6 +9,8 @@ builds:
     main: ./cmd/hackenv
     tags:
       - libvirt_dlopen
+      - nosqlite
+      - disable_libutp
     env:
       - CGO_ENABLED=1
       # The libvirt headers are architecture independent; the cross compiler does not
