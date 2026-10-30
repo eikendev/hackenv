@@ -11,6 +11,9 @@ builds:
       - libvirt_dlopen
     env:
       - CGO_ENABLED=1
+      # The libvirt headers are architecture independent; the cross compiler does not
+      # search /usr/include on its own.
+      - CGO_CFLAGS=-I/usr/include
       - >-
         {{- if eq .Arch "arm64" }}CC=aarch64-linux-gnu-gcc{{- else }}CC=gcc{{- end }}
     goos:

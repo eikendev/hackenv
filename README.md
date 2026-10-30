@@ -130,8 +130,8 @@ alias parrot='hackenv --type=parrot'
 
 Run `hackenv doctor` to verify that everything is in place.
 
-The binary loads the libvirt client library at runtime, which every libvirt installation provides (`libvirt-libs` on Fedora, `libvirt0` on Debian and Ubuntu).
-Building from source needs a C compiler but no libvirt development files.
+The binary loads the libvirt client library at runtime, which every libvirt installation provides (`libvirt-libs` on Fedora, `libvirt0` on Debian and Ubuntu), so one release runs on any libvirt 9.0 or newer.
+Building from source needs a C compiler and the libvirt development headers (`libvirt-devel` on Fedora, `libvirt-dev` on Debian and Ubuntu).
 
 ## 💡&nbsp;Alternatives
 

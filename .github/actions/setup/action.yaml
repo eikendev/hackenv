@@ -13,11 +13,11 @@ runs:
           go.sum
           tools/go.sum
 
-    - name: Install cross compiler
+    - name: Install build dependencies
       shell: bash
       run: |
         sudo apt-get update
-        sudo apt-get install -y gcc-aarch64-linux-gnu
+        sudo apt-get install -y libvirt-dev gcc-aarch64-linux-gnu
 
     - name: Install dependencies
       shell: bash
