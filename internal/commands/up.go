@@ -89,8 +89,10 @@ func buildSpec(c *UpCommand, image *images.Image, path string, port int, feature
 	}
 
 	sharedMode := domain.Shared9p
+	var idMap *domain.IDMap
 	if features.Virtiofs {
 		sharedMode = domain.SharedVirtiofs
+		idMap = &domain.IDMap{GuestID: image.GuestID, HostUID: os.Getuid(), HostGID: os.Getgid()}
 	}
 
 	return domain.Spec{
@@ -100,6 +102,7 @@ func buildSpec(c *UpCommand, image *images.Image, path string, port int, feature
 		ImagePath:   path,
 		SharedPath:  sharedPath,
 		SharedMode:  sharedMode,
+		SharedIDMap: idMap,
 		Machine:     features.Machine,
 		CPUMode:     features.CPUMode,
 		VideoModel:  features.VideoModel,

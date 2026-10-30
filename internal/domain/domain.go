@@ -17,6 +17,13 @@ const (
 // SharedTag is the mount tag the guest uses to mount the shared directory.
 const SharedTag = "shared"
 
+// IDMap maps the guest's login user onto the host user that owns the shared directory.
+type IDMap struct {
+	GuestID int
+	HostUID int
+	HostGID int
+}
+
 // Spec describes the VM to define.
 type Spec struct {
 	Name        string
@@ -25,6 +32,7 @@ type Spec struct {
 	ImagePath   string
 	SharedPath  string
 	SharedMode  string
+	SharedIDMap *IDMap
 	Machine     string
 	CPUMode     string
 	VideoModel  string
@@ -66,6 +74,12 @@ var domainTemplate = template.Must(template.New("domain").Funcs(template.FuncMap
       <driver type='virtiofs'/>
       <source dir='{{esc .SharedPath}}'/>
       <target dir='shared'/>
+{{- if .SharedIDMap}}
+      <idmap>
+        <uid start='{{.SharedIDMap.GuestID}}' target='{{.SharedIDMap.HostUID}}' count='1'/>
+        <gid start='{{.SharedIDMap.GuestID}}' target='{{.SharedIDMap.HostGID}}' count='1'/>
+      </idmap>
+{{- end}}
     </filesystem>
 {{- else}}
     <filesystem type='mount' accessmode='mapped'>

@@ -60,6 +60,7 @@ func TestRenderDefaults(t *testing.T) {
 func TestRenderModernFeatures(t *testing.T) {
 	spec := baseSpec()
 	spec.SharedMode = SharedVirtiofs
+	spec.SharedIDMap = &IDMap{GuestID: 1000, HostUID: 1234, HostGID: 5678}
 	spec.Machine = "q35"
 	spec.CPUMode = "host-passthrough"
 	spec.VideoModel = "virtio"
@@ -72,6 +73,8 @@ func TestRenderModernFeatures(t *testing.T) {
 		"<memoryBacking>",
 		"<driver type='virtiofs'/>",
 		"accessmode='passthrough'",
+		"<uid start='1000' target='1234' count='1'/>",
+		"<gid start='1000' target='5678' count='1'/>",
 		"<model type='virtio'/>",
 	} {
 		if !strings.Contains(out, want) {
