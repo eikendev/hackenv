@@ -3,6 +3,8 @@ GO_FILES := $(shell find . -type f \( -iname '*.go' \))
 GO_MODULE := github.com/eikendev/hackenv
 GO_TOOL := go tool -modfile=./tools/go.mod
 
+export GOFLAGS := -tags=libvirt_dlopen
+
 SCRIPT_FILES := $(wildcard ./bin/*)
 
 .PHONY: build

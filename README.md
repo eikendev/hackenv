@@ -98,7 +98,8 @@ alias parrot='hackenv --type=parrot'
 - setxkbmap
 - [virt-viewer](https://virt-manager.org/) or [Remmina](https://remmina.org/)
 
-To build the binary yourself, you also need the development files of libvirt, usually called `libvirt-dev` or `libvirt-devel`.
+The binary loads the libvirt client library at runtime, which every libvirt installation provides (`libvirt-libs` on Fedora, `libvirt0` on Debian and Ubuntu).
+Building from source needs a C compiler but no libvirt development files.
 
 ## 💡&nbsp;Alternatives
 
