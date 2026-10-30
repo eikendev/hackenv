@@ -2,9 +2,14 @@
 package main
 
 import (
+	"path/filepath"
+
+	"github.com/adrg/xdg"
 	"github.com/alecthomas/kong"
+	kongyaml "github.com/alecthomas/kong-yaml"
 
 	"github.com/eikendev/hackenv/internal/commands"
+	"github.com/eikendev/hackenv/internal/constants"
 	"github.com/eikendev/hackenv/internal/logging"
 	"github.com/eikendev/hackenv/internal/options"
 )
@@ -22,11 +27,16 @@ var cmd struct {
 	Version commands.VersionCommand `cmd:"version" help:"Print the version of hackenv"`
 }
 
+func defaultConfigPath() string {
+	return filepath.Join(xdg.ConfigHome, constants.XdgAppname, "config.yaml")
+}
+
 func main() {
 	kctx := kong.Parse(
 		&cmd,
 		kong.Description("hackenv provisions and manages preconfigured VMs for security research."),
 		kong.UsageOnError(),
+		kong.Configuration(kongyaml.Loader, defaultConfigPath()),
 		kong.Bind(&cmd.Options),
 	)
 

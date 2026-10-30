@@ -98,11 +98,21 @@ On hosts without SELinux the script does nothing.
 
 ## ⚙&nbsp;Configuration
 
-The tool currently does not support configuration via files.
-However, some options can be set using environment variables.
-Check out the help (`--help`) of a command to see what options support this.
+Every flag can also be set through an environment variable or a YAML config file.
+Check out the help (`--help`) of a command to see the variable names.
+Command line flags win over environment variables, which win over the config file.
 
-For instance, to operate with Parrot Security by default, you can set `$HACKENV_TYPE=parrot`.
+The config file lives at `~/.config/hackenv/config.yaml` (or wherever `$XDG_CONFIG_HOME` points), and `--config FILE` selects another one.
+Global flags are top-level keys, flags of a command are nested under the command name:
+```yaml
+type: parrot
+up:
+  memory: 8G
+  cores: 4
+  ssh-port: 2300
+```
+
+For instance, to operate with Parrot Security by default, you can also set `$HACKENV_TYPE=parrot`.
 If you work with both operating systems, then I recommend using shell aliases:
 ```bash
 alias kali='hackenv --type=kali'
