@@ -9,7 +9,6 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 
 	progressbar "github.com/schollz/progressbar/v3"
@@ -23,6 +22,7 @@ import (
 
 const (
 	partialSuffix      = ".part"
+	downloadSuffix     = ".download"
 	selinuxMount       = "/sys/fs/selinux"
 	maxTorrentFileSize = 4 << 20
 )
@@ -148,8 +148,8 @@ func (c *GetCommand) download(ctx context.Context, info *images.DownloadInfo, lo
 	return nil
 }
 
-// downloadTorrent fetches the torrent file, downloads its content into a temporary directory
-// next to path and moves the result into place.
+// downloadTorrent fetches the torrent file, downloads its content into a directory next to
+// path and moves the result into place. The directory is kept on failure so a rerun resumes.
 func downloadTorrent(ctx context.Context, path, torrentURL string, verbose bool) error {
 	slog.Info("downloading image", "path", path, "torrent", torrentURL)
 
@@ -159,21 +159,20 @@ func downloadTorrent(ctx context.Context, path, torrentURL string, verbose bool)
 		return fmt.Errorf("cannot fetch torrent file: %w", err)
 	}
 
-	tempDir, err := os.MkdirTemp(filepath.Dir(path), "download-")
-	if err != nil {
-		slog.Error("failed to create download directory", "dir", filepath.Dir(path), "err", err)
+	downloadDir := path + downloadSuffix
+	if err := os.MkdirAll(downloadDir, 0o750); err != nil {
+		slog.Error("failed to create download directory", "dir", downloadDir, "err", err)
 		return fmt.Errorf("cannot create download directory: %w", err)
 	}
-	defer removeDir(tempDir)
 
 	logger := slog.New(slog.DiscardHandler)
 	if verbose {
 		logger = slog.Default()
 	}
 
-	downloaded, err := download.Torrent(ctx, metaInfo, tempDir, logger)
+	downloaded, err := download.Torrent(ctx, metaInfo, downloadDir, logger)
 	if err != nil {
-		slog.Error("failed to download image", "torrent", torrentURL, "err", err)
+		slog.Error("failed to download image", "torrent", torrentURL, "dir", downloadDir, "hint", "rerun to resume", "err", err)
 		return err
 	}
 
@@ -181,6 +180,8 @@ func downloadTorrent(ctx context.Context, path, torrentURL string, verbose bool)
 		slog.Error("failed to move image into place", "from", downloaded, "to", path, "err", err)
 		return fmt.Errorf("cannot move %s to %s: %w", downloaded, path, err)
 	}
+
+	removeDir(downloadDir)
 
 	slog.Info("downloaded image", "path", path)
 	return nil
