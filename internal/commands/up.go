@@ -5,10 +5,10 @@ import (
 	"log/slog"
 	"os"
 	"os/exec"
+	"strings"
 	"syscall"
 	"time"
 
-	"github.com/melbahja/goph"
 	"golang.org/x/crypto/ssh"
 	rawLibvirt "libvirt.org/go/libvirt"
 
@@ -24,13 +24,14 @@ import (
 )
 
 const (
-	sharedDir        = "shared"
-	maxPort          = 65535
-	bootGraceDelay   = 20 * time.Second
-	sshReadyTimeout  = 2 * time.Minute
-	sshProbeWindow   = 10 * time.Second
-	sshProbeInterval = time.Second
-	xmlTemplate      = `
+	sharedDir         = "shared"
+	maxPort           = 65535
+	bootGraceDelay    = 20 * time.Second
+	sshReadyTimeout   = 2 * time.Minute
+	sshProbeWindow    = 10 * time.Second
+	sshProbeInterval  = time.Second
+	sshConnectTimeout = 20 * time.Second
+	xmlTemplate       = `
     <domain type='kvm'>
       <name>%s</name>
       <memory unit='KiB'>%d</memory>
@@ -207,25 +208,35 @@ func provisionClient(image *images.Image, port int) error {
 	return nil
 }
 
-func connectGuest(image *images.Image, port int) (*goph.Client, error) {
-	client, err := goph.NewConn(&goph.Config{
-		User:     image.SSHUser,
-		Addr:     guest.Host,
-		Port:     uint(port), //#nosec G115 -- port is validated to fit in 16 bits
-		Auth:     goph.Password(image.SSHPassword),
-		Timeout:  goph.DefaultTimeout,
-		Callback: ssh.InsecureIgnoreHostKey(), //#nosec G106 -- the guest is a fresh live VM on loopback
-	})
+func connectGuest(image *images.Image, port int) (*ssh.Client, error) {
+	config := &ssh.ClientConfig{
+		User:            image.SSHUser,
+		Auth:            []ssh.AuthMethod{ssh.Password(image.SSHPassword)},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //#nosec G106 -- the guest is a fresh live VM on loopback
+		Timeout:         sshConnectTimeout,
+	}
+
+	client, err := ssh.Dial("tcp", guest.Address(port), config)
 	if err != nil {
 		slog.Error("failed to connect to guest", "image", image.Name, "err", err)
-		return nil, fmt.Errorf("cannot create SSH client for %s: %w", image.Name, err)
-	}
-	if client == nil {
-		slog.Error("missing ssh client", "image", image.Name)
-		return nil, fmt.Errorf("encountered nil SSH client for %s", image.Name)
+		return nil, fmt.Errorf("cannot connect to %s over SSH: %w", image.Name, err)
 	}
 
 	return client, nil
+}
+
+func runGuestCommand(client *ssh.Client, cmd string) error {
+	session, err := client.NewSession()
+	if err != nil {
+		return fmt.Errorf("cannot open SSH session: %w", err)
+	}
+	defer handling.Close(session)
+
+	if out, err := session.CombinedOutput(cmd); err != nil {
+		return fmt.Errorf("%w: %s", err, strings.TrimSpace(string(out)))
+	}
+
+	return nil
 }
 
 func configureClient(c *UpCommand, image *images.Image, port int, keymap string) error {
@@ -233,6 +244,7 @@ func configureClient(c *UpCommand, image *images.Image, port int, keymap string)
 	if err != nil {
 		return err
 	}
+	defer handling.Close(client)
 
 	publicKeyPath, err := paths.GetDataFilePath(constants.SSHKeypairName + ".pub")
 	if err != nil {
@@ -280,10 +292,9 @@ func configureClient(c *UpCommand, image *images.Image, port int, keymap string)
 	}
 
 	for _, cmd := range cmds {
-		_, err := client.Run(cmd)
-		if err != nil {
+		if err := runGuestCommand(client, cmd); err != nil {
 			slog.Error("failed to run guest command", "command", cmd, "err", err)
-			return fmt.Errorf("failed to run command '%s' over SSH: %s", cmd, err)
+			return fmt.Errorf("failed to run command '%s' over SSH: %w", cmd, err)
 		}
 	}
 
