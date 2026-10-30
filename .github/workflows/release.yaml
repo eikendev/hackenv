@@ -43,8 +43,8 @@ jobs:
     name: Publish release artifacts
     needs: release
     if: ${{ needs.release.outputs.release_created }}
-    runs-on: ubuntu-slim
-    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     permissions:
       contents: write
