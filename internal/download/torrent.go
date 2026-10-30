@@ -97,6 +97,10 @@ func waitForCompletion(ctx context.Context, t *torrent.Torrent) error {
 			return nil
 		case <-ticker.C:
 			_ = bar.Set64(t.BytesCompleted())
+			if t.BytesMissing() == 0 {
+				_ = bar.Finish()
+				return nil
+			}
 		case <-t.Closed():
 			return errors.New("torrent was closed before completion")
 		}
