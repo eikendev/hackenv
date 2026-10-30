@@ -55,7 +55,6 @@ Alpine Linux (musl) and NixOS (no FHS library paths) cannot run the release bina
 - **Simple and intuitive** command line interface.
 - Configure instant SSH access based on **public-key authentication**.
 - Set up a **shared directory** between host and guest.
-- Set the same **keyboard layout** in the guest as on the host.
 
 ## 📄&nbsp;Usage
 
@@ -127,7 +126,6 @@ alias parrot='hackenv --type=parrot'
 - [libvirt](https://libvirt.org/) 9.0 or newer with [QEMU](https://www.qemu.org/) and KVM
 - [passt](https://passt.top/)
 - [OpenSSH](https://www.openssh.com/) (ssh and ssh-keygen)
-- setxkbmap or `localectl` to detect the keyboard layout (optional, otherwise pass `--keymap`)
 - [virt-viewer](https://virt-manager.org/) or [Remmina](https://remmina.org/) for `hackenv gui`
 
 Run `hackenv doctor` to verify that everything is in place.

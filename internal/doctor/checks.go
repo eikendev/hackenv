@@ -42,7 +42,6 @@ func Checks() []Check {
 		{Name: "passt", Run: commandCheck("passt", "passt", "install the passt package")},
 		{Name: "ssh", Run: commandCheck("ssh", "ssh", "install the OpenSSH client")},
 		{Name: "ssh-keygen", Run: commandCheck("ssh-keygen", "ssh-keygen", "install the OpenSSH client")},
-		{Name: "keyboard layout", Run: anyCommandCheck("keyboard layout", []string{"setxkbmap", "localectl"}, "pass --keymap to hackenv up")},
 		{Name: "viewer", Run: anyCommandCheck("viewer", []string{"virt-viewer", "remmina"}, "install virt-viewer or remmina for hackenv gui")},
 		{Name: "selinux labels", Run: checkSELinuxLabels},
 		{Name: "signing keys", Run: checkSigningKeys},

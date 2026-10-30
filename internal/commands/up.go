@@ -232,7 +232,7 @@ func closeSession(session *ssh.Session) {
 	}
 }
 
-func configureClient(c *UpCommand, image *images.Image, port int, keymap string) error {
+func configureClient(c *UpCommand, image *images.Image, port int) error {
 	client, err := connectGuest(image, port)
 	if err != nil {
 		return err
@@ -253,13 +253,6 @@ func configureClient(c *UpCommand, image *images.Image, port int, keymap string)
 
 	publicKeyStr := string(publicKey)
 
-	if keymap == "" {
-		keymap, err = host.GetHostKeyboardLayout()
-		if err != nil {
-			slog.Warn("skipping guest keymap configuration", "hint", "use --keymap to set one", "err", err)
-		}
-	}
-
 	cmds := image.ConfigurationCmds
 	cmds = append(cmds, []string{
 		// Add the SSH key to authorized_keys.
@@ -279,10 +272,6 @@ func configureClient(c *UpCommand, image *images.Image, port int, keymap string)
 		// Set screen size to Full HD.
 		fmt.Sprintf("DISPLAY=:0 xrandr --size %s", c.DisplaySize),
 	}...)
-
-	if keymap != "" {
-		cmds = append(cmds, fmt.Sprintf("DISPLAY=:0 setxkbmap %s", keymap))
-	}
 
 	for _, cmd := range cmds {
 		if err := runGuestCommand(client, cmd); err != nil {
@@ -456,7 +445,7 @@ func (c *UpCommand) bootAndConfigure(dom *rawLibvirt.Domain, image *images.Image
 		return err
 	}
 
-	if err := configureClient(c, image, port, opts.Keymap); err != nil {
+	if err := configureClient(c, image, port); err != nil {
 		slog.Error("failed to configure guest", "err", err)
 		return fmt.Errorf("cannot configure guest %s: %w", image.DisplayName, err)
 	}
