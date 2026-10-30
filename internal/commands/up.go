@@ -2,7 +2,9 @@ package commands
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"os/exec"
@@ -226,13 +228,20 @@ func runGuestCommand(client *ssh.Client, cmd string) error {
 	if err != nil {
 		return fmt.Errorf("cannot open SSH session: %w", err)
 	}
-	defer handling.Close(session)
+	defer closeSession(session)
 
 	if out, err := session.CombinedOutput(cmd); err != nil {
 		return fmt.Errorf("%w: %s", err, strings.TrimSpace(string(out)))
 	}
 
 	return nil
+}
+
+// closeSession closes an SSH session; the remote side closing first yields io.EOF, which is expected.
+func closeSession(session *ssh.Session) {
+	if err := session.Close(); err != nil && !errors.Is(err, io.EOF) {
+		slog.Warn("failed to close ssh session", "err", err)
+	}
 }
 
 func configureClient(c *UpCommand, image *images.Image, port int, sharedMode, keymap string) error {
