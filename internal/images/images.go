@@ -94,21 +94,21 @@ func (i *Image) GetDownloadInfo(strict bool) (*DownloadInfo, error) {
 	info, err := i.infoRetriever(i.ArchiveURL+i.checksumPath, i.VersionRegex)
 	if err != nil {
 		if strict {
-			slog.Error("Cannot retrieve latest image details", "image", i.DisplayName, "err", err, "strict", strict)
+			slog.Error("failed to fetch download info", "image", i.DisplayName, "err", err, "strict", strict)
 			return nil, fmt.Errorf("cannot retrieve latest image details for %s: %w", i.DisplayName, err)
 		}
 
-		slog.Warn("Cannot retrieve latest image details", "image", i.DisplayName, "err", err, "strict", strict)
+		slog.Warn("failed to fetch download info", "image", i.DisplayName, "err", err, "strict", strict)
 		return nil, nil
 	}
 
 	if info == nil || info.Version == "" || info.Filename == "" || info.Checksum == "" {
 		if strict {
-			slog.Error("Invalid download info retrieved", "image", i.DisplayName, "strict", strict)
+			slog.Error("found invalid download info", "image", i.DisplayName, "strict", strict)
 			return nil, fmt.Errorf("invalid download info for %s", i.DisplayName)
 		}
 
-		slog.Warn("Invalid download info retrieved", "image", i.DisplayName, "strict", strict)
+		slog.Warn("found invalid download info", "image", i.DisplayName, "strict", strict)
 		return nil, nil
 	}
 
@@ -117,13 +117,13 @@ func (i *Image) GetDownloadInfo(strict bool) (*DownloadInfo, error) {
 
 // Boot executes the necessary steps to boot a downloaded image.
 func (i *Image) Boot(dom *rawLibvirt.Domain, version string) error {
-	slog.Info("Booting image", "image", i.DisplayName, "version", version)
+	slog.Info("booting image", "image", i.DisplayName, "version", version)
 	return i.bootInitializer(dom)
 }
 
 // StartSSH executes the necessary steps to start SSH on a booted image.
 func (i *Image) StartSSH(dom *rawLibvirt.Domain) error {
-	slog.Info("Bootstrapping SSH", "image", i.DisplayName)
+	slog.Info("starting ssh", "image", i.DisplayName)
 	return i.sshStarter(dom)
 }
 
@@ -133,7 +133,7 @@ func (i *Image) GetLocalPath(version string) (string, error) {
 
 	path, err := xdg.DataFile(filepath.Join(constants.XdgAppname, filename))
 	if err != nil {
-		slog.Error("Cannot access data directory", "err", err, "file", filename)
+		slog.Error("failed to resolve data path", "err", err, "file", filename)
 		return "", fmt.Errorf("cannot resolve data path for %s: %w", filename, err)
 	}
 
@@ -146,17 +146,17 @@ func (i *Image) GetLatestPath() (string, error) {
 
 	path, err := xdg.DataFile(filepath.Join(constants.XdgAppname, imageGlob))
 	if err != nil {
-		slog.Error("Cannot access data directory", "err", err, "pattern", imageGlob)
+		slog.Error("failed to resolve data path", "err", err, "pattern", imageGlob)
 		return "", fmt.Errorf("cannot resolve data path for pattern %s: %w", imageGlob, err)
 	}
 
 	matches, err := filepath.Glob(path)
 	if err != nil {
-		slog.Error("Cannot find image", "image", i.DisplayName, "err", err)
+		slog.Error("failed to glob images", "image", i.DisplayName, "err", err)
 		return "", fmt.Errorf("cannot glob images for %s: %w", i.DisplayName, err)
 	}
 	if len(matches) == 0 {
-		slog.Error("Cannot find image", "image", i.DisplayName)
+		slog.Error("missing image", "image", i.DisplayName)
 		return "", fmt.Errorf("found no images for %s", i.DisplayName)
 	}
 
@@ -178,7 +178,7 @@ func (i *Image) GetLatestPath() (string, error) {
 func GetImageDetails(name string) (Image, error) {
 	image, ok := images[name]
 	if !ok {
-		slog.Error("Image not supported", "image", name)
+		slog.Error("found invalid image type", "image", name)
 		return Image{}, fmt.Errorf("cannot use image %s: not supported", name)
 	}
 	return image, nil
@@ -197,7 +197,7 @@ func (i *Image) FileVersion(path string) string {
 func sendKeys(dom *rawLibvirt.Domain, keys []uint) error {
 	err := dom.SendKey(uint(rawLibvirt.KEYCODE_SET_LINUX), 10, keys, 0)
 	if err != nil {
-		slog.Error("Cannot send keys", "err", err)
+		slog.Error("failed to send keys", "err", err)
 		return fmt.Errorf("cannot send keys: %w", err)
 	}
 

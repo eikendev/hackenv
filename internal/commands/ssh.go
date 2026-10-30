@@ -23,20 +23,20 @@ type SSHCommand struct{}
 func (c *SSHCommand) Run(s *options.Options) error {
 	image, err := images.GetImageDetails(s.Type)
 	if err != nil {
-		slog.Error("Failed to get image details for ssh command", "type", s.Type, "err", err)
+		slog.Error("failed to resolve image", "type", s.Type, "err", err)
 		return fmt.Errorf("cannot resolve image details for %q: %w", s.Type, err)
 	}
 
 	conn, err := libvirt.Connect()
 	if err != nil {
-		slog.Error("Failed to connect to libvirt for ssh command", "err", err)
+		slog.Error("failed to connect to libvirt", "err", err)
 		return fmt.Errorf("cannot connect to libvirt: %w", err)
 	}
 	defer handling.CloseConnect(conn)
 
 	dom, err := libvirt.GetDomain(conn, &image, true)
 	if err != nil {
-		slog.Error("Failed to lookup domain for ssh command", "image", image.Name, "err", err)
+		slog.Error("failed to look up domain", "image", image.Name, "err", err)
 		return fmt.Errorf("cannot look up domain %q: %w", image.Name, err)
 	}
 	defer handling.FreeDomain(dom)
@@ -52,14 +52,14 @@ func (c *SSHCommand) Run(s *options.Options) error {
 		fmt.Sprintf("%s@%s", image.SSHUser, guest.Host),
 	})
 	if err != nil {
-		slog.Error("Failed to build SSH arguments", "err", err)
+		slog.Error("failed to build ssh arguments", "err", err)
 		return fmt.Errorf("cannot build SSH arguments: %w", err)
 	}
 
 	//#nosec G204
 	err = syscall.Exec(args[0], args, os.Environ())
 	if err != nil {
-		slog.Error("Cannot spawn SSH process", "err", err)
+		slog.Error("failed to exec ssh", "err", err)
 		return fmt.Errorf("failed to exec SSH client: %w", err)
 	}
 
@@ -69,12 +69,12 @@ func (c *SSHCommand) Run(s *options.Options) error {
 func buildSSHArgs(port int, customArgs []string) ([]string, error) {
 	sshPath, err := paths.GetCmdPath("ssh")
 	if err != nil {
-		slog.Error("ssh command not found", "err", err)
+		slog.Error("missing ssh command", "err", err)
 		return nil, fmt.Errorf("cannot locate ssh binary: %w", err)
 	}
 	keyPath, err := paths.GetDataFilePath(constants.SSHKeypairName)
 	if err != nil {
-		slog.Error("Failed to locate SSH keypair path", "err", err)
+		slog.Error("failed to resolve ssh keypair path", "err", err)
 		return nil, fmt.Errorf("cannot locate ssh keypair: %w", err)
 	}
 

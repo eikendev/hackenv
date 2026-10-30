@@ -17,7 +17,7 @@ import (
 func GetDataFilePath(file string) (string, error) {
 	path, err := xdg.DataFile(filepath.Join(constants.XdgAppname, file))
 	if err != nil {
-		slog.Error("Cannot access data directory", "file", file, "err", err)
+		slog.Error("failed to resolve data path", "file", file, "err", err)
 		return "", fmt.Errorf("cannot resolve data file %q: %w", file, err)
 	}
 
@@ -28,7 +28,7 @@ func GetDataFilePath(file string) (string, error) {
 func EnsureDirExists(path string) error {
 	err := os.MkdirAll(path, 0o750)
 	if err != nil {
-		slog.Error("Cannot create directory", "path", path, "err", err)
+		slog.Error("failed to create directory", "path", path, "err", err)
 		return fmt.Errorf("cannot create directory %q: %w", path, err)
 	}
 	return nil
@@ -38,7 +38,7 @@ func EnsureDirExists(path string) error {
 func DoesPostbootExist(path string) bool {
 	path = filepath.Join(path, constants.PostbootFile)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		slog.Info("Postboot file does not exist", "path", path)
+		slog.Debug("missing postboot file", "path", path)
 		return false
 	}
 	return true

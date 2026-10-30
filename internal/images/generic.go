@@ -81,7 +81,7 @@ func genericBootInitializer(dom *rawLibvirt.Domain) error {
 
 func switchToTTY(dom *rawLibvirt.Domain) error {
 	if err := sendKeys(dom, []uint{KEY_LEFTCTRL, KEY_LEFTALT, KEY_F1}); err != nil {
-		slog.Error("Failed to send key sequence to switch to TTY", "err", err)
+		slog.Error("failed to switch to tty", "err", err)
 		return fmt.Errorf("failed to switch console to TTY: %w", err)
 	}
 	time.Sleep(500 * time.Millisecond)
@@ -90,7 +90,7 @@ func switchToTTY(dom *rawLibvirt.Domain) error {
 
 func switchFromTTY(dom *rawLibvirt.Domain) error {
 	if err := sendKeys(dom, []uint{KEY_LEFTCTRL, KEY_LEFTALT, KEY_F7}); err != nil {
-		slog.Error("Failed to send key sequence to switch from TTY", "err", err)
+		slog.Error("failed to switch from tty", "err", err)
 		return fmt.Errorf("failed to switch console from TTY: %w", err)
 	}
 	time.Sleep(500 * time.Millisecond)
@@ -113,7 +113,7 @@ func enablePasswordSSH(dom *rawLibvirt.Domain) error {
 
 	for _, key := range keys {
 		if err := sendKeys(dom, []uint{key}); err != nil {
-			slog.Error("Failed to send key while enabling password SSH", "err", err, "key", key)
+			slog.Error("failed to send key", "err", err, "key", key)
 			return fmt.Errorf("failed to enable password SSH: %w", err)
 		}
 	}
@@ -133,7 +133,7 @@ func systemdRestartSSH(dom *rawLibvirt.Domain) error {
 
 	for _, key := range keys {
 		if err := sendKeys(dom, []uint{key}); err != nil {
-			slog.Error("Failed to send key while restarting SSH via systemd", "err", err, "key", key)
+			slog.Error("failed to send key", "err", err, "key", key)
 			return fmt.Errorf("failed to restart SSH via systemd: %w", err)
 		}
 	}

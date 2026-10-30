@@ -33,18 +33,18 @@ func findKaliChecksumLine(scanner *bufio.Scanner) (string, error) {
 func kaliInfoRetriever(url string, versionRegex *regexp.Regexp) (*DownloadInfo, error) {
 	resp, err := network.GetResponse(url)
 	if err != nil {
-		slog.Error("Failed to fetch Kali checksum file", "url", url, "err", err)
+		slog.Error("failed to fetch checksum file", "url", url, "err", err)
 		return nil, fmt.Errorf("failed to get response: %w", err)
 	}
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
-			slog.Warn("Failed to close response body", "err", err)
+			slog.Warn("failed to close response body", "err", err)
 		}
 	}()
 
 	line, err := findKaliChecksumLine(bufio.NewScanner(resp.Body))
 	if err != nil {
-		slog.Error("Failed to find Kali checksum line", "err", err)
+		slog.Error("missing checksum line", "err", err)
 		return nil, fmt.Errorf("cannot find Kali checksum line: %w", err)
 	}
 
@@ -53,7 +53,7 @@ func kaliInfoRetriever(url string, versionRegex *regexp.Regexp) (*DownloadInfo, 
 
 func kaliBootInitializer(dom *rawLibvirt.Domain) error {
 	if err := genericBootInitializer(dom); err != nil {
-		slog.Error("Failed to boot Kali image", "err", err)
+		slog.Error("failed to boot image", "err", err)
 		return fmt.Errorf("failed to boot Kali image: %w", err)
 	}
 	return nil
@@ -62,18 +62,18 @@ func kaliBootInitializer(dom *rawLibvirt.Domain) error {
 func kaliSSHStarter(dom *rawLibvirt.Domain) error {
 	time.Sleep(5 * time.Second)
 	if err := switchToTTY(dom); err != nil {
-		slog.Error("Failed to switch Kali console to TTY", "err", err)
+		slog.Error("failed to switch to tty", "err", err)
 		return fmt.Errorf("failed to switch Kali console to TTY: %w", err)
 	}
 
 	time.Sleep(1 * time.Second)
 	if err := systemdRestartSSH(dom); err != nil {
-		slog.Error("Failed to restart SSH on Kali image", "err", err)
+		slog.Error("failed to restart ssh", "err", err)
 		return fmt.Errorf("failed to restart SSH on Kali image: %w", err)
 	}
 
 	if err := switchFromTTY(dom); err != nil {
-		slog.Error("Failed to switch Kali console back from TTY", "err", err)
+		slog.Error("failed to switch from tty", "err", err)
 		return fmt.Errorf("failed to switch Kali console from TTY: %w", err)
 	}
 

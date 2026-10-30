@@ -20,7 +20,7 @@ type StatusCommand struct{}
 func (*StatusCommand) Run(_ *options.Options) error {
 	conn, err := libvirt.Connect()
 	if err != nil {
-		slog.Error("Failed to connect to libvirt for status command", "err", err)
+		slog.Error("failed to connect to libvirt", "err", err)
 		return fmt.Errorf("cannot connect to libvirt: %w", err)
 	}
 	defer handling.CloseConnect(conn)
@@ -28,7 +28,7 @@ func (*StatusCommand) Run(_ *options.Options) error {
 	for _, image := range images.GetAllImages() {
 		dom, err := libvirt.GetDomain(conn, &image, false)
 		if err != nil {
-			slog.Error("Failed to lookup domain for status command", "image", image.Name, "err", err)
+			slog.Error("failed to look up domain", "image", image.Name, "err", err)
 			return fmt.Errorf("cannot look up domain %q: %w", image.Name, err)
 		}
 

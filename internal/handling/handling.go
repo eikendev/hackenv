@@ -15,7 +15,7 @@ func Close(c io.Closer) {
 		return
 	}
 	if err := c.Close(); err != nil {
-		slog.Warn("Failed to close resource", "err", err)
+		slog.Warn("failed to close resource", "err", err)
 	}
 }
 
@@ -25,7 +25,7 @@ func CloseConnect(c *rawLibvirt.Connect) {
 		return
 	}
 	if _, err := c.Close(); err != nil {
-		slog.Warn("Failed to close libvirt connection", "err", err)
+		slog.Warn("failed to close libvirt connection", "err", err)
 	}
 }
 
@@ -35,7 +35,7 @@ func FreeDomain(d *rawLibvirt.Domain) {
 		return
 	}
 	if err := d.Free(); err != nil {
-		slog.Warn("Failed to free libvirt domain", "err", err)
+		slog.Warn("failed to free libvirt domain", "err", err)
 	}
 }
 
@@ -45,6 +45,6 @@ func ReleaseProcess(p *os.Process) {
 		return
 	}
 	if err := p.Release(); err != nil {
-		slog.Warn("Failed to release process", "err", err)
+		slog.Warn("failed to release process", "err", err)
 	}
 }

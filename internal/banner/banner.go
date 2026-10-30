@@ -24,7 +24,7 @@ func PrintBanner() {
 
 	_, err := color.New(color.FgBlue).Fprintln(os.Stderr, "                @eikendev")
 	if err != nil {
-		slog.Warn("Cannot print banner", "err", err)
+		slog.Warn("failed to print banner", "err", err)
 	}
 
 	fmt.Fprintln(os.Stderr, "")

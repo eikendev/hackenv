@@ -20,7 +20,7 @@ func GetResponse(url string) (*http.Response, error) {
 	if resp.StatusCode != http.StatusOK {
 		err = resp.Body.Close()
 		if err != nil {
-			slog.Warn("Failed to close response body", "err", err, "url", url)
+			slog.Warn("failed to close response body", "err", err, "url", url)
 		}
 
 		return nil, fmt.Errorf("received bad HTTP status code (%s)", resp.Status)

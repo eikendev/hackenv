@@ -110,12 +110,12 @@ func (c *UpCommand) resolveSSHPort(image *images.Image) (int, error) {
 func buildXML(c *UpCommand, image *images.Image, path string, port int) (string, error) {
 	sharedPath, err := paths.GetDataFilePath(sharedDir)
 	if err != nil {
-		slog.Error("Failed to resolve shared directory path", "err", err)
+		slog.Error("failed to resolve shared directory", "err", err)
 		return "", fmt.Errorf("cannot resolve shared directory path: %w", err)
 	}
 
 	if err := paths.EnsureDirExists(sharedPath); err != nil {
-		slog.Error("Failed to ensure shared directory exists", "path", sharedPath, "err", err)
+		slog.Error("failed to create shared directory", "path", sharedPath, "err", err)
 		return "", fmt.Errorf("cannot ensure shared directory at %s: %w", sharedPath, err)
 	}
 
@@ -236,13 +236,13 @@ func configureClient(c *UpCommand, image *images.Image, port int, keymap string)
 
 	publicKeyPath, err := paths.GetDataFilePath(constants.SSHKeypairName + ".pub")
 	if err != nil {
-		slog.Error("Failed to locate public key for provisioning", "err", err)
+		slog.Error("failed to resolve public key path", "err", err)
 		return fmt.Errorf("cannot locate public key: %w", err)
 	}
 
 	publicKey, err := os.ReadFile(publicKeyPath) //#nosec G304
 	if err != nil {
-		slog.Error("Failed to read public key for provisioning", "path", publicKeyPath, "err", err)
+		slog.Error("failed to read public key", "path", publicKeyPath, "err", err)
 		return fmt.Errorf("cannot read public key %s: %w", publicKeyPath, err)
 	}
 
@@ -282,7 +282,7 @@ func configureClient(c *UpCommand, image *images.Image, port int, keymap string)
 	for _, cmd := range cmds {
 		_, err := client.Run(cmd)
 		if err != nil {
-			slog.Error("Failed to run guest configuration command", "command", cmd, "err", err)
+			slog.Error("failed to run guest command", "command", cmd, "err", err)
 			return fmt.Errorf("failed to run command '%s' over SSH: %s", cmd, err)
 		}
 	}
@@ -293,7 +293,7 @@ func configureClient(c *UpCommand, image *images.Image, port int, keymap string)
 func ensureSSHKeypairExists() error {
 	sshKeypairPath, err := paths.GetDataFilePath(constants.SSHKeypairName)
 	if err != nil {
-		slog.Error("Failed to determine SSH keypair path", "err", err)
+		slog.Error("failed to resolve ssh keypair path", "err", err)
 		return fmt.Errorf("cannot determine SSH keypair path: %w", err)
 	}
 
@@ -304,7 +304,7 @@ func ensureSSHKeypairExists() error {
 
 	sshKeygenPath, err := paths.GetCmdPath("ssh-keygen")
 	if err != nil {
-		slog.Error("ssh-keygen command not found", "err", err)
+		slog.Error("missing ssh-keygen command", "err", err)
 		return fmt.Errorf("cannot locate ssh-keygen: %w", err)
 	}
 
@@ -322,12 +322,12 @@ func ensureSSHKeypairExists() error {
 	) //#nosec G204
 
 	if err := cmd.Start(); err != nil {
-		slog.Error("Failed to start ssh-keygen", "err", err)
+		slog.Error("failed to start ssh-keygen", "err", err)
 		return fmt.Errorf("cannot start ssh-keygen: %w", err)
 	}
 
 	if err := cmd.Wait(); err != nil {
-		slog.Error("ssh-keygen exited with error", "err", err)
+		slog.Error("failed to run ssh-keygen", "err", err)
 		return fmt.Errorf("failed to finish ssh-keygen: %w", err)
 	}
 
@@ -340,13 +340,13 @@ func (c *UpCommand) Run(s *options.Options) error {
 
 	image, localPath, localVersion, err := c.resolveImage(s)
 	if err != nil {
-		slog.Error("Failed to resolve image for up command", "type", s.Type, "err", err)
+		slog.Error("failed to resolve image", "type", s.Type, "err", err)
 		return fmt.Errorf("cannot resolve image data: %w", err)
 	}
 
 	conn, err := libvirt.Connect()
 	if err != nil {
-		slog.Error("Failed to connect to libvirt for up command", "err", err)
+		slog.Error("failed to connect to libvirt", "err", err)
 		return fmt.Errorf("cannot connect to libvirt: %w", err)
 	}
 	defer handling.CloseConnect(conn)
@@ -371,7 +371,7 @@ func (c *UpCommand) Run(s *options.Options) error {
 
 	xml, err := buildXML(c, &image, localPath, port)
 	if err != nil {
-		slog.Error("Failed to build domain XML", "image", image.Name, "err", err)
+		slog.Error("failed to build domain xml", "image", image.Name, "err", err)
 		return fmt.Errorf("cannot build domain definition: %w", err)
 	}
 
@@ -388,13 +388,13 @@ func (c *UpCommand) Run(s *options.Options) error {
 func (c *UpCommand) resolveImage(s *options.Options) (images.Image, string, string, error) {
 	image, err := images.GetImageDetails(s.Type)
 	if err != nil {
-		slog.Error("Failed to get image details for up command", "type", s.Type, "err", err)
+		slog.Error("failed to resolve image", "type", s.Type, "err", err)
 		return images.Image{}, "", "", fmt.Errorf("cannot resolve image details for %q: %w", s.Type, err)
 	}
 
 	localPath, err := image.GetLatestPath()
 	if err != nil {
-		slog.Error("Failed to resolve latest image path", "image", image.DisplayName, "err", err)
+		slog.Error("failed to resolve image path", "image", image.DisplayName, "err", err)
 		return images.Image{}, "", "", fmt.Errorf("cannot resolve latest image path for %s: %w", image.DisplayName, err)
 	}
 
@@ -402,14 +402,14 @@ func (c *UpCommand) resolveImage(s *options.Options) (images.Image, string, stri
 
 	if info, err := image.GetDownloadInfo(false); err == nil && info != nil {
 		if !image.VersionComparer.Eq(info.Version, localVersion) {
-			slog.Info("New image version available", "image", image.DisplayName, "version", info.Version)
+			slog.Info("found new image version", "image", image.DisplayName, "version", info.Version)
 		}
 	} else if err != nil {
-		slog.Warn("Unable to determine latest upstream image version", "image", image.DisplayName, "err", err)
+		slog.Warn("failed to fetch download info", "image", image.DisplayName, "err", err)
 	}
 
 	if err := ensureSSHKeypairExists(); err != nil {
-		slog.Error("Cannot create SSH keypair", "err", err)
+		slog.Error("failed to create ssh keypair", "err", err)
 		return images.Image{}, "", "", fmt.Errorf("failed to ensure SSH keypair exists: %w", err)
 	}
 
@@ -439,7 +439,7 @@ func (c *UpCommand) handleExistingDomain(dom *rawLibvirt.Domain, image *images.I
 
 func (c *UpCommand) bootAndConfigure(dom *rawLibvirt.Domain, image *images.Image, version string, port int, opts *options.Options) error {
 	if err := image.Boot(dom, version); err != nil {
-		slog.Error("Failed during image boot sequence", "image", image.DisplayName, "err", err)
+		slog.Error("failed to boot image", "image", image.DisplayName, "err", err)
 		return fmt.Errorf("failed to boot image %s: %w", image.DisplayName, err)
 	}
 
@@ -448,7 +448,7 @@ func (c *UpCommand) bootAndConfigure(dom *rawLibvirt.Domain, image *images.Image
 	}
 
 	if err := configureClient(c, image, port, opts.Keymap); err != nil {
-		slog.Error("Cannot configure client", "err", err)
+		slog.Error("failed to configure guest", "err", err)
 		return fmt.Errorf("cannot configure guest %s: %w", image.DisplayName, err)
 	}
 

@@ -29,13 +29,13 @@ type GuiCommand struct {
 func (c *GuiCommand) Run(s *options.Options) error {
 	image, err := images.GetImageDetails(s.Type)
 	if err != nil {
-		slog.Error("Failed to get image details for GUI command", "type", s.Type, "err", err)
+		slog.Error("failed to resolve image", "type", s.Type, "err", err)
 		return fmt.Errorf("cannot resolve image details for %q: %w", s.Type, err)
 	}
 
 	conn, err := libvirt.Connect()
 	if err != nil {
-		slog.Error("Failed to connect to libvirt for GUI command", "err", err)
+		slog.Error("failed to connect to libvirt", "err", err)
 		return fmt.Errorf("cannot connect to libvirt: %w", err)
 	}
 	defer handling.CloseConnect(conn)
@@ -43,20 +43,20 @@ func (c *GuiCommand) Run(s *options.Options) error {
 	// Check if the domain is up.
 	dom, err := libvirt.GetDomain(conn, &image, true)
 	if err != nil {
-		slog.Error("Failed to lookup domain for GUI command", "image", image.Name, "err", err)
+		slog.Error("failed to look up domain", "image", image.Name, "err", err)
 		return fmt.Errorf("cannot look up domain %q: %w", image.Name, err)
 	}
 	defer handling.FreeDomain(dom)
 
 	args, err := c.viewerArgs(&image)
 	if err != nil {
-		slog.Error("Failed to resolve viewer arguments", "viewer", c.Viewer, "err", err)
+		slog.Error("failed to resolve viewer", "viewer", c.Viewer, "err", err)
 		return fmt.Errorf("cannot resolve viewer %q: %w", c.Viewer, err)
 	}
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		slog.Warn("Cannot get current working directory", "err", err)
+		slog.Warn("failed to get working directory", "err", err)
 	}
 
 	cmd := exec.Command(args[0], args[1:]...) //#nosec G204
@@ -65,7 +65,7 @@ func (c *GuiCommand) Run(s *options.Options) error {
 
 	err = cmd.Start()
 	if err != nil {
-		slog.Error("Cannot spawn viewer process", "err", err)
+		slog.Error("failed to start viewer", "err", err)
 		return fmt.Errorf("cannot start viewer %q: %w", args[0], err)
 	}
 	defer handling.ReleaseProcess(cmd.Process)
@@ -78,7 +78,7 @@ func (c *GuiCommand) viewerArgs(image *images.Image) ([]string, error) {
 	case virtViewerBin:
 		virtViewerPath, err := paths.GetCmdPath(virtViewerBin)
 		if err != nil {
-			slog.Error("Unable to locate viewer", "viewer", c.Viewer, "err", err)
+			slog.Error("missing viewer", "viewer", c.Viewer, "err", err)
 			return nil, fmt.Errorf("unable to locate %s", c.Viewer)
 		}
 
@@ -95,7 +95,7 @@ func (c *GuiCommand) viewerArgs(image *images.Image) ([]string, error) {
 	case remminaBin:
 		remminaPath, err := paths.GetCmdPath(remminaBin)
 		if err != nil {
-			slog.Error("Unable to locate viewer", "viewer", c.Viewer, "err", err)
+			slog.Error("missing viewer", "viewer", c.Viewer, "err", err)
 			return nil, fmt.Errorf("unable to locate %s", c.Viewer)
 		}
 
@@ -105,7 +105,7 @@ func (c *GuiCommand) viewerArgs(image *images.Image) ([]string, error) {
 			"SPICE://localhost",
 		}, nil
 	default:
-		slog.Error("Unsupported viewer", "viewer", c.Viewer)
+		slog.Error("found invalid viewer", "viewer", c.Viewer)
 		return nil, fmt.Errorf("cannot use viewer %s: unsupported", c.Viewer)
 	}
 }

@@ -26,7 +26,7 @@ var domainStates = map[libvirt.DomainState]string{
 func Connect() (*libvirt.Connect, error) {
 	conn, err := libvirt.NewConnect(constants.ConnectURI)
 	if err != nil {
-		slog.Error("Cannot establish connection with libvirt", "err", err)
+		slog.Error("failed to connect to libvirt", "err", err)
 		return nil, fmt.Errorf("cannot establish connection with libvirt: %w", err)
 	}
 
@@ -38,7 +38,7 @@ func GetDomain(conn *libvirt.Connect, image *images.Image, fail bool) (*libvirt.
 	dom, err := conn.LookupDomainByName(image.Name)
 	if err != nil {
 		if fail {
-			slog.Error("Domain is down", "image", image.DisplayName)
+			slog.Error("missing domain", "image", image.DisplayName)
 			return nil, fmt.Errorf("cannot use %s: domain is down", image.DisplayName)
 		}
 		return nil, nil
@@ -51,7 +51,7 @@ func GetDomain(conn *libvirt.Connect, image *images.Image, fail bool) (*libvirt.
 func ResolveDomainState(state libvirt.DomainState) (string, error) {
 	display, ok := domainStates[state]
 	if !ok {
-		slog.Error("Cannot resolve domain state", "state", state)
+		slog.Error("failed to resolve domain state", "state", state)
 		return "", fmt.Errorf("cannot resolve domain state: %d", state)
 	}
 
