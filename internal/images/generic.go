@@ -43,14 +43,11 @@ func normalizeVersionParts(a, b string) ([]string, []string) {
 		panic(fmt.Sprintf("cannot compare versions %s and %s", a, b))
 	}
 
-	if len(aParts) != len(bParts) {
-		slog.Warn("found invalid version parts", "a", a, "b", b, "a_parts", len(aParts), "b_parts", len(bParts))
-		for len(aParts) < len(bParts) {
-			aParts = append(aParts, "0")
-		}
-		for len(bParts) < len(aParts) {
-			bParts = append(bParts, "0")
-		}
+	for len(aParts) < len(bParts) {
+		aParts = append(aParts, "0")
+	}
+	for len(bParts) < len(aParts) {
+		bParts = append(bParts, "0")
 	}
 
 	return aParts, bParts
