@@ -7,8 +7,10 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"maps"
 	"regexp"
 	"runtime"
+	"slices"
 	"strings"
 	"time"
 
@@ -19,32 +21,67 @@ import (
 
 var parrotReleaseDirRegex = regexp.MustCompile(`href="(\d+(?:\.\d+)+)/"`)
 
-func findParrotChecksumLine(scanner *bufio.Scanner) (string, error) {
-	const (
-		sha256Section = "sha256"
-		sha384Section = "sha384"
-	)
+var (
+	parrotSecurityImageRegex = regexp.MustCompile(`^Parrot-security(?:-[a-z]+)*-\d+(?:\.\d+)*_` + runtime.GOARCH + `\.iso$`)
+	parrotTunedImageRegex    = regexp.MustCompile(`^Parrot-security-tuned-\d`)
+	parrotPlainImageRegex    = regexp.MustCompile(`^Parrot-security-\d`)
+)
 
+func findParrotChecksums(scanner *bufio.Scanner) (map[string]string, error) {
 	var inSha256Section bool
 
+	checksums := map[string]string{}
+
 	for scanner.Scan() {
-		line := scanner.Text()
+		fields := strings.Fields(scanner.Text())
 
 		switch {
-		case strings.Contains(line, sha256Section):
-			inSha256Section = true
-			continue
-		case strings.Contains(line, sha384Section):
-			inSha256Section = false
-			continue
-		case inSha256Section &&
-			strings.Contains(line, "Parrot-security-") &&
-			strings.Contains(line, "_"+runtime.GOARCH+".iso"):
-			return strings.TrimSpace(line), nil
+		case len(fields) == 1:
+			inSha256Section = fields[0] == "sha256"
+		case len(fields) == 2 && inSha256Section && parrotSecurityImageRegex.MatchString(fields[1]):
+			checksums[fields[1]] = fields[0]
 		}
 	}
 
-	return "", errors.New("cannot find checksum in file")
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("cannot read checksum file: %w", err)
+	}
+
+	if len(checksums) == 0 {
+		return nil, errors.New("cannot find checksum in file")
+	}
+
+	return checksums, nil
+}
+
+func pickParrotImage(checksums map[string]string) string {
+	for _, preferred := range []*regexp.Regexp{parrotTunedImageRegex, parrotPlainImageRegex} {
+		for _, filename := range slices.Sorted(maps.Keys(checksums)) {
+			if preferred.MatchString(filename) {
+				return filename
+			}
+		}
+	}
+
+	return ""
+}
+
+func parrotDownloadInfo(sums []byte, versionRegex *regexp.Regexp) (*DownloadInfo, error) {
+	checksums, err := findParrotChecksums(bufio.NewScanner(bytes.NewReader(sums)))
+	if err != nil {
+		return nil, err
+	}
+
+	filename := pickParrotImage(checksums)
+	if filename == "" {
+		return nil, errors.New("cannot find security image in checksum file")
+	}
+
+	return &DownloadInfo{
+		Checksum: checksums[filename],
+		Version:  versionRegex.FindString(filename),
+		Filename: filename,
+	}, nil
 }
 
 func findLatestRelease(index string, comparer versionComparer) (string, error) {
@@ -101,15 +138,10 @@ func parrotInfoRetriever(ctx context.Context, image *Image, opts FetchOptions) (
 		return nil, err
 	}
 
-	line, err := findParrotChecksumLine(bufio.NewScanner(bytes.NewReader(sums)))
+	info, err := parrotDownloadInfo(sums, image.VersionRegex)
 	if err != nil {
 		slog.Error("missing checksum line", "err", err)
 		return nil, fmt.Errorf("cannot find Parrot checksum line: %w", err)
-	}
-
-	info, err := parseChecksumLine(line, image.VersionRegex)
-	if err != nil {
-		return nil, err
 	}
 
 	info.URL = releaseURL + "/" + info.Filename
