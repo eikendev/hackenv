@@ -94,7 +94,7 @@ func kaliSSHStarter(dom *rawLibvirt.Domain) error {
 		return fmt.Errorf("failed to restart SSH on Kali image: %w", err)
 	}
 
-	if err := switchFromTTY(dom); err != nil {
+	if err := switchToDesktop(dom, KEY_F7); err != nil {
 		slog.Error("failed to switch from tty", "err", err)
 		return fmt.Errorf("failed to switch Kali console back from TTY: %w", err)
 	}

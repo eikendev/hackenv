@@ -142,7 +142,7 @@ func parrotSSHStarter(dom *rawLibvirt.Domain) error {
 		return fmt.Errorf("failed to restart SSH on Parrot image: %w", err)
 	}
 
-	if err := switchFromTTY(dom); err != nil {
+	if err := switchToDesktop(dom, KEY_F8); err != nil {
 		slog.Error("failed to switch from tty", "err", err)
 		return fmt.Errorf("failed to switch Parrot console back from TTY: %w", err)
 	}

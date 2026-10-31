@@ -88,8 +88,8 @@ func switchToTTY(dom *rawLibvirt.Domain) error {
 	return nil
 }
 
-func switchFromTTY(dom *rawLibvirt.Domain) error {
-	if err := sendKeys(dom, []uint{KEY_LEFTCTRL, KEY_LEFTALT, KEY_F7}); err != nil {
+func switchToDesktop(dom *rawLibvirt.Domain, desktopKey uint) error {
+	if err := sendKeys(dom, []uint{KEY_LEFTCTRL, KEY_LEFTALT, desktopKey}); err != nil {
 		slog.Error("failed to switch from tty", "err", err)
 		return fmt.Errorf("failed to switch console from TTY: %w", err)
 	}

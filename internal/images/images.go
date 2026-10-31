@@ -104,7 +104,7 @@ var images = map[string]Image{
 		signingKey:        parrotSigningKey,
 		LocalImageName:    "parrot-%s.iso",
 		VersionRegex:      regexp.MustCompile(`\d+\.\d+(?:\.\d+)?`),
-		SSHUser:           "user",
+		SSHUser:           "live",
 		SSHPassword:       "parrot",
 		SSHPort:           2223,
 		MacAddress:        "52:54:00:08:f9:e9",
