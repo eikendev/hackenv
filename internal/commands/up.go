@@ -41,10 +41,9 @@ const (
 
 // UpCommand represents the options specific to the up command.
 type UpCommand struct {
-	Cores       int          `name:"cores" env:"HACKENV_CORES" default:"2" help:"How many virtual CPU cores to assign to the VM"`
-	Memory      units.Memory `name:"memory" env:"HACKENV_MEMORY" default:"4G" help:"How much RAM to assign to the VM, for example 4G or 4096M"`
-	SSHPort     int          `name:"ssh-port" env:"HACKENV_SSH_PORT" default:"0" help:"The host port forwarded to the SSH server of the VM (default depends on the image)"`
-	DisplaySize string       `name:"display-size" env:"HACKENV_DISPLAY_SIZE" default:"1920x1080" help:"The resolution of the VM's display"`
+	Cores   int          `name:"cores" env:"HACKENV_CORES" default:"2" help:"How many virtual CPU cores to assign to the VM"`
+	Memory  units.Memory `name:"memory" env:"HACKENV_MEMORY" default:"4G" help:"How much RAM to assign to the VM, for example 4G or 4096M"`
+	SSHPort int          `name:"ssh-port" env:"HACKENV_SSH_PORT" default:"0" help:"The host port forwarded to the SSH server of the VM (default depends on the image)"`
 }
 
 func (c *UpCommand) validateMemory() error {
@@ -232,7 +231,7 @@ func closeSession(session *ssh.Session) {
 	}
 }
 
-func configureClient(c *UpCommand, image *images.Image, port int) error {
+func configureClient(image *images.Image, port int) error {
 	client, err := connectGuest(image, port)
 	if err != nil {
 		return err
@@ -268,9 +267,6 @@ func configureClient(c *UpCommand, image *images.Image, port int) error {
 		// Setup a shared directory.
 		"sudo mkdir -p " + guestSharedDir,
 		domain.MountCommand(guestSharedDir),
-
-		// Set screen size to Full HD.
-		fmt.Sprintf("DISPLAY=:0 xrandr --size %s", c.DisplaySize),
 	}...)
 
 	for _, cmd := range cmds {
@@ -445,7 +441,7 @@ func (c *UpCommand) bootAndConfigure(dom *rawLibvirt.Domain, image *images.Image
 		return err
 	}
 
-	if err := configureClient(c, image, port); err != nil {
+	if err := configureClient(image, port); err != nil {
 		slog.Error("failed to configure guest", "err", err)
 		return fmt.Errorf("cannot configure guest %s: %w", image.DisplayName, err)
 	}
