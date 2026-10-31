@@ -32,7 +32,7 @@ type GetCommand struct {
 	Force         bool   `short:"f" name:"force" help:"Force to download the new image"`
 	Update        bool   `short:"u" name:"update" help:"Allow update to the latest image"`
 	Yes           bool   `short:"y" name:"yes" help:"Answer yes to all questions"`
-	File          string `name:"file" type:"existingfile" help:"Import this already downloaded image instead of downloading it"`
+	File          string `name:"file" type:"existingfile" help:"Import this image instead of downloading one; it is not verified"`
 	SkipSignature bool   `name:"skip-signature" help:"Do not verify the signature of the checksum file"`
 	SigningKey    string `name:"signing-key" env:"HACKENV_SIGNING_KEY" type:"existingfile" help:"Armored public key to verify the checksum file with instead of the embedded one"`
 
@@ -236,6 +236,10 @@ func (c *GetCommand) Run(s *options.Options) error {
 
 	c.verbose = s.Verbose
 
+	if c.File != "" {
+		return c.importFile(ctx, s.Type)
+	}
+
 	image, info, localPath, err := c.resolveTarget(ctx, s.Type)
 	if err != nil {
 		return err
@@ -294,12 +298,8 @@ func (c *GetCommand) resolveTarget(ctx context.Context, imageType string) (image
 	return image, info, localPath, nil
 }
 
-// obtainImage places the image at localPath, either by importing a local file or by downloading it.
+// obtainImage downloads the image to localPath and validates its checksum.
 func (c *GetCommand) obtainImage(ctx context.Context, info *images.DownloadInfo, localPath string) (bool, error) {
-	if c.File != "" {
-		return c.importImage(ctx, info, localPath)
-	}
-
 	if err := c.download(ctx, info, localPath); err != nil {
 		return false, err
 	}
