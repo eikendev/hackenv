@@ -1,5 +1,36 @@
 # Changelog
 
+## [2.0.0](https://github.com/eikendev/hackenv/compare/v1.0.0...v2.0.0) (2026-10-31)
+
+
+### ⚠ BREAKING CHANGES
+
+* **up:** drop the display size setting
+* **get:** import local images unverified
+
+### Features
+
+* **get:** download the tuned parrot image ([8d45db3](https://github.com/eikendev/hackenv/commit/8d45db300130d71d2e51da7d1c7bb915a751657d))
+* **get:** import local images unverified ([6e3556f](https://github.com/eikendev/hackenv/commit/6e3556f7edcd41709c59bf71b00074ea664ce2d4))
+* **up:** drop the display size setting ([d732998](https://github.com/eikendev/hackenv/commit/d732998279934a9df58baddbfc60d730693449e0))
+
+
+### Bug Fixes
+
+* **images:** drop warning for uneven versions ([b543bef](https://github.com/eikendev/hackenv/commit/b543bef83ecb66cd056142b8c1d81e874b9017fa))
+* **up:** provision parrot 7 live sessions ([4c02989](https://github.com/eikendev/hackenv/commit/4c029893cd3da1e64385f20bae1b5142ad8c936c))
+
+
+### Documentation
+
+* restructure readme around a quick start ([9eddfbb](https://github.com/eikendev/hackenv/commit/9eddfbb7f2e473a629cc0da86a0cc4d022971dd1))
+
+
+### Build
+
+* **actions:** bump zizmorcore/zizmor-action ([#37](https://github.com/eikendev/hackenv/issues/37)) ([4b5d40b](https://github.com/eikendev/hackenv/commit/4b5d40bf189a0dfe2e23e1ff45c0d5dc95219af4))
+* **go:** bump the go-dependencies group across 1 directory with 3 updates ([#38](https://github.com/eikendev/hackenv/issues/38)) ([d3a3c5f](https://github.com/eikendev/hackenv/commit/d3a3c5fb61988ffabb0deb5fda5ae167dc205e4f))
+
 ## [1.0.0](https://github.com/eikendev/hackenv/compare/v0.3.0...v1.0.0) (2026-10-30)
 
 
