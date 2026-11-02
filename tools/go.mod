@@ -7,6 +7,7 @@ tool (
 	github.com/fzipp/gocyclo/cmd/gocyclo
 	github.com/go-critic/go-critic/cmd/gocritic
 	github.com/kisielk/errcheck
+	github.com/kojah/gohawk
 	github.com/mgechev/revive
 	github.com/securego/gosec/v2/cmd/gosec
 	go.uber.org/nilaway/cmd/nilaway
@@ -33,6 +34,7 @@ require (
 	github.com/fatih/color v1.19.0 // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/felixge/httpsnoop v1.1.0 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
 	github.com/fzipp/gocyclo v0.6.0 // indirect
 	github.com/go-critic/go-critic v0.15.0 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
@@ -56,6 +58,7 @@ require (
 	github.com/invopop/jsonschema v0.14.0 // indirect
 	github.com/kisielk/errcheck v1.30.0 // indirect
 	github.com/klauspost/compress v1.20.0 // indirect
+	github.com/kojah/gohawk v0.7.1 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/mgechev/revive v1.17.1 // indirect
@@ -74,6 +77,7 @@ require (
 	github.com/tidwall/match v1.2.0 // indirect
 	github.com/tidwall/pretty v1.2.2 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
+	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xo/terminfo v1.2.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.72.0 // indirect
