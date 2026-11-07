@@ -5,7 +5,7 @@ go 1.27
 require (
 	github.com/ProtonMail/go-crypto v1.5.2
 	github.com/adrg/xdg v0.5.3
-	github.com/alecthomas/kong v1.16.1
+	github.com/alecthomas/kong v1.17.0
 	github.com/alecthomas/kong-yaml v0.2.0
 	github.com/anacrolix/generics v0.2.0
 	github.com/anacrolix/torrent v1.61.1-0.20260911233437-76452a2c8a2f
