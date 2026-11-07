@@ -164,7 +164,7 @@ alias parrot='hackenv --type=parrot'
 ## 🔨&nbsp;Building from Source
 
 ```bash
-go install -tags libvirt_dlopen,nosqlite,disable_libutp github.com/eikendev/hackenv/cmd/...@latest
+go install -tags libvirt_dlopen,nosqlite,purego_utp github.com/eikendev/hackenv/cmd/...@latest
 ```
 
 Building needs a C compiler and the libvirt development headers (`libvirt-devel` on Fedora, `libvirt-dev` on Debian and Ubuntu).
