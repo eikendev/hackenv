@@ -12,7 +12,7 @@ require (
 	github.com/fatih/color v1.19.0
 	github.com/schollz/progressbar/v3 v3.19.1
 	golang.org/x/crypto v0.58.0
-	golang.org/x/sys v0.49.0
+	golang.org/x/sys v0.50.0
 	libvirt.org/go/libvirt v1.12007.0
 )
 
