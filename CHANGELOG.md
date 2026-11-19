@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.0.1](https://github.com/eikendev/hackenv/compare/v2.0.0...v2.0.1) (2026-11-14)
+
+
+### Bug Fixes
+
+* **build:** select pure go utp via purego_utp tag ([8fc1fee](https://github.com/eikendev/hackenv/commit/8fc1feed821c97ac8a0c05da0f4aa5de3f3fcfa6))
+* **deps:** bump torrent to patch GO-2026-6894 ([4835bd9](https://github.com/eikendev/hackenv/commit/4835bd97eb4641d7fa5e837de4ec4870450dbba1))
+
+
+### Build
+
+* **actions:** bump zizmorcore/zizmor-action ([#43](https://github.com/eikendev/hackenv/issues/43)) ([9bcd195](https://github.com/eikendev/hackenv/commit/9bcd1952057034203f16e9c5f14c89683cef086e))
+* add gohawk to lint tools ([bbb90aa](https://github.com/eikendev/hackenv/commit/bbb90aa8fbcac32ee3d3cf5b775dcbcad461cb44))
+* **go:** bump github.com/alecthomas/kong ([#41](https://github.com/eikendev/hackenv/issues/41)) ([eece6c3](https://github.com/eikendev/hackenv/commit/eece6c30d2822a0bea7330f19c1f644fbecd7ce0))
+* **go:** bump go.opentelemetry.io/otel/trace from 1.41.0 to 1.47.0 ([#42](https://github.com/eikendev/hackenv/issues/42)) ([4efaacd](https://github.com/eikendev/hackenv/commit/4efaacd52414dd4dead58e25acef2ef997b295b1))
+* **go:** bump golang.org/x/sys ([#44](https://github.com/eikendev/hackenv/issues/44)) ([ec50d25](https://github.com/eikendev/hackenv/commit/ec50d25fb47ac79c848c31bf66df50d34151121d))
+
 ## [2.0.0](https://github.com/eikendev/hackenv/compare/v1.0.0...v2.0.0) (2026-10-31)
 
 
