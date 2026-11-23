@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.0.2](https://github.com/eikendev/hackenv/compare/v2.0.1...v2.0.2) (2026-11-23)
+
+
+### Bug Fixes
+
+* **domain:** keep pointer aligned after resize ([f6858a9](https://github.com/eikendev/hackenv/commit/f6858a9073a2ebf03b68c4d253d85e428c8632db))
+* **up:** follow viewer size with virtio video ([75c8240](https://github.com/eikendev/hackenv/commit/75c824009566bcb7620fcca4ecc2f820d0ae943c))
+
+
+### Build
+
+* **go:** bump the go-dependencies group across 1 directory with 3 updates ([#45](https://github.com/eikendev/hackenv/issues/45)) ([6b13bd3](https://github.com/eikendev/hackenv/commit/6b13bd320c3c4543df02c631dea4e9777dec54b8))
+
 ## [2.0.1](https://github.com/eikendev/hackenv/compare/v2.0.0...v2.0.1) (2026-11-14)
 
 
