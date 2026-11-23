@@ -42,6 +42,7 @@ func TestRenderDefaults(t *testing.T) {
 		"<type>hvm</type>",
 		"accessmode='mapped'",
 		"<model type='qxl'/>",
+		"<mouse mode='server'/>",
 		"<range start='2222' to='22'/>",
 		"<target dir='shared'/>",
 	} {
