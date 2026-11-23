@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
+	"strings"
 	"text/template"
 )
 
@@ -108,4 +109,25 @@ func Render(spec Spec) (string, error) {
 // MountCommand returns the guest command that mounts the shared directory at target.
 func MountCommand(target string) string {
 	return fmt.Sprintf("sudo mount -t 9p -o trans=virtio,version=9p2000.L %s %s", SharedTag, target)
+}
+
+const autoResizeRulePath = "/etc/udev/rules.d/50-hackenv-resize.rules"
+
+// AutoResizeCommands returns the guest commands that make the desktop of user follow the viewer size.
+// With virtio video the new size only arrives as a display change event, which not every desktop applies.
+// The rule queries the display first, because only a query makes the X server pick up the new size.
+func AutoResizeCommands(user string) []string {
+	rule := fmt.Sprintf(
+		`ACTION=="change", SUBSYSTEM=="drm", RUN+="/usr/sbin/runuser -u %s -- /bin/sh -c 'export DISPLAY=:0; xrandr >/dev/null; xrandr --output Virtual-1 --auto'"`,
+		user,
+	)
+
+	return []string{
+		fmt.Sprintf("printf '%%s\\n' %s | sudo tee %s >/dev/null", shellQuote(rule), autoResizeRulePath),
+		"sudo udevadm control --reload-rules",
+	}
+}
+
+func shellQuote(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
 }

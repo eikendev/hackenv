@@ -268,6 +268,7 @@ func configureClient(image *images.Image, port int) error {
 		"sudo mkdir -p " + guestSharedDir,
 		domain.MountCommand(guestSharedDir),
 	}...)
+	cmds = append(cmds, domain.AutoResizeCommands(image.SSHUser)...)
 
 	for _, cmd := range cmds {
 		if err := runGuestCommand(client, cmd); err != nil {

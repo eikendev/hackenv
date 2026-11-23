@@ -91,3 +91,21 @@ func TestMountCommand(t *testing.T) {
 		t.Fatalf("MountCommand() = %q", got)
 	}
 }
+
+func TestAutoResizeCommands(t *testing.T) {
+	got := AutoResizeCommands("kali")
+	if len(got) != 2 {
+		t.Fatalf("AutoResizeCommands() returned %d commands, want 2", len(got))
+	}
+
+	want := `printf '%s\n' 'ACTION=="change", SUBSYSTEM=="drm", ` +
+		`RUN+="/usr/sbin/runuser -u kali -- /bin/sh -c '\''export DISPLAY=:0; xrandr >/dev/null; xrandr --output Virtual-1 --auto'\''"' ` +
+		`| sudo tee /etc/udev/rules.d/50-hackenv-resize.rules >/dev/null`
+	if got[0] != want {
+		t.Fatalf("AutoResizeCommands()[0] = %q, want %q", got[0], want)
+	}
+
+	if got[1] != "sudo udevadm control --reload-rules" {
+		t.Fatalf("AutoResizeCommands()[1] = %q", got[1])
+	}
+}
