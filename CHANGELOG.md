@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.3](https://github.com/eikendev/hackenv/compare/v2.0.2...v2.0.3) (2026-11-28)
+
+
+### Build
+
+* **go:** bump github.com/anacrolix/torrent ([#47](https://github.com/eikendev/hackenv/issues/47)) ([7a3fddf](https://github.com/eikendev/hackenv/commit/7a3fddf8feb71e1d4f86ce5b4005732318edc516))
+
 ## [2.0.2](https://github.com/eikendev/hackenv/compare/v2.0.1...v2.0.2) (2026-11-23)
 
 
